@@ -305,7 +305,20 @@
 
       <div class="card">
         <div style="font-weight: 700; margin-bottom: 15px">
-          <i class="fas fa-database"></i> Master Barang
+          <i class="fas fa-database"></i> Master & Session Barang
+        </div>
+
+        <div class="filter-grid">
+          <div class="input-group" style="margin-bottom: 0">
+            <label>Data Mode</label>
+            <select class="form-control" id="dataMode" onchange="renderData()">
+              <option value="master" selected>
+                Master (24 jam terakhir lewat)
+              </option>
+              <option value="session">Session (24 jam berjalan)</option>
+            </select>
+          </div>
+          <div class="input-group" style="margin-bottom: 0"></div>
         </div>
 
         <div class="filter-grid">
@@ -339,9 +352,12 @@
           />
         </div>
 
-        <button class="btn btn-export" onclick="downloadExcel()">
-          <i class="fas fa-file-excel" style="margin-right: 8px"></i> Export
-          Excel
+        <button class="btn btn-export" onclick="downloadExcelSession()">
+          Export Excel Session (24 Jam Berjalan)
+        </button>
+
+        <button class="btn btn-export" onclick="downloadExcelMaster()">
+          Export Excel Master (>24 Jam)
         </button>
 
         <div class="table-wrapper" style="margin-top: 15px">
@@ -368,8 +384,17 @@
 
     <script>
       // --- DATABASE & ENGINE SETUP ---
+      const STORAGE_MASTER_KEY = "ZXingMasterBarcodeData";
+      const STORAGE_SESSION_KEY = "ZXingSessionBarcodeData";
+      const STORAGE_SESSION_START_KEY = "ZXingSessionStartAt";
+
       let masterData =
-        JSON.parse(localStorage.getItem("ZXingBarcodeData")) || [];
+        JSON.parse(localStorage.getItem(STORAGE_MASTER_KEY)) || [];
+      let sessionData =
+        JSON.parse(localStorage.getItem(STORAGE_SESSION_KEY)) || [];
+      let sessionStartAt = Number(
+        localStorage.getItem(STORAGE_SESSION_START_KEY) || 0,
+      );
 
       let codeReader = null;
       let isScanning = false;
@@ -527,8 +552,86 @@
         return { x, y, w, h };
       }
 
+      // Ambil frame dari video lalu decode dari hasil crop menggunakan ZXing (canvas -> imageData)
+      function decodeFromCroppedCanvas(videoEl, reader, onDecoded) {
+        const crop = getVideoCropArea(videoEl);
+
+        const canvas = document.createElement("canvas");
+        canvas.width = crop.w;
+        canvas.height = crop.h;
+        const ctx = canvas.getContext("2d", { willReadFrequently: true });
+        if (!ctx) return;
+
+        ctx.drawImage(
+          videoEl,
+          crop.x,
+          crop.y,
+          crop.w,
+          crop.h,
+          0,
+          0,
+          crop.w,
+          crop.h,
+        );
+
+        const imageData = ctx.getImageData(0, 0, crop.w, crop.h);
+
+        // ZXing JS menyediakan decode() berbasis Browser code
+        // fallback: jika decode() tidak ada, maka crop tidak bisa dipakai.
+        if (!reader || typeof reader.decode !== "function") return;
+
+        reader
+          .decode(imageData)
+          .then(onDecoded)
+          .catch(() => {});
+      }
+
+      function ensureSessionStarted() {
+        const now = Date.now();
+        if (!sessionStartAt || now - sessionStartAt > 24 * 60 * 60 * 1000) {
+          sessionStartAt = now;
+          localStorage.setItem(
+            STORAGE_SESSION_START_KEY,
+            String(sessionStartAt),
+          );
+          sessionData = [];
+          localStorage.setItem(
+            STORAGE_SESSION_KEY,
+            JSON.stringify(sessionData),
+          );
+        }
+      }
+
+      function archiveOldToMaster() {
+        const now = Date.now();
+        if (!sessionStartAt) return;
+        const cutoff = sessionStartAt + 24 * 60 * 60 * 1000;
+
+        if (now <= cutoff) return;
+
+        // pindahkan semua item yang sudah lewat cutoff ke master
+        const keep = [];
+        const move = [];
+        for (const item of sessionData) {
+          if (item.scannedAt && item.scannedAt > cutoff) move.push(item);
+          else if (!item.scannedAt) keep.push(item);
+          else keep.push(item);
+        }
+        if (move.length === 0) return;
+
+        sessionData = keep;
+        masterData = masterData.concat(move);
+
+        localStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify(sessionData));
+        localStorage.setItem(STORAGE_MASTER_KEY, JSON.stringify(masterData));
+      }
+
       async function toggleScan() {
         const btn = document.getElementById("btnAction");
+        // pastikan session sudah dimulai ketika user menekan tombol scan
+        ensureSessionStarted();
+        archiveOldToMaster();
+
         const video = document.getElementById("videoElement");
         const placeholder = document.getElementById("placeholderMsg");
         const laser = document.getElementById("laser");
@@ -539,6 +642,11 @@
             if (codeReader) codeReader.reset();
           } catch (e) {}
           isScanning = false;
+          try {
+            clearInterval(window.__scanCropLoop);
+          } catch (e) {}
+          window.__scanCropLoop = null;
+
           video.style.display = "none";
           laser.style.display = "none";
           placeholder.style.display = "block";
@@ -568,17 +676,23 @@
               },
             };
 
-            // NOTE: crop/ROI bisa meningkatkan akurasi, tapi API ZXing JS yang dipakai tidak langsung menerima ROI.
-            // Untuk saat ini decode dari video dengan hints + anti-spam untuk semua jenis barcode.
+            // ROI/crop biasanya meningkatkan akurasi pada label yang ditempel.
+            // Kita tetap decode seluruh format, tapi sumber frame yang didecode adalah crop tengah.
+            let isDecoding = false;
 
-            codeReader.decodeFromConstraints(
-              constraints,
-              "videoElement",
-              (result) => {
+            const attemptDecode = () => {
+              if (!isScanning) return;
+              if (!codeReader || isDecoding) return;
+
+              const now = Date.now();
+              if (now < scanLockUntil) return;
+
+              isDecoding = true;
+
+              // decode dari canvas crop tengah
+              decodeFromCroppedCanvas(video, codeReader, (result) => {
+                isDecoding = false;
                 if (!result) return;
-
-                const now = Date.now();
-                if (now < scanLockUntil) return;
 
                 const code = result.getText();
                 if (!code) return;
@@ -589,17 +703,42 @@
 
                 // anti dobel: text yang sama jangan disimpan lagi terlalu cepat
                 if (code === lastScanText) {
-                  scanLockUntil = now + 800;
+                  scanLockUntil = Date.now() + 800;
                   return;
                 }
 
                 lastScanText = code;
                 lastScanAt = now;
-                scanLockUntil = now + 2200; // anti spam 2.2 detik
+                scanLockUntil = Date.now() + 2200; // anti spam 2.2 detik
 
                 simpanData(code, format);
+              });
+            };
+
+            // mulai streaming decode loop (throttle sederhana)
+            codeReader.decodeFromConstraints(
+              constraints,
+              "videoElement",
+              () => {
+                // callback tidak dipakai (kita simpan dari hasil crop loop)
               },
             );
+
+            // loop terpisah: decode dari crop
+            const loopMs = 250; // cukup cepat tanpa membebani device
+            window.__scanCropLoop = setInterval(() => {
+              attemptDecode();
+            }, loopMs);
+
+            // saat scanning dihentikan, bersihkan interval
+            const oldReset = codeReader.reset.bind(codeReader);
+            codeReader.reset = () => {
+              try {
+                clearInterval(window.__scanCropLoop);
+              } catch (e) {}
+              window.__scanCropLoop = null;
+              oldReset();
+            };
           } catch (err) {
             console.error(err);
             Swal.fire(
@@ -653,7 +792,8 @@
       }
 
       function simpanData(kode, barcodeFormat) {
-        const now = new Date();
+        const nowDate = new Date();
+        const nowMs = Date.now();
 
         // default (fallback)
         const defaults = {
@@ -661,14 +801,15 @@
           lebar: 18,
           potongan: 24,
           persegi: 12.1,
-          tanggal: now.toISOString().split("T")[0],
-          jam: now.toTimeString().split(" ")[0],
+          tanggal: nowDate.toISOString().split("T")[0],
+          jam: nowDate.toTimeString().split(" ")[0],
           golongan: "A",
         };
 
         const parsed = parsePayloadToFields(kode);
         const newData = {
           id: Date.now(),
+          scannedAt: nowMs,
           kode: kode,
           panjang: parsed?.panjang ?? defaults.panjang,
           lebar: parsed?.lebar ?? defaults.lebar,
@@ -680,8 +821,18 @@
           format: barcodeFormat || "",
         };
 
-        masterData.unshift(newData);
-        localStorage.setItem("ZXingBarcodeData", JSON.stringify(masterData));
+        // rolling 24 jam sejak sessionStartAt
+        const cutoff = sessionStartAt + 24 * 60 * 60 * 1000;
+        if (nowMs <= cutoff) {
+          sessionData.push(newData);
+          localStorage.setItem(
+            STORAGE_SESSION_KEY,
+            JSON.stringify(sessionData),
+          );
+        } else {
+          masterData.push(newData);
+          localStorage.setItem(STORAGE_MASTER_KEY, JSON.stringify(masterData));
+        }
 
         triggerFeedback();
         Toast.fire({
@@ -703,18 +854,18 @@
         const end = document.getElementById("end").value;
         const search = document.getElementById("search").value.toLowerCase();
 
-        let fData = masterData.filter((i) => {
+        const fSrc = document.getElementById("dataMode")?.value || "master";
+        const src = fSrc === "session" ? sessionData : masterData;
+
+        let fData = src.filter((i) => {
           if (start && i.tanggal < start) return false;
           if (end && i.tanggal > end) return false;
           if (search && !i.kode.toLowerCase().includes(search)) return false;
           return true;
         });
 
-        fData.sort(
-          (a, b) =>
-            new Date(b.tanggal + "T" + b.jam) -
-            new Date(a.tanggal + "T" + a.jam),
-        );
+        // ascending sesuai urutan scan
+        fData.sort((a, b) => (a.scannedAt || 0) - (b.scannedAt || 0));
 
         tbody.innerHTML = "";
         if (fData.length === 0) {
@@ -743,6 +894,9 @@
       }
 
       function hapus(id) {
+        // Hapus dari mode yang sedang ditampilkan (master/session)
+        const mode = document.getElementById("dataMode")?.value || "master";
+
         Swal.fire({
           title: "Hapus Data?",
           icon: "warning",
@@ -751,19 +905,58 @@
           confirmButtonText: "Hapus",
         }).then((res) => {
           if (res.isConfirmed) {
-            masterData = masterData.filter((i) => i.id !== id);
-            localStorage.setItem(
-              "ZXingBarcodeData",
-              JSON.stringify(masterData),
-            );
+            if (mode === "session") {
+              sessionData = sessionData.filter((i) => i.id !== id);
+              localStorage.setItem(
+                STORAGE_SESSION_KEY,
+                JSON.stringify(sessionData),
+              );
+            } else {
+              masterData = masterData.filter((i) => i.id !== id);
+              localStorage.setItem(
+                STORAGE_MASTER_KEY,
+                JSON.stringify(masterData),
+              );
+            }
             renderData();
           }
         });
       }
 
-      function downloadExcel() {
+      function downloadExcelSession() {
+        if (sessionData.length === 0)
+          return Swal.fire(
+            "Kosong",
+            "Tidak ada data Session (24 Jam Berjalan) untuk diexport",
+            "error",
+          );
+        const dt = sessionData.map((i, idx) => ({
+          No: idx + 1,
+          "Kode Barcode": i.kode,
+          Panjang: i.panjang,
+          Lebar: i.lebar,
+          Potongan: i.potongan,
+          Persegi: i.persegi,
+          Tanggal: formatTgl(i.tanggal),
+          Jam: i.jam,
+          Gol: i.golongan,
+          Format: i.format || "",
+        }));
+
+        const ws = XLSX.utils.json_to_sheet(dt);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Session Barang");
+        XLSX.writeFile(wb, `Data_Barcode_Session_${new Date().getTime()}.xlsx`);
+      }
+
+      function downloadExcelMaster() {
         if (masterData.length === 0)
-          return Swal.fire("Kosong", "Tidak ada data untuk diexport", "error");
+          return Swal.fire(
+            "Kosong",
+            "Tidak ada data Master Barang untuk diexport",
+            "error",
+          );
+
         const dt = masterData.map((i, idx) => ({
           No: idx + 1,
           "Kode Barcode": i.kode,
