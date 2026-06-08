@@ -1,0 +1,776 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Sistem Manajemen Barcode Enterprise</title>
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+
+    <script
+      src="https://unpkg.com/html5-qrcode"
+      type="text/javascript"
+    ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+      :root {
+        --primary: #2563eb;
+        --primary-hover: #1d4ed8;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --bg-body: #f1f5f9;
+        --bg-card: #ffffff;
+        --text-main: #0f172a;
+        --text-muted: #64748b;
+        --border: #e2e8f0;
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow-md:
+          0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --radius: 12px;
+      }
+
+      /* Dark Mode Variables */
+      [data-theme="dark"] {
+        --primary: #3b82f6;
+        --bg-body: #0f172a;
+        --bg-card: #1e293b;
+        --text-main: #f8fafc;
+        --text-muted: #94a3b8;
+        --border: #334155;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Inter", sans-serif;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      body {
+        background-color: var(--bg-body);
+        color: var(--text-main);
+        transition:
+          background-color 0.3s,
+          color 0.3s;
+        padding-bottom: 80px; /* Space for mobile floating buttons */
+      }
+
+      /* Navbar */
+      .navbar {
+        background: var(--bg-card);
+        padding: 15px 20px;
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .navbar-brand {
+        font-size: 1.2rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--primary);
+      }
+
+      .theme-toggle {
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        font-size: 1.2rem;
+        cursor: pointer;
+      }
+
+      /* Main Container */
+      .container {
+        max-width: 1400px;
+        margin: 20px auto;
+        padding: 0 20px;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+
+      @media (min-width: 1024px) {
+        .container {
+          grid-template-columns: 400px 1fr;
+          align-items: start;
+        }
+      }
+
+      /* Cards */
+      .card {
+        background: var(--bg-card);
+        border-radius: var(--radius);
+        padding: 20px;
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--border);
+      }
+
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 10px;
+      }
+
+      .card-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-main);
+      }
+
+      /* Scanner Customization */
+      #reader {
+        width: 100%;
+        border-radius: var(--radius);
+        overflow: hidden;
+        border: 2px solid var(--border) !important;
+        background: #000;
+      }
+
+      #reader video {
+        object-fit: cover;
+      }
+
+      /* Manual Input Section */
+      .manual-input {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+      }
+
+      .form-control {
+        flex: 1;
+        padding: 12px 15px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--bg-body);
+        color: var(--text-main);
+        font-size: 1rem;
+        outline: none;
+        transition: all 0.3s;
+      }
+
+      .form-control:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+      }
+
+      .btn {
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all 0.2s;
+      }
+
+      .btn-primary {
+        background: var(--primary);
+        color: white;
+      }
+      .btn-primary:active {
+        transform: scale(0.98);
+      }
+
+      .btn-success {
+        background: var(--success);
+        color: white;
+      }
+      .btn-success:hover {
+        background: #059669;
+      }
+
+      /* Toolbar / Filters */
+      .toolbar {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 15px;
+        margin-bottom: 20px;
+        background: var(--bg-body);
+        padding: 15px;
+        border-radius: var(--radius);
+      }
+
+      @media (min-width: 768px) {
+        .toolbar {
+          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+          align-items: end;
+        }
+      }
+
+      /* Table Responsiveness */
+      .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th,
+      td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+        white-space: nowrap;
+      }
+
+      th {
+        background-color: var(--bg-body);
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 0.5px;
+      }
+
+      tbody tr:hover {
+        background-color: var(--bg-body);
+      }
+
+      .badge-barcode {
+        background: rgba(37, 99, 235, 0.1);
+        color: var(--primary);
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-family: monospace;
+        font-weight: 600;
+        font-size: 1rem;
+      }
+
+      .action-btn {
+        color: var(--danger);
+        background: rgba(239, 68, 68, 0.1);
+        border: none;
+        width: 35px;
+        height: 35px;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: 0.2s;
+      }
+
+      .action-btn:hover {
+        background: var(--danger);
+        color: white;
+      }
+
+      /* Mobile Card View for Table */
+      @media (max-width: 767px) {
+        thead {
+          display: none;
+        }
+        tbody tr {
+          display: block;
+          margin-bottom: 15px;
+          border: 1px solid var(--border);
+          border-radius: var(--radius);
+          padding: 10px;
+          background: var(--bg-card);
+        }
+        tbody td {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          border-bottom: 1px dashed var(--border);
+          padding: 8px 5px;
+        }
+        tbody td:last-child {
+          border-bottom: none;
+        }
+        tbody td::before {
+          content: attr(data-label);
+          font-weight: 600;
+          color: var(--text-muted);
+          font-size: 0.85rem;
+        }
+      }
+
+      /* Success Flash Animation */
+      @keyframes flashSuccess {
+        0% {
+          background-color: rgba(16, 185, 129, 0.5);
+        }
+        100% {
+          background-color: transparent;
+        }
+      }
+      .flash-success {
+        animation: flashSuccess 0.8s ease-out;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="navbar-brand"><i class="fas fa-box-open"></i> SCM Scan</div>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Ubah Tema">
+        <i class="fas fa-moon" id="themeIcon"></i>
+      </button>
+    </nav>
+
+    <div class="container">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <i class="fas fa-camera"></i> Pemindai Aktif
+          </div>
+          <span style="font-size: 0.8rem; color: var(--success)"
+            ><i class="fas fa-circle"></i> Online</span
+          >
+        </div>
+
+        <div id="reader"></div>
+
+        <div
+          style="
+            margin-top: 20px;
+            border-top: 1px dashed var(--border);
+            padding-top: 15px;
+          "
+        >
+          <label
+            style="
+              font-size: 0.85rem;
+              color: var(--text-muted);
+              font-weight: 600;
+            "
+            >Input Manual (Jika Barcode Rusak)</label
+          >
+          <div class="manual-input">
+            <input
+              type="text"
+              id="manualKode"
+              class="form-control"
+              placeholder="Ketik kode barcode..."
+              onkeypress="handleManualEnter(event)"
+            />
+            <button class="btn btn-primary" onclick="addManualBarcode()">
+              <i class="fas fa-plus"></i> Input
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <i class="fas fa-database"></i> Database Master Barang
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <div>
+            <label style="font-size: 0.8rem; color: var(--text-muted)"
+              >Mulai Tgl</label
+            >
+            <input
+              type="date"
+              class="form-control"
+              id="startDate"
+              onchange="filterData()"
+              style="width: 100%"
+            />
+          </div>
+          <div>
+            <label style="font-size: 0.8rem; color: var(--text-muted)"
+              >Sampai Tgl</label
+            >
+            <input
+              type="date"
+              class="form-control"
+              id="endDate"
+              onchange="filterData()"
+              style="width: 100%"
+            />
+          </div>
+          <div>
+            <label style="font-size: 0.8rem; color: var(--text-muted)"
+              >Cari Data</label
+            >
+            <input
+              type="text"
+              class="form-control"
+              id="searchBox"
+              placeholder="Cari kode..."
+              onkeyup="filterData()"
+              style="width: 100%"
+            />
+          </div>
+          <button
+            class="btn btn-success"
+            onclick="exportToExcel()"
+            style="height: 45px"
+          >
+            <i class="fas fa-file-excel"></i> Export
+          </button>
+        </div>
+
+        <div class="table-responsive">
+          <table id="dataTable">
+            <thead>
+              <tr>
+                <th>No</th>
+                <th>Kode Barcode</th>
+                <th>Dimensi (P x L)</th>
+                <th>Potongan</th>
+                <th>M² / Persegi</th>
+                <th>Tanggal & Waktu</th>
+                <th>Gol.</th>
+                <th>Opsi</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+
+        <div
+          style="
+            margin-top: 15px;
+            display: flex;
+            justify-content: space-between;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+          "
+        >
+          <span id="dataInfo">Memuat data...</span>
+          <span>Tersimpan di Lokal</span>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // --- 1. CORE SYSTEM & STATE ---
+      let masterData =
+        JSON.parse(localStorage.getItem("EnterpriseBarcodeData")) || [];
+      let lastScannedCode = null;
+      let scanTimeout = null;
+
+      // --- 2. THEME MANAGEMENT ---
+      function toggleTheme() {
+        const body = document.body;
+        const icon = document.getElementById("themeIcon");
+        if (body.getAttribute("data-theme") === "dark") {
+          body.removeAttribute("data-theme");
+          icon.className = "fas fa-moon";
+          localStorage.setItem("theme", "light");
+        } else {
+          body.setAttribute("data-theme", "dark");
+          icon.className = "fas fa-sun";
+          localStorage.setItem("theme", "dark");
+        }
+      }
+      // Load saved theme
+      if (localStorage.getItem("theme") === "dark") toggleTheme();
+
+      // --- 3. HARDWARE FEEDBACK (Audio & Haptic) ---
+      function triggerFeedback(type = "success") {
+        // Haptic Feedback (Getaran HP) - Sangat penting di lapangan
+        if (navigator.vibrate) {
+          if (type === "success") navigator.vibrate(200); // Getar pendek
+          if (type === "error") navigator.vibrate([200, 100, 200]); // Getar ganda
+        }
+
+        // Audio Feedback
+        const audioCtx = new (
+          window.AudioContext || window.webkitAudioContext
+        )();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        if (type === "success") {
+          oscillator.type = "sine";
+          oscillator.frequency.value = 1000;
+          gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+          gainNode.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.01);
+          gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.15);
+          oscillator.start(audioCtx.currentTime);
+          oscillator.stop(audioCtx.currentTime + 0.15);
+        } else {
+          oscillator.type = "sawtooth";
+          oscillator.frequency.value = 300;
+          gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+          gainNode.gain.linearRampToValueAtTime(
+            0.5,
+            audioCtx.currentTime + 0.01,
+          );
+          gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
+          oscillator.start(audioCtx.currentTime);
+          oscillator.stop(audioCtx.currentTime + 0.3);
+        }
+      }
+
+      // --- 4. SWEETALERT TOAST CONFIG ---
+      const Toast = Swal.mixin({
+        toast: true,
+        position: "bottom-end", // Pindah ke bawah agar mudah dilihat tangan
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+      });
+
+      // --- 5. SCANNER INITIALIZATION ---
+      // Dioptimalkan khusus untuk barcode 1D pada kamera HP
+      const html5QrcodeScanner = new Html5QrcodeScanner(
+        "reader",
+        {
+          fps: 20,
+          qrbox: { width: 350, height: 100 }, // Lebar pipih untuk barcode kayu
+          aspectRatio: 1.0,
+          supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
+        },
+        false,
+      );
+
+      html5QrcodeScanner.render(processBarcode, (err) => {
+        /* Ignore focus errors */
+      });
+
+      // --- 6. DATA PROCESSING LOGIC ---
+      function processBarcode(decodedText) {
+        // Anti-Spam / Anti Double Scan (Jeda 2.5 Detik)
+        if (lastScannedCode === decodedText) {
+          return; // Abaikan diam-diam agar tidak berisik
+        }
+
+        lastScannedCode = decodedText;
+        clearTimeout(scanTimeout);
+        scanTimeout = setTimeout(() => (lastScannedCode = null), 2500);
+
+        saveDataToDatabase(decodedText);
+      }
+
+      function handleManualEnter(e) {
+        if (e.key === "Enter") addManualBarcode();
+      }
+
+      function addManualBarcode() {
+        const input = document.getElementById("manualKode");
+        const code = input.value.trim();
+        if (!code) {
+          Toast.fire({ icon: "warning", title: "Kode tidak boleh kosong" });
+          return;
+        }
+        saveDataToDatabase(code);
+        input.value = ""; // Kosongkan input
+      }
+
+      function saveDataToDatabase(kode) {
+        const now = new Date();
+
+        // Simulasi ekstraksi dimensi (Bisa disesuaikan jika barcode mengandung info dimensi)
+        const newData = {
+          id: Date.now(),
+          kode: kode,
+          panjang: 280,
+          lebar: 18,
+          potongan: 24,
+          persegi: 12.1,
+          tanggal: now.toISOString().split("T")[0],
+          jam: now.toTimeString().split(" ")[0],
+          golongan: "A",
+        };
+
+        masterData.unshift(newData);
+        localStorage.setItem(
+          "EnterpriseBarcodeData",
+          JSON.stringify(masterData),
+        );
+
+        triggerFeedback("success");
+        document.getElementById("searchBox").value = ""; // Reset pencarian saat scan baru masuk
+        filterData();
+
+        // Animasi Flash pada layar (Indikator visual bagi pekerja)
+        document.body.classList.add("flash-success");
+        setTimeout(() => document.body.classList.remove("flash-success"), 800);
+
+        Toast.fire({ icon: "success", title: `Scan Sukses: ${kode}` });
+      }
+
+      // --- 7. RENDERING & FILTERING ---
+      function filterData() {
+        const start = document.getElementById("startDate").value;
+        const end = document.getElementById("endDate").value;
+        const search = document.getElementById("searchBox").value.toLowerCase();
+
+        let filtered = masterData.filter((item) => {
+          let match = true;
+          if (start && item.tanggal < start) match = false;
+          if (end && item.tanggal > end) match = false;
+          if (search && !item.kode.toLowerCase().includes(search))
+            match = false;
+          return match;
+        });
+
+        filtered.sort(
+          (a, b) =>
+            new Date(b.tanggal + "T" + b.jam) -
+            new Date(a.tanggal + "T" + a.jam),
+        );
+        renderTable(filtered);
+      }
+
+      function formatTanggal(tglStr) {
+        const parts = tglStr.split("-");
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+      }
+
+      function renderTable(dataToRender) {
+        const tbody = document.getElementById("tableBody");
+        tbody.innerHTML = "";
+
+        if (dataToRender.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:40px 20px; color:var(--text-muted);">
+                <i class="fas fa-folder-open fa-3x" style="margin-bottom:15px; opacity:0.5;"></i><br>
+                Belum ada data pindaian.</td></tr>`;
+          document.getElementById("dataInfo").innerText = `Total: 0 Barang`;
+          return;
+        }
+
+        dataToRender.forEach((item, index) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+                <td data-label="No">${index + 1}</td>
+                <td data-label="Kode Barcode"><span class="badge-barcode">${item.kode}</span></td>
+                <td data-label="Dimensi">${item.panjang} x ${item.lebar}</td>
+                <td data-label="Potongan">${item.potongan}</td>
+                <td data-label="M² / Persegi">${item.persegi}</td>
+                <td data-label="Waktu Scan">${formatTanggal(item.tanggal)} <small style="color:var(--text-muted)">${item.jam}</small></td>
+                <td data-label="Gol."><strong>${item.golongan}</strong></td>
+                <td data-label="Opsi">
+                    <button class="action-btn" onclick="hapusData(${item.id})" title="Hapus Data">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </td>
+            `;
+          tbody.appendChild(tr);
+        });
+
+        document.getElementById("dataInfo").innerText =
+          `Menampilkan ${dataToRender.length} Barang`;
+      }
+
+      // --- 8. DELETE & EXPORT ---
+      function hapusData(id) {
+        Swal.fire({
+          title: "Hapus Master Barang?",
+          text: "Data ini akan dihapus dari histori lokal.",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#ef4444",
+          cancelButtonColor: "#64748b",
+          confirmButtonText: "Hapus",
+          cancelButtonText: "Batal",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            masterData = masterData.filter((item) => item.id !== id);
+            localStorage.setItem(
+              "EnterpriseBarcodeData",
+              JSON.stringify(masterData),
+            );
+            filterData();
+            triggerFeedback("error"); // Gunakan suara error untuk indikasi hapus
+          }
+        });
+      }
+
+      function exportToExcel() {
+        // Gunakan filter yang sama untuk export
+        const start = document.getElementById("startDate").value;
+        const end = document.getElementById("endDate").value;
+        const search = document.getElementById("searchBox").value.toLowerCase();
+
+        let dataToExport = masterData.filter((item) => {
+          if (start && item.tanggal < start) return false;
+          if (end && item.tanggal > end) return false;
+          if (search && !item.kode.toLowerCase().includes(search)) return false;
+          return true;
+        });
+
+        if (dataToExport.length === 0) {
+          Swal.fire(
+            "Data Kosong",
+            "Tidak ada data yang bisa di-export saat ini.",
+            "info",
+          );
+          return;
+        }
+
+        const excelData = dataToExport.map((item, index) => ({
+          No: index + 1,
+          "Kode Barcode": item.kode,
+          Panjang: item.panjang,
+          Lebar: item.lebar,
+          "Jumlah Potongan": item.potongan,
+          Persegi: item.persegi,
+          "Tanggal Scan": formatTanggal(item.tanggal),
+          Jam: item.jam,
+          Golongan: item.golongan,
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+        // Auto-size columns (Fitur premium SheetJS)
+        const wscols = [
+          { wch: 5 },
+          { wch: 25 },
+          { wch: 10 },
+          { wch: 10 },
+          { wch: 15 },
+          { wch: 15 },
+          { wch: 15 },
+          { wch: 10 },
+          { wch: 10 },
+        ];
+        worksheet["!cols"] = wscols;
+
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Master Barang");
+
+        const namaFile = `Data_Scanner_${new Date().toISOString().split("T")[0]}.xlsx`;
+        XLSX.writeFile(workbook, namaFile);
+
+        Toast.fire({ icon: "success", title: "Excel Berhasil Diunduh" });
+      }
+
+      // Initialize
+      window.onload = filterData;
+    </script>
+  </body>
+</html>
