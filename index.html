@@ -1,414 +1,789 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
     <title>Enterprise Barcode Scanner</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <script type="text/javascript" src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+
+    <script
+      type="text/javascript"
+      src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"
+    ></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
-        :root {
-            --primary: #2563eb;
-            --danger: #dc2626;
-            --success: #16a34a;
-            --bg-main: #f1f5f9;
-            --card-bg: #ffffff;
-            --text-dark: #0f172a;
-            --text-muted: #64748b;
-            --border: #e2e8f0;
-        }
+      :root {
+        --primary: #2563eb;
+        --danger: #dc2626;
+        --success: #16a34a;
+        --bg-main: #f1f5f9;
+        --card-bg: #ffffff;
+        --text-dark: #0f172a;
+        --text-muted: #64748b;
+        --border: #e2e8f0;
+      }
 
-        * {
-            margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Inter", sans-serif;
+        -webkit-tap-highlight-color: transparent;
+      }
 
-        body {
-            background-color: var(--bg-main);
-            color: var(--text-dark);
-            /* Padding khusus iPhone Notch */
-            padding-top: env(safe-area-inset-top);
-            padding-bottom: env(safe-area-inset-bottom);
-        }
+      body {
+        background-color: var(--bg-main);
+        color: var(--text-dark);
+        /* Padding khusus iPhone Notch */
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: env(safe-area-inset-bottom);
+      }
 
-        /* Navbar Native App */
-        .navbar {
-            background: var(--primary);
-            color: white;
-            padding: 16px 20px;
-            font-size: 1.2rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
-            position: sticky;
-            top: env(safe-area-inset-top);
-            z-index: 100;
-        }
+      /* Navbar Native App */
+      .navbar {
+        background: var(--primary);
+        color: white;
+        padding: 16px 20px;
+        font-size: 1.2rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        position: sticky;
+        top: env(safe-area-inset-top);
+        z-index: 100;
+      }
 
+      .container {
+        max-width: 1200px;
+        margin: 15px auto;
+        padding: 0 15px;
+        display: grid;
+        gap: 15px;
+        grid-template-columns: 1fr;
+      }
+
+      @media (min-width: 1024px) {
         .container {
-            max-width: 1200px;
-            margin: 15px auto;
-            padding: 0 15px;
-            display: grid;
-            gap: 15px;
-            grid-template-columns: 1fr;
+          grid-template-columns: 380px 1fr;
+          align-items: start;
         }
+      }
 
-        @media (min-width: 1024px) {
-            .container { grid-template-columns: 380px 1fr; align-items: start; }
-        }
+      .card {
+        background: var(--card-bg);
+        border-radius: 16px;
+        padding: 15px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        border: 1px solid var(--border);
+      }
 
-        .card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 15px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            border: 1px solid var(--border);
-        }
+      /* Video Scanner UI Presisi */
+      .scanner-container {
+        position: relative;
+        width: 100%;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #000;
+        margin-bottom: 15px;
+        aspect-ratio: 4/3;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
 
-        /* Video Scanner UI Presisi */
-        .scanner-container {
-            position: relative;
-            width: 100%;
-            border-radius: 12px;
-            overflow: hidden;
-            background: #000;
-            margin-bottom: 15px;
-            aspect-ratio: 4/3;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+      #videoElement {
+        width: 100%;
+        height: 100%;
+        object-fit: cover; /* Mencegah gambar gepeng di HP */
+        display: none;
+      }
 
-        #videoElement {
-            width: 100%;
-            height: 100%;
-            object-fit: cover; /* Mencegah gambar gepeng di HP */
-            display: none;
-        }
+      /* Garis Laser Targeting */
+      .laser-overlay {
+        position: absolute;
+        top: 50%;
+        left: 10%;
+        right: 10%;
+        height: 2px;
+        background: rgba(239, 68, 68, 0.8);
+        box-shadow: 0 0 10px red;
+        display: none;
+        z-index: 10;
+      }
 
-        /* Garis Laser Targeting */
-        .laser-overlay {
-            position: absolute;
-            top: 50%; left: 10%; right: 10%;
-            height: 2px;
-            background: rgba(239, 68, 68, 0.8);
-            box-shadow: 0 0 10px red;
-            display: none;
-            z-index: 10;
-        }
+      .scanner-placeholder {
+        color: #64748b;
+        font-size: 0.9rem;
+        text-align: center;
+        padding: 20px;
+      }
 
-        .scanner-placeholder {
-            color: #64748b;
-            font-size: 0.9rem;
-            text-align: center;
-            padding: 20px;
-        }
+      /* Kontrol Scanner */
+      .controls {
+        display: flex;
+        gap: 10px;
+      }
 
-        /* Kontrol Scanner */
-        .controls {
-            display: flex;
-            gap: 10px;
-        }
+      .btn {
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: 0.2s;
+        padding: 14px;
+      }
+      .btn:active {
+        transform: scale(0.96);
+      }
 
-        .btn {
-            border: none; border-radius: 10px;
-            font-weight: 600; font-size: 1rem;
-            cursor: pointer; display: flex; align-items: center; justify-content: center;
-            transition: 0.2s; padding: 14px;
-        }
-        .btn:active { transform: scale(0.96); }
+      .btn-scan {
+        flex: 1;
+        background: var(--primary);
+        color: white;
+        box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
+      }
+      .btn-scan.stop {
+        background: var(--danger);
+        box-shadow: 0 4px 10px rgba(220, 38, 38, 0.3);
+      }
 
-        .btn-scan { flex: 1; background: var(--primary); color: white; box-shadow: 0 4px 10px rgba(37,99,235,0.3); }
-        .btn-scan.stop { background: var(--danger); box-shadow: 0 4px 10px rgba(220,38,38,0.3); }
-        
-        .btn-cam { width: 55px; background: #f1f5f9; color: var(--text-dark); border: 1px solid var(--border); font-size: 1.3rem; }
+      .btn-cam {
+        width: 55px;
+        background: #f1f5f9;
+        color: var(--text-dark);
+        border: 1px solid var(--border);
+        font-size: 1.3rem;
+      }
 
-        /* Form & Tabel */
-        .input-group { margin-bottom: 15px; }
-        .input-group label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 5px; }
-        .form-control { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; outline: none; }
-        
-        .filter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+      /* Form & Tabel */
+      .input-group {
+        margin-bottom: 15px;
+      }
+      .input-group label {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        margin-bottom: 5px;
+      }
+      .form-control {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        outline: none;
+      }
 
-        .table-wrapper { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 8px; border: 1px solid var(--border); }
-        table { width: 100%; border-collapse: collapse; white-space: nowrap; }
-        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
-        th { background: #f8fafc; font-weight: 600; color: var(--text-muted); }
-        
-        .badge { background: #e0e7ff; color: var(--primary); padding: 5px 10px; border-radius: 6px; font-family: monospace; font-weight: 700; }
-        .btn-del { color: var(--danger); background: #fee2e2; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
+      .filter-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
 
-        .btn-export { background: var(--success); color: white; width: 100%; padding: 12px; margin-top: 10px; }
+      .table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        white-space: nowrap;
+      }
+      th,
+      td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+        font-size: 0.9rem;
+      }
+      th {
+        background: #f8fafc;
+        font-weight: 600;
+        color: var(--text-muted);
+      }
+
+      .badge {
+        background: #e0e7ff;
+        color: var(--primary);
+        padding: 5px 10px;
+        border-radius: 6px;
+        font-family: monospace;
+        font-weight: 700;
+      }
+      .btn-del {
+        color: var(--danger);
+        background: #fee2e2;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+
+      .btn-export {
+        background: var(--success);
+        color: white;
+        width: 100%;
+        padding: 12px;
+        margin-top: 10px;
+      }
     </style>
-</head>
-<body>
-
+  </head>
+  <body>
     <div class="navbar">
-        <i class="fas fa-barcode" style="margin-right: 10px;"></i> SCM Scanner
+      <i class="fas fa-barcode" style="margin-right: 10px"></i> SCM Scanner
     </div>
 
     <div class="container">
-        <div class="card">
-            <div style="font-weight: 700; margin-bottom: 10px;"><i class="fas fa-camera"></i> Pemindai Otomatis</div>
-            
-            <div class="scanner-container">
-                <div class="scanner-placeholder" id="placeholderMsg">
-                    <i class="fas fa-video-slash fa-2x" style="margin-bottom: 10px;"></i><br>Kamera Nonaktif
-                </div>
-                <video id="videoElement"></video>
-                <div class="laser-overlay" id="laser"></div>
-            </div>
-
-            <div class="controls">
-                <button class="btn btn-cam" onclick="switchCamera()" title="Tukar Kamera Depan/Belakang">
-                    <i class="fas fa-camera-rotate"></i>
-                </button>
-                <button class="btn btn-scan" id="btnAction" onclick="toggleScan()">
-                    <i class="fas fa-play" style="margin-right: 8px;"></i> MULAI SCAN
-                </button>
-            </div>
-
-            <div class="input-group" style="margin-top: 15px;">
-                <label>Input Manual (Bila Rusak)</label>
-                <div style="display: flex; gap: 8px;">
-                    <input type="text" id="manualData" class="form-control" placeholder="Ketik manual...">
-                    <button class="btn btn-scan" style="width: auto; padding: 0 20px;" onclick="inputManual()">Input</button>
-                </div>
-            </div>
+      <div class="card">
+        <div style="font-weight: 700; margin-bottom: 10px">
+          <i class="fas fa-camera"></i> Pemindai Otomatis
         </div>
 
-        <div class="card">
-            <div style="font-weight: 700; margin-bottom: 15px;"><i class="fas fa-database"></i> Master Barang</div>
-            
-            <div class="filter-grid">
-                <div class="input-group">
-                    <label>Tgl Mulai</label>
-                    <input type="date" class="form-control" id="start" onchange="renderData()">
-                </div>
-                <div class="input-group">
-                    <label>Tgl Akhir</label>
-                    <input type="date" class="form-control" id="end" onchange="renderData()">
-                </div>
-            </div>
-            <div class="input-group">
-                <label>Pencarian Barcode</label>
-                <input type="text" class="form-control" id="search" placeholder="Cari..." onkeyup="renderData()">
-            </div>
-            
-            <button class="btn btn-export" onclick="downloadExcel()"><i class="fas fa-file-excel" style="margin-right:8px;"></i> Export Excel</button>
-
-            <div class="table-wrapper" style="margin-top: 15px;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>No</th>
-                            <th>Kode Barcode</th>
-                            <th>P x L</th>
-                            <th>Potongan</th>
-                            <th>Persegi</th>
-                            <th>Tanggal</th>
-                            <th>Jam</th>
-                            <th>Gol</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody id="dataTable"></tbody>
-                </table>
-            </div>
+        <div class="scanner-container">
+          <div class="scanner-placeholder" id="placeholderMsg">
+            <i class="fas fa-video-slash fa-2x" style="margin-bottom: 10px"></i
+            ><br />Kamera Nonaktif
+          </div>
+          <video id="videoElement"></video>
+          <div class="laser-overlay" id="laser"></div>
         </div>
+
+        <div class="controls">
+          <button
+            class="btn btn-cam"
+            onclick="switchCamera()"
+            title="Tukar Kamera Depan/Belakang"
+          >
+            <i class="fas fa-camera-rotate"></i>
+          </button>
+          <button class="btn btn-scan" id="btnAction" onclick="toggleScan()">
+            <i class="fas fa-play" style="margin-right: 8px"></i> MULAI SCAN
+          </button>
+        </div>
+
+        <div class="input-group" style="margin-top: 15px">
+          <label>Input Manual (Bila Rusak)</label>
+          <div style="display: flex; gap: 8px">
+            <input
+              type="text"
+              id="manualData"
+              class="form-control"
+              placeholder="Ketik manual..."
+            />
+            <button
+              class="btn btn-scan"
+              style="width: auto; padding: 0 20px"
+              onclick="inputManual()"
+            >
+              Input
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="font-weight: 700; margin-bottom: 15px">
+          <i class="fas fa-database"></i> Master Barang
+        </div>
+
+        <div class="filter-grid">
+          <div class="input-group">
+            <label>Tgl Mulai</label>
+            <input
+              type="date"
+              class="form-control"
+              id="start"
+              onchange="renderData()"
+            />
+          </div>
+          <div class="input-group">
+            <label>Tgl Akhir</label>
+            <input
+              type="date"
+              class="form-control"
+              id="end"
+              onchange="renderData()"
+            />
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Pencarian Barcode</label>
+          <input
+            type="text"
+            class="form-control"
+            id="search"
+            placeholder="Cari..."
+            onkeyup="renderData()"
+          />
+        </div>
+
+        <button class="btn btn-export" onclick="downloadExcel()">
+          <i class="fas fa-file-excel" style="margin-right: 8px"></i> Export
+          Excel
+        </button>
+
+        <div class="table-wrapper" style="margin-top: 15px">
+          <table>
+            <thead>
+              <tr>
+                <th>No</th>
+                <th>Kode Barcode</th>
+                <th>P x L</th>
+                <th>Potongan</th>
+                <th>Persegi</th>
+                <th>Tanggal</th>
+                <th>Jam</th>
+                <th>Gol</th>
+                <th>Format</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="dataTable"></tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
-<script>
-    // --- DATABASE & ENGINE SETUP ---
-    let masterData = JSON.parse(localStorage.getItem('ZXingBarcodeData')) || [];
-    const codeReader = new ZXing.BrowserMultiFormatReader();
-    let isScanning = false;
-    let currentCam = "environment"; // 'environment' = kamera belakang, 'user' = depan
-    let lastScan = null;
+    <script>
+      // --- DATABASE & ENGINE SETUP ---
+      let masterData =
+        JSON.parse(localStorage.getItem("ZXingBarcodeData")) || [];
 
-    const Toast = Swal.mixin({ toast: true, position: 'bottom-end', showConfirmButton: false, timer: 2500 });
+      let codeReader = null;
+      let isScanning = false;
+      let currentCam = "environment"; // 'environment' = kamera belakang, 'user' = depan
 
-    // --- LOGIKA SCANNER ZXING ---
-    async function toggleScan() {
-        const btn = document.getElementById('btnAction');
-        const video = document.getElementById('videoElement');
-        const placeholder = document.getElementById('placeholderMsg');
-        const laser = document.getElementById('laser');
+      // anti-spam & reliability
+      let scanLockUntil = 0;
+      let lastScanText = null;
+      let lastScanAt = 0;
+
+      const Toast = Swal.mixin({
+        toast: true,
+        position: "bottom-end",
+        showConfirmButton: false,
+        timer: 2500,
+      });
+
+      // --- LOGIKA SCANNER ZXING ---
+      function getDecoderHints() {
+        // zxing hints untuk tingkatkan kemampuan scanning di kondisi sulit (miring/blur/kontras rendah)
+        // Catatan: ZXing JS API berbeda-beda antar versi; ini pakai format umum.
+        try {
+          return new Map([
+            [ZXing.DecodeHintType.tryHarder, true],
+            [
+              ZXing.DecodeHintType.possibleFormats,
+              [
+                ZXing.BarcodeFormat.EAN_13,
+                ZXing.BarcodeFormat.EAN_8,
+                ZXing.BarcodeFormat.UPC_A,
+                ZXing.BarcodeFormat.UPC_E,
+                ZXing.BarcodeFormat.CODE_128,
+                ZXing.BarcodeFormat.CODE_39,
+                ZXing.BarcodeFormat.CODE_93,
+                ZXing.BarcodeFormat.CODE_25,
+                ZXing.BarcodeFormat.ITF,
+                ZXing.BarcodeFormat.CODABAR,
+                ZXing.BarcodeFormat.QR_CODE,
+                ZXing.BarcodeFormat.DATA_MATRIX,
+                ZXing.BarcodeFormat.PDF_417,
+                ZXing.BarcodeFormat.AZTEC,
+                ZXing.BarcodeFormat.RSS_14,
+                ZXing.BarcodeFormat.RSS_EXPANDED,
+              ],
+            ],
+          ]);
+        } catch (e) {
+          // fallback jika hint type tidak tersedia
+          return undefined;
+        }
+      }
+
+      function parsePayloadToFields(text) {
+        // Support payload custom untuk barcode tempel kayu ekspor.
+        // Format yang didukung (contoh):
+        // P:280; L:18; POT:24; PERSEGI:12.1; TGL:2026-06-08; JAM:14:35; GOL:A
+        // atau variasi: Panjang=280 Lebar:18 Potongan-24 Persegi=12.1 Tanggal=08/06/2026 Jam=14:35:10 Golongan=A
+        // Jika tidak match, return null (akan fallback ke nilai default).
+        const raw = (text || "").trim();
+        if (!raw) return null;
+
+        const t = raw.replace(/\r/g, "\n");
+
+        const pickNumber = (v) => {
+          const m = String(v).match(/-?\d+(?:[\.,]\d+)?/);
+          if (!m) return null;
+          const num = m[0].replace(",", ".");
+          return Number(num);
+        };
+
+        const getByRegex = (patterns) => {
+          for (const p of patterns) {
+            const m = t.match(p);
+            if (m && m[1] != null) return m[1];
+          }
+          return null;
+        };
+
+        const panjang = getByRegex([
+          /(?:Panjang|PANJANG|P)\s*[:=\-]?\s*([0-9]+(?:[\.,][0-9]+)?)/i,
+        ]);
+        const lebar = getByRegex([
+          /(?:Lebar|LEBAR|L)\s*[:=\-]?\s*([0-9]+(?:[\.,][0-9]+)?)/i,
+        ]);
+        const potongan = getByRegex([
+          /(?:Potongan|POTONGAN|POT|PO)\s*[:=\-]?\s*([0-9]+(?:[\.,][0-9]+)?)/i,
+        ]);
+        const persegi = getByRegex([
+          /(?:Persegi|PERSEGI|M2|\bAREA\b)\s*[:=\-]?\s*([0-9]+(?:[\.,][0-9]+)?)/i,
+        ]);
+        const golongan = getByRegex([
+          /(?:Gol|Golongan|GOL|GROUP)\s*[:=\-]?\s*([A-Za-z0-9]+)/i,
+        ]);
+
+        // tanggal dan jam agak bervariasi. Support:
+        // - TGL:YYYY-MM-DD / DD/MM/YYYY
+        // - JAM:HH:MM[:SS]
+        const tanggalRaw = getByRegex([
+          /(?:Tgl|TGL|Tanggal|TANGGAL)\s*[:=\-]?\s*([0-9]{4}[-\/][0-9]{2}[-\/][0-9]{2}|[0-9]{2}[-\/][0-9]{2}[-\/][0-9]{4}|[0-9]{2}[-\/][0-9]{2}[-\/][0-9]{2,4})/i,
+        ]);
+        const jamRaw = getByRegex([
+          /(?:Jam|JAM)\s*[:=\-]?\s*([0-9]{1,2}:[0-9]{2}(?::[0-9]{2})?)/i,
+        ]);
+
+        const normalizeTanggal = (d) => {
+          if (!d) return null;
+          const s = String(d).trim();
+          // YYYY-MM-DD
+          let m = s.match(/^([0-9]{4})[-\/](\d{2})[-\/](\d{2})$/);
+          if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+          // DD/MM/YYYY
+          m = s.match(/^(\d{2})[-\/](\d{2})[-\/](\d{4})$/);
+          if (m) return `${m[3]}-${m[2]}-${m[1]}`;
+          // DD-MM-YY(2)
+          m = s.match(/^(\d{2})[-\/](\d{2})[-\/](\d{2})$/);
+          if (m) {
+            const yy = Number(m[3]);
+            const yyyy = yy < 70 ? 2000 + yy : 1900 + yy;
+            return `${yyyy}-${m[2]}-${m[1]}`;
+          }
+          return null;
+        };
+
+        const parsed = {
+          panjang: panjang != null ? pickNumber(panjang) : null,
+          lebar: lebar != null ? pickNumber(lebar) : null,
+          potongan: potongan != null ? pickNumber(potongan) : null,
+          persegi: persegi != null ? pickNumber(persegi) : null,
+          golongan: golongan != null ? String(golongan).trim() : null,
+          tanggal: normalizeTanggal(tanggalRaw),
+          jam: jamRaw ? String(jamRaw).trim() : null,
+        };
+
+        const hasAny =
+          parsed.panjang != null ||
+          parsed.lebar != null ||
+          parsed.potongan != null ||
+          parsed.persegi != null ||
+          parsed.golongan != null ||
+          parsed.tanggal != null ||
+          parsed.jam != null;
+
+        return hasAny ? parsed : null;
+      }
+
+      // ROI: fokus di bagian tengah frame
+      function getVideoCropArea(video) {
+        const vw = video.videoWidth || 1280;
+        const vh = video.videoHeight || 720;
+        // area tengah (mengurangi noise pinggir)
+        const w = Math.round(vw * 0.6);
+        const h = Math.round(vh * 0.6);
+        const x = Math.round((vw - w) / 2);
+        const y = Math.round((vh - h) / 2);
+        return { x, y, w, h };
+      }
+
+      async function toggleScan() {
+        const btn = document.getElementById("btnAction");
+        const video = document.getElementById("videoElement");
+        const placeholder = document.getElementById("placeholderMsg");
+        const laser = document.getElementById("laser");
 
         if (isScanning) {
-            // Hentikan
-            codeReader.reset();
-            isScanning = false;
-            video.style.display = 'none';
-            laser.style.display = 'none';
-            placeholder.style.display = 'block';
-            btn.innerHTML = '<i class="fas fa-play" style="margin-right: 8px;"></i> MULAI SCAN';
-            btn.classList.remove('stop');
+          // Hentikan
+          try {
+            if (codeReader) codeReader.reset();
+          } catch (e) {}
+          isScanning = false;
+          video.style.display = "none";
+          laser.style.display = "none";
+          placeholder.style.display = "block";
+          btn.innerHTML =
+            '<i class="fas fa-play" style="margin-right: 8px;"></i> MULAI SCAN';
+          btn.classList.remove("stop");
         } else {
-            // Mulai
-            try {
-                video.style.display = 'block';
-                laser.style.display = 'block';
-                placeholder.style.display = 'none';
-                btn.innerHTML = '<i class="fas fa-stop" style="margin-right: 8px;"></i> BERHENTI SCAN';
-                btn.classList.add('stop');
-                isScanning = true;
+          // Mulai
+          try {
+            video.style.display = "block";
+            laser.style.display = "block";
+            placeholder.style.display = "none";
+            btn.innerHTML =
+              '<i class="fas fa-stop" style="margin-right: 8px;"></i> BERHENTI SCAN';
+            btn.classList.add("stop");
+            isScanning = true;
 
-                // Konfigurasi Video & Auto-Focus untuk Android/iPhone
-                const constraints = {
-                    video: { 
-                        facingMode: currentCam,
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 },
-                        advanced: [{ focusMode: "continuous" }]
-                    }
-                };
+            const hints = getDecoderHints();
+            codeReader = new ZXing.BrowserMultiFormatReader(hints);
 
-                codeReader.decodeFromConstraints(constraints, 'videoElement', (result, err) => {
-                    if (result) {
-                        const code = result.getText();
-                        if(code !== lastScan) {
-                            lastScan = code;
-                            setTimeout(() => lastScan = null, 2500); // Anti-spam 2.5 detik
-                            simpanData(code);
-                        }
-                    }
-                });
+            const constraints = {
+              video: {
+                facingMode: currentCam,
+                width: { ideal: 1280 },
+                height: { ideal: 720 },
+                advanced: [{ focusMode: "continuous" }],
+              },
+            };
 
-            } catch (err) {
-                console.error(err);
-                Swal.fire('Error Kamera', 'Pastikan izin kamera sudah diberikan.', 'error');
-                toggleScan(); // Reset UI jika gagal
-            }
+            // NOTE: crop/ROI bisa meningkatkan akurasi, tapi API ZXing JS yang dipakai tidak langsung menerima ROI.
+            // Untuk saat ini decode dari video dengan hints + anti-spam untuk semua jenis barcode.
+
+            codeReader.decodeFromConstraints(
+              constraints,
+              "videoElement",
+              (result) => {
+                if (!result) return;
+
+                const now = Date.now();
+                if (now < scanLockUntil) return;
+
+                const code = result.getText();
+                if (!code) return;
+
+                const format = result.getBarcodeFormat
+                  ? result.getBarcodeFormat()
+                  : "";
+
+                // anti dobel: text yang sama jangan disimpan lagi terlalu cepat
+                if (code === lastScanText) {
+                  scanLockUntil = now + 800;
+                  return;
+                }
+
+                lastScanText = code;
+                lastScanAt = now;
+                scanLockUntil = now + 2200; // anti spam 2.2 detik
+
+                simpanData(code, format);
+              },
+            );
+          } catch (err) {
+            console.error(err);
+            Swal.fire(
+              "Error Kamera",
+              "Pastikan izin kamera sudah diberikan.",
+              "error",
+            );
+            toggleScan(); // Reset UI jika gagal
+          }
         }
-    }
+      }
 
-    function switchCamera() {
-        currentCam = (currentCam === "environment") ? "user" : "environment";
+      function switchCamera() {
+        currentCam = currentCam === "environment" ? "user" : "environment";
         if (isScanning) {
-            toggleScan(); // Matikan
-            setTimeout(toggleScan, 300); // Nyalakan lagi dengan kamera baru
+          toggleScan(); // Matikan
+          setTimeout(toggleScan, 300); // Nyalakan lagi dengan kamera baru
         } else {
-            Toast.fire({ icon: 'info', title: currentCam === 'environment' ? 'Kamera Belakang Aktif' : 'Kamera Depan Aktif' });
+          Toast.fire({
+            icon: "info",
+            title:
+              currentCam === "environment"
+                ? "Kamera Belakang Aktif"
+                : "Kamera Depan Aktif",
+          });
         }
-    }
+      }
 
-    // --- HARDWARE & DATA HANDLING ---
-    function triggerFeedback() {
+      // --- HARDWARE & DATA HANDLING ---
+      function triggerFeedback() {
         if (navigator.vibrate) navigator.vibrate(200);
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
-        osc.connect(gain); gain.connect(ctx.destination);
-        osc.type = 'sine'; osc.frequency.value = 1000;
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = "sine";
+        osc.frequency.value = 1000;
         gain.gain.setValueAtTime(0, ctx.currentTime);
         gain.gain.linearRampToValueAtTime(1, ctx.currentTime + 0.01);
         gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.15);
-        osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.15);
-    }
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.15);
+      }
 
-    function inputManual() {
-        const val = document.getElementById('manualData').value.trim();
-        if(!val) return Toast.fire({ icon: 'error', title: 'Kode kosong!' });
+      function inputManual() {
+        const val = document.getElementById("manualData").value.trim();
+        if (!val) return Toast.fire({ icon: "error", title: "Kode kosong!" });
         simpanData(val);
-        document.getElementById('manualData').value = '';
-    }
+        document.getElementById("manualData").value = "";
+      }
 
-    function simpanData(kode) {
+      function simpanData(kode, barcodeFormat) {
         const now = new Date();
+
+        // default (fallback)
+        const defaults = {
+          panjang: 280,
+          lebar: 18,
+          potongan: 24,
+          persegi: 12.1,
+          tanggal: now.toISOString().split("T")[0],
+          jam: now.toTimeString().split(" ")[0],
+          golongan: "A",
+        };
+
+        const parsed = parsePayloadToFields(kode);
         const newData = {
-            id: Date.now(), kode: kode,
-            panjang: 280, lebar: 18, potongan: 24, persegi: 12.1,
-            tanggal: now.toISOString().split('T')[0],
-            jam: now.toTimeString().split(' ')[0],
-            golongan: 'A'
+          id: Date.now(),
+          kode: kode,
+          panjang: parsed?.panjang ?? defaults.panjang,
+          lebar: parsed?.lebar ?? defaults.lebar,
+          potongan: parsed?.potongan ?? defaults.potongan,
+          persegi: parsed?.persegi ?? defaults.persegi,
+          tanggal: parsed?.tanggal ?? defaults.tanggal,
+          jam: parsed?.jam ?? defaults.jam,
+          golongan: parsed?.golongan ?? defaults.golongan,
+          format: barcodeFormat || "",
         };
 
         masterData.unshift(newData);
-        localStorage.setItem('ZXingBarcodeData', JSON.stringify(masterData));
-        
+        localStorage.setItem("ZXingBarcodeData", JSON.stringify(masterData));
+
         triggerFeedback();
-        Toast.fire({ icon: 'success', title: `Berhasil: ${kode}` });
+        Toast.fire({
+          icon: "success",
+          title: `Berhasil: ${kode}${barcodeFormat ? ` (${barcodeFormat})` : ""}`,
+        });
         renderData();
-    }
+      }
 
-    // --- RENDER TABEL & EXPORT ---
-    function formatTgl(tgl) { const p = tgl.split('-'); return `${p[2]}/${p[1]}/${p[0]}`; }
+      // --- RENDER TABEL & EXPORT ---
+      function formatTgl(tgl) {
+        const p = tgl.split("-");
+        return `${p[2]}/${p[1]}/${p[0]}`;
+      }
 
-    function renderData() {
-        const tbody = document.getElementById('dataTable');
-        const start = document.getElementById('start').value;
-        const end = document.getElementById('end').value;
-        const search = document.getElementById('search').value.toLowerCase();
+      function renderData() {
+        const tbody = document.getElementById("dataTable");
+        const start = document.getElementById("start").value;
+        const end = document.getElementById("end").value;
+        const search = document.getElementById("search").value.toLowerCase();
 
-        let fData = masterData.filter(i => {
-            if(start && i.tanggal < start) return false;
-            if(end && i.tanggal > end) return false;
-            if(search && !i.kode.toLowerCase().includes(search)) return false;
-            return true;
+        let fData = masterData.filter((i) => {
+          if (start && i.tanggal < start) return false;
+          if (end && i.tanggal > end) return false;
+          if (search && !i.kode.toLowerCase().includes(search)) return false;
+          return true;
         });
 
-        fData.sort((a,b) => new Date(b.tanggal+'T'+b.jam) - new Date(a.tanggal+'T'+a.jam));
+        fData.sort(
+          (a, b) =>
+            new Date(b.tanggal + "T" + b.jam) -
+            new Date(a.tanggal + "T" + a.jam),
+        );
 
-        tbody.innerHTML = '';
-        if(fData.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color:#64748b;">Belum ada data</td></tr>`;
-            return;
+        tbody.innerHTML = "";
+        if (fData.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color:#64748b;">Belum ada data</td></tr>`;
+          return;
         }
 
         fData.forEach((i, idx) => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
                 <td>${idx + 1}</td>
                 <td><span class="badge">${i.kode}</span></td>
                 <td>${i.panjang} x ${i.lebar}</td>
+
                 <td>${i.potongan}</td>
                 <td>${i.persegi}</td>
                 <td>${formatTgl(i.tanggal)}</td>
                 <td>${i.jam}</td>
                 <td><b>${i.golongan}</b></td>
+                <td>${i.format ? `<span style="font-size:0.8rem; color:#64748b">${i.format}</span>` : ""}</td>
                 <td><button class="btn-del" onclick="hapus(${i.id})"><i class="fas fa-trash"></i></button></td>
+
             `;
-            tbody.appendChild(tr);
+          tbody.appendChild(tr);
         });
-    }
+      }
 
-    function hapus(id) {
+      function hapus(id) {
         Swal.fire({
-            title: 'Hapus Data?', icon: 'warning', showCancelButton: true,
-            confirmButtonColor: '#dc2626', confirmButtonText: 'Hapus'
+          title: "Hapus Data?",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#dc2626",
+          confirmButtonText: "Hapus",
         }).then((res) => {
-            if(res.isConfirmed) {
-                masterData = masterData.filter(i => i.id !== id);
-                localStorage.setItem('ZXingBarcodeData', JSON.stringify(masterData));
-                renderData();
-            }
+          if (res.isConfirmed) {
+            masterData = masterData.filter((i) => i.id !== id);
+            localStorage.setItem(
+              "ZXingBarcodeData",
+              JSON.stringify(masterData),
+            );
+            renderData();
+          }
         });
-    }
+      }
 
-    function downloadExcel() {
-        if(masterData.length === 0) return Swal.fire('Kosong', 'Tidak ada data untuk diexport', 'error');
+      function downloadExcel() {
+        if (masterData.length === 0)
+          return Swal.fire("Kosong", "Tidak ada data untuk diexport", "error");
         const dt = masterData.map((i, idx) => ({
-            "No": idx+1, "Kode Barcode": i.kode, "Panjang": i.panjang, "Lebar": i.lebar,
-            "Potongan": i.potongan, "Persegi": i.persegi, "Tanggal": formatTgl(i.tanggal), "Jam": i.jam, "Gol": i.golongan
+          No: idx + 1,
+          "Kode Barcode": i.kode,
+          Panjang: i.panjang,
+          Lebar: i.lebar,
+          Potongan: i.potongan,
+          Persegi: i.persegi,
+          Tanggal: formatTgl(i.tanggal),
+          Jam: i.jam,
+          Gol: i.golongan,
+          Format: i.format || "",
         }));
+
         const ws = XLSX.utils.json_to_sheet(dt);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Master Barang");
         XLSX.writeFile(wb, `Data_Barcode_${new Date().getTime()}.xlsx`);
-    }
+      }
 
-    window.onload = renderData;
-</script>
-
-</body>
+      window.onload = renderData;
+    </script>
+  </body>
 </html>
