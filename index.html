@@ -71,10 +71,19 @@
       .container {
         max-width: 1200px;
         margin: 15px auto;
-        padding: 0 15px;
+        padding: 0 10px;
         display: grid;
-        gap: 15px;
+        gap: 12px;
         grid-template-columns: 1fr;
+        width: 100%;
+      }
+
+      /* cegah overflow melebar di HP */
+      html,
+      body {
+        width: 100%;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
       }
 
       @media (min-width: 1024px) {
