@@ -2,260 +2,211 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sistem Scanner Enterprise 1D</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Enterprise Barcode Scanner</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- Library Inti -->
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <script type="text/javascript" src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
         :root {
             --primary: #2563eb;
-            --primary-hover: #1d4ed8;
-            --success: #10b981;
-            --danger: #ef4444;
-            --dark: #0f172a;
-            --bg-body: #f8fafc;
-            --bg-card: #ffffff;
-            --text-main: #1e293b;
+            --danger: #dc2626;
+            --success: #16a34a;
+            --bg-main: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-dark: #0f172a;
             --text-muted: #64748b;
             --border: #e2e8f0;
-            --radius: 16px;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        * {
+            margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-        body { background-color: var(--bg-body); color: var(--text-main); padding-bottom: 30px; }
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-dark);
+            /* Padding khusus iPhone Notch */
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
 
-        /* Navbar Native App Look */
+        /* Navbar Native App */
         .navbar {
             background: var(--primary);
             color: white;
-            padding: 18px 20px;
+            padding: 16px 20px;
+            font-size: 1.2rem;
+            font-weight: 700;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
-            font-weight: 700;
             box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
             position: sticky;
-            top: 0;
+            top: env(safe-area-inset-top);
             z-index: 100;
         }
 
         .container {
             max-width: 1200px;
-            margin: 20px auto;
+            margin: 15px auto;
             padding: 0 15px;
             display: grid;
+            gap: 15px;
             grid-template-columns: 1fr;
-            gap: 20px;
         }
 
         @media (min-width: 1024px) {
-            .container { grid-template-columns: 400px 1fr; align-items: start; }
+            .container { grid-template-columns: 380px 1fr; align-items: start; }
         }
 
         .card {
-            background: var(--bg-card);
-            border-radius: var(--radius);
-            padding: 20px;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
             border: 1px solid var(--border);
         }
 
-        /* --- UI CUSTOM SCANNER --- */
-        .scanner-wrapper {
+        /* Video Scanner UI Presisi */
+        .scanner-container {
             position: relative;
             width: 100%;
-            background: #000;
             border-radius: 12px;
             overflow: hidden;
+            background: #000;
+            margin-bottom: 15px;
+            aspect-ratio: 4/3;
             display: flex;
-            flex-direction: column;
             align-items: center;
+            justify-content: center;
         }
 
-        #reader { width: 100%; min-height: 250px; background: #000; }
-        #reader video { object-fit: cover; }
-
-        .scanner-controls {
+        #videoElement {
             width: 100%;
-            padding: 20px;
-            background: var(--bg-card);
-            border-top: 1px solid var(--border);
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            justify-content: center;
+            height: 100%;
+            object-fit: cover; /* Mencegah gambar gepeng di HP */
+            display: none;
         }
 
-        /* Tombol Utama Scan */
-        .btn-scan-action {
-            flex: 1;
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 15px;
-            border-radius: 12px;
-            font-size: 1.1rem;
-            font-weight: 700;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            transition: 0.2s;
-            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
+        /* Garis Laser Targeting */
+        .laser-overlay {
+            position: absolute;
+            top: 50%; left: 10%; right: 10%;
+            height: 2px;
+            background: rgba(239, 68, 68, 0.8);
+            box-shadow: 0 0 10px red;
+            display: none;
+            z-index: 10;
         }
-        .btn-scan-action:active { transform: scale(0.96); }
-        .btn-scan-action.stop { background: var(--danger); box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3); }
 
-        /* Icon Switch Camera */
-        .btn-switch-cam {
-            background: #f1f5f9;
-            color: var(--text-main);
-            border: 1px solid var(--border);
-            width: 55px;
-            height: 55px;
-            border-radius: 12px;
-            font-size: 1.4rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: 0.2s;
-        }
-        .btn-switch-cam:active { background: #e2e8f0; transform: rotate(180deg); }
-
-        /* Status Text */
-        .scan-status {
+        .scanner-placeholder {
+            color: #64748b;
+            font-size: 0.9rem;
             text-align: center;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin-bottom: 10px;
-            font-weight: 500;
+            padding: 20px;
         }
 
-        /* Forms & Table (Sama seperti sebelumnya namun disempurnakan) */
-        .form-control {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            outline: none;
-            margin-top: 5px;
-        }
-        
-        .toolbar {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .btn-export {
-            background: var(--success);
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            width: 100%;
+        /* Kontrol Scanner */
+        .controls {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+            gap: 10px;
         }
 
-        .table-responsive { width: 100%; overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
-        th { background: #f1f5f9; font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; }
+        .btn {
+            border: none; border-radius: 10px;
+            font-weight: 600; font-size: 1rem;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: 0.2s; padding: 14px;
+        }
+        .btn:active { transform: scale(0.96); }
+
+        .btn-scan { flex: 1; background: var(--primary); color: white; box-shadow: 0 4px 10px rgba(37,99,235,0.3); }
+        .btn-scan.stop { background: var(--danger); box-shadow: 0 4px 10px rgba(220,38,38,0.3); }
         
-        .badge-barcode {
-            background: #e0e7ff; color: var(--primary);
-            padding: 5px 10px; border-radius: 6px;
-            font-family: monospace; font-weight: 700;
-        }
+        .btn-cam { width: 55px; background: #f1f5f9; color: var(--text-dark); border: 1px solid var(--border); font-size: 1.3rem; }
 
-        .btn-del {
-            background: #fee2e2; color: var(--danger);
-            border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer;
-        }
+        /* Form & Tabel */
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 5px; }
+        .form-control { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; outline: none; }
+        
+        .filter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
-        @keyframes flashSuccess {
-            0% { background-color: rgba(16, 185, 129, 0.4); }
-            100% { background-color: var(--bg-body); }
-        }
-        .flash-success { animation: flashSuccess 0.6s ease-out; }
+        .table-wrapper { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 8px; border: 1px solid var(--border); }
+        table { width: 100%; border-collapse: collapse; white-space: nowrap; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+        th { background: #f8fafc; font-weight: 600; color: var(--text-muted); }
+        
+        .badge { background: #e0e7ff; color: var(--primary); padding: 5px 10px; border-radius: 6px; font-family: monospace; font-weight: 700; }
+        .btn-del { color: var(--danger); background: #fee2e2; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
+
+        .btn-export { background: var(--success); color: white; width: 100%; padding: 12px; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-    <nav class="navbar">
-        <i class="fas fa-barcode" style="margin-right: 10px;"></i> Master Scanner
-    </nav>
+    <div class="navbar">
+        <i class="fas fa-barcode" style="margin-right: 10px;"></i> SCM Scanner
+    </div>
 
     <div class="container">
-        <!-- Area Scanner -->
         <div class="card">
-            <div class="scan-status" id="statusText"><i class="fas fa-info-circle"></i> Kamera Standby. Tekan MULAI SCAN.</div>
+            <div style="font-weight: 700; margin-bottom: 10px;"><i class="fas fa-camera"></i> Pemindai Otomatis</div>
             
-            <div class="scanner-wrapper">
-                <div id="reader"></div>
+            <div class="scanner-container">
+                <div class="scanner-placeholder" id="placeholderMsg">
+                    <i class="fas fa-video-slash fa-2x" style="margin-bottom: 10px;"></i><br>Kamera Nonaktif
+                </div>
+                <video id="videoElement"></video>
+                <div class="laser-overlay" id="laser"></div>
             </div>
 
-            <div class="scanner-controls">
-                <button class="btn-switch-cam" onclick="switchCamera()" title="Putar Kamera">
+            <div class="controls">
+                <button class="btn btn-cam" onclick="switchCamera()" title="Tukar Kamera Depan/Belakang">
                     <i class="fas fa-camera-rotate"></i>
                 </button>
-                <button class="btn-scan-action" id="btnToggleScan" onclick="toggleScanner()">
-                    <i class="fas fa-play"></i> MULAI SCAN
+                <button class="btn btn-scan" id="btnAction" onclick="toggleScan()">
+                    <i class="fas fa-play" style="margin-right: 8px;"></i> MULAI SCAN
                 </button>
             </div>
-            
-            <!-- Input Manual Darurat -->
-            <div style="margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px;">
-                <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Input Manual (Bila Fisik Rusak)</label>
-                <div style="display: flex; gap: 10px;">
-                    <input type="text" id="manualInput" class="form-control" placeholder="Ketik kode...">
-                    <button class="btn-export" style="width: auto; background: var(--primary); margin-top: 5px;" onclick="inputManual()">Input</button>
+
+            <div class="input-group" style="margin-top: 15px;">
+                <label>Input Manual (Bila Rusak)</label>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="manualData" class="form-control" placeholder="Ketik manual...">
+                    <button class="btn btn-scan" style="width: auto; padding: 0 20px;" onclick="inputManual()">Input</button>
                 </div>
             </div>
         </div>
 
-        <!-- Area Data -->
         <div class="card">
-            <h3 style="font-size: 1.1rem; margin-bottom: 15px; color: var(--text-main);"><i class="fas fa-database"></i> Database Harian</h3>
+            <div style="font-weight: 700; margin-bottom: 15px;"><i class="fas fa-database"></i> Master Barang</div>
             
-            <div class="toolbar">
-                <div>
-                    <label style="font-size: 0.8rem;">Tanggal Awal</label>
-                    <input type="date" class="form-control" id="startDate" onchange="renderTable()">
+            <div class="filter-grid">
+                <div class="input-group">
+                    <label>Tgl Mulai</label>
+                    <input type="date" class="form-control" id="start" onchange="renderData()">
                 </div>
-                <div>
-                    <label style="font-size: 0.8rem;">Tanggal Akhir</label>
-                    <input type="date" class="form-control" id="endDate" onchange="renderTable()">
-                </div>
-                <div>
-                    <label style="font-size: 0.8rem;">Cari Barcode</label>
-                    <input type="text" class="form-control" id="searchBox" placeholder="Cari..." onkeyup="renderTable()">
-                </div>
-                <div style="display: flex; align-items: flex-end;">
-                    <button class="btn-export" onclick="exportExcel()">
-                        <i class="fas fa-file-excel"></i> Export
-                    </button>
+                <div class="input-group">
+                    <label>Tgl Akhir</label>
+                    <input type="date" class="form-control" id="end" onchange="renderData()">
                 </div>
             </div>
+            <div class="input-group">
+                <label>Pencarian Barcode</label>
+                <input type="text" class="form-control" id="search" placeholder="Cari..." onkeyup="renderData()">
+            </div>
+            
+            <button class="btn btn-export" onclick="downloadExcel()"><i class="fas fa-file-excel" style="margin-right:8px;"></i> Export Excel</button>
 
-            <div class="table-responsive">
+            <div class="table-wrapper" style="margin-top: 15px;">
                 <table>
                     <thead>
                         <tr>
@@ -264,228 +215,199 @@
                             <th>P x L</th>
                             <th>Potongan</th>
                             <th>Persegi</th>
-                            <th>Tgl Scan</th>
+                            <th>Tanggal</th>
                             <th>Jam</th>
                             <th>Gol</th>
-                            <th>Hapus</th>
+                            <th>Aksi</th>
                         </tr>
                     </thead>
-                    <tbody id="tableBody"></tbody>
+                    <tbody id="dataTable"></tbody>
                 </table>
             </div>
-            <div id="dataInfo" style="margin-top: 15px; font-size: 0.85rem; color: var(--text-muted); text-align: right;"></div>
         </div>
     </div>
 
 <script>
-    // --- 1. INISIALISASI CORE SCANNER ---
-    let html5QrCode = new Html5Qrcode("reader");
+    // --- DATABASE & ENGINE SETUP ---
+    let masterData = JSON.parse(localStorage.getItem('ZXingBarcodeData')) || [];
+    const codeReader = new ZXing.BrowserMultiFormatReader();
     let isScanning = false;
-    let currentFacingMode = "environment"; // Default kamera belakang (environment)
-    let lastScannedCode = null;
-    let masterData = JSON.parse(localStorage.getItem('ScanMasterData')) || [];
+    let currentCam = "environment"; // 'environment' = kamera belakang, 'user' = depan
+    let lastScan = null;
 
-    const Toast = Swal.mixin({
-        toast: true, position: 'bottom-end', showConfirmButton: false, timer: 2000
-    });
+    const Toast = Swal.mixin({ toast: true, position: 'bottom-end', showConfirmButton: false, timer: 2500 });
 
-    // --- 2. FUNGSI AUDIO & GETAR (HP) ---
-    function triggerSuccessHardware() {
-        if (navigator.vibrate) navigator.vibrate(200);
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-        oscillator.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-        oscillator.type = 'sine';
-        oscillator.frequency.value = 900;
-        gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-        gainNode.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.01);
-        gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.15);
-        oscillator.start(audioCtx.currentTime);
-        oscillator.stop(audioCtx.currentTime + 0.15);
-    }
-
-    // --- 3. KONTROL KAMERA MANUAL ---
-    function toggleScanner() {
-        const btn = document.getElementById('btnToggleScan');
-        const statusText = document.getElementById('statusText');
+    // --- LOGIKA SCANNER ZXING ---
+    async function toggleScan() {
+        const btn = document.getElementById('btnAction');
+        const video = document.getElementById('videoElement');
+        const placeholder = document.getElementById('placeholderMsg');
+        const laser = document.getElementById('laser');
 
         if (isScanning) {
-            // Matikan Kamera
-            html5QrCode.stop().then(() => {
-                isScanning = false;
-                btn.innerHTML = '<i class="fas fa-play"></i> MULAI SCAN';
-                btn.classList.remove('stop');
-                statusText.innerHTML = '<i class="fas fa-info-circle"></i> Kamera Standby.';
-            }).catch(err => console.log("Error stopping scanner", err));
+            // Hentikan
+            codeReader.reset();
+            isScanning = false;
+            video.style.display = 'none';
+            laser.style.display = 'none';
+            placeholder.style.display = 'block';
+            btn.innerHTML = '<i class="fas fa-play" style="margin-right: 8px;"></i> MULAI SCAN';
+            btn.classList.remove('stop');
         } else {
-            // Nyalakan Kamera
-            startScannerProcess();
+            // Mulai
+            try {
+                video.style.display = 'block';
+                laser.style.display = 'block';
+                placeholder.style.display = 'none';
+                btn.innerHTML = '<i class="fas fa-stop" style="margin-right: 8px;"></i> BERHENTI SCAN';
+                btn.classList.add('stop');
+                isScanning = true;
+
+                // Konfigurasi Video & Auto-Focus untuk Android/iPhone
+                const constraints = {
+                    video: { 
+                        facingMode: currentCam,
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 },
+                        advanced: [{ focusMode: "continuous" }]
+                    }
+                };
+
+                codeReader.decodeFromConstraints(constraints, 'videoElement', (result, err) => {
+                    if (result) {
+                        const code = result.getText();
+                        if(code !== lastScan) {
+                            lastScan = code;
+                            setTimeout(() => lastScan = null, 2500); // Anti-spam 2.5 detik
+                            simpanData(code);
+                        }
+                    }
+                });
+
+            } catch (err) {
+                console.error(err);
+                Swal.fire('Error Kamera', 'Pastikan izin kamera sudah diberikan.', 'error');
+                toggleScan(); // Reset UI jika gagal
+            }
         }
     }
 
     function switchCamera() {
+        currentCam = (currentCam === "environment") ? "user" : "environment";
         if (isScanning) {
-            html5QrCode.stop().then(() => {
-                currentFacingMode = currentFacingMode === "environment" ? "user" : "environment";
-                startScannerProcess();
-            });
+            toggleScan(); // Matikan
+            setTimeout(toggleScan, 300); // Nyalakan lagi dengan kamera baru
         } else {
-            currentFacingMode = currentFacingMode === "environment" ? "user" : "environment";
-            Toast.fire({ icon: 'info', title: currentFacingMode === 'environment' ? 'Kamera Belakang Siap' : 'Kamera Depan Siap' });
+            Toast.fire({ icon: 'info', title: currentCam === 'environment' ? 'Kamera Belakang Aktif' : 'Kamera Depan Aktif' });
         }
     }
 
-    function startScannerProcess() {
-        const btn = document.getElementById('btnToggleScan');
-        const statusText = document.getElementById('statusText');
-
-        // Konfigurasi khusus membaca 1D barcode di HP
-        const config = { 
-            fps: 15, 
-            qrbox: { width: 300, height: 120 }, // Area pipih mendatar khusus 1D
-            formatsToSupport: [ 
-                Html5QrcodeSupportedFormats.EAN_13, 
-                Html5QrcodeSupportedFormats.CODE_128,
-                Html5QrcodeSupportedFormats.CODE_39 
-            ] 
-        };
-
-        html5QrCode.start(
-            { facingMode: currentFacingMode },
-            config,
-            onScanSuccess,
-            (errorMessage) => { /* Abaikan error pencarian fokus lensa */ }
-        ).then(() => {
-            isScanning = true;
-            btn.innerHTML = '<i class="fas fa-stop"></i> BERHENTI SCAN';
-            btn.classList.add('stop');
-            statusText.innerHTML = '<span style="color: var(--success);"><i class="fas fa-circle" style="font-size:8px;"></i> Scanner Aktif</span> (Arahkan garis barcode ke dalam kotak)';
-        }).catch((err) => {
-            Swal.fire('Error Kamera', 'Pastikan izin kamera browser sudah aktif.', 'error');
-        });
-    }
-
-    // --- 4. LOGIKA DATA BARCODE ---
-    function onScanSuccess(decodedText) {
-        if(lastScannedCode === decodedText) return; // Anti-spam 2.5 detik
-        lastScannedCode = decodedText;
-        setTimeout(() => lastScannedCode = null, 2500);
-
-        simpanData(decodedText);
+    // --- HARDWARE & DATA HANDLING ---
+    function triggerFeedback() {
+        if (navigator.vibrate) navigator.vibrate(200);
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = 'sine'; osc.frequency.value = 1000;
+        gain.gain.setValueAtTime(0, ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(1, ctx.currentTime + 0.01);
+        gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.15);
+        osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.15);
     }
 
     function inputManual() {
-        const input = document.getElementById('manualInput');
-        if(!input.value.trim()) return Toast.fire({ icon: 'warning', title: 'Kode Kosong!' });
-        simpanData(input.value.trim());
-        input.value = '';
+        const val = document.getElementById('manualData').value.trim();
+        if(!val) return Toast.fire({ icon: 'error', title: 'Kode kosong!' });
+        simpanData(val);
+        document.getElementById('manualData').value = '';
     }
 
     function simpanData(kode) {
         const now = new Date();
-        const tgl = now.toISOString().split('T')[0];
-        const jam = now.toTimeString().split(' ')[0];
-
         const newData = {
-            id: Date.now(),
-            kode: kode,
-            panjang: 280, // Dummy sesuai foto
-            lebar: 18,
-            potongan: 24,
-            persegi: 12.1,
-            tanggal: tgl,
-            jam: jam,
+            id: Date.now(), kode: kode,
+            panjang: 280, lebar: 18, potongan: 24, persegi: 12.1,
+            tanggal: now.toISOString().split('T')[0],
+            jam: now.toTimeString().split(' ')[0],
             golongan: 'A'
         };
 
         masterData.unshift(newData);
-        localStorage.setItem('ScanMasterData', JSON.stringify(masterData));
+        localStorage.setItem('ZXingBarcodeData', JSON.stringify(masterData));
         
-        triggerSuccessHardware();
-        document.body.classList.add('flash-success');
-        setTimeout(() => document.body.classList.remove('flash-success'), 600);
-        
-        Toast.fire({ icon: 'success', title: `Masuk: ${kode}` });
-        renderTable();
+        triggerFeedback();
+        Toast.fire({ icon: 'success', title: `Berhasil: ${kode}` });
+        renderData();
     }
 
-    // --- 5. RENDER & EXPORT DATA ---
-    function renderTable() {
-        const tbody = document.getElementById('tableBody');
-        const start = document.getElementById('startDate').value;
-        const end = document.getElementById('endDate').value;
-        const search = document.getElementById('searchBox').value.toLowerCase();
+    // --- RENDER TABEL & EXPORT ---
+    function formatTgl(tgl) { const p = tgl.split('-'); return `${p[2]}/${p[1]}/${p[0]}`; }
 
-        let filtered = masterData.filter(item => {
-            let match = true;
-            if (start && item.tanggal < start) match = false;
-            if (end && item.tanggal > end) match = false;
-            if (search && !item.kode.toLowerCase().includes(search)) match = false;
-            return match;
+    function renderData() {
+        const tbody = document.getElementById('dataTable');
+        const start = document.getElementById('start').value;
+        const end = document.getElementById('end').value;
+        const search = document.getElementById('search').value.toLowerCase();
+
+        let fData = masterData.filter(i => {
+            if(start && i.tanggal < start) return false;
+            if(end && i.tanggal > end) return false;
+            if(search && !i.kode.toLowerCase().includes(search)) return false;
+            return true;
         });
 
-        // Urutkan terbaru di atas
-        filtered.sort((a, b) => new Date(b.tanggal + 'T' + b.jam) - new Date(a.tanggal + 'T' + a.jam));
+        fData.sort((a,b) => new Date(b.tanggal+'T'+b.jam) - new Date(a.tanggal+'T'+a.jam));
 
         tbody.innerHTML = '';
-        if(filtered.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:20px;">Belum ada data scan</td></tr>`;
-        } else {
-            filtered.forEach((item, index) => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td><span class="badge-barcode">${item.kode}</span></td>
-                    <td>${item.panjang} x ${item.lebar}</td>
-                    <td>${item.potongan}</td>
-                    <td>${item.persegi}</td>
-                    <td>${formatTgl(item.tanggal)}</td>
-                    <td>${item.jam}</td>
-                    <td><b>${item.golongan}</b></td>
-                    <td><button class="btn-del" onclick="hapus(${item.id})"><i class="fas fa-trash"></i></button></td>
-                `;
-                tbody.appendChild(tr);
-            });
+        if(fData.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color:#64748b;">Belum ada data</td></tr>`;
+            return;
         }
-        document.getElementById('dataInfo').innerText = `Total: ${filtered.length} Data`;
-    }
 
-    function formatTgl(tglStr) {
-        const parts = tglStr.split('-');
-        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        fData.forEach((i, idx) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${idx + 1}</td>
+                <td><span class="badge">${i.kode}</span></td>
+                <td>${i.panjang} x ${i.lebar}</td>
+                <td>${i.potongan}</td>
+                <td>${i.persegi}</td>
+                <td>${formatTgl(i.tanggal)}</td>
+                <td>${i.jam}</td>
+                <td><b>${i.golongan}</b></td>
+                <td><button class="btn-del" onclick="hapus(${i.id})"><i class="fas fa-trash"></i></button></td>
+            `;
+            tbody.appendChild(tr);
+        });
     }
 
     function hapus(id) {
         Swal.fire({
-            title: 'Hapus?', text: "Data hilang permanen dari lokal.", icon: 'warning',
-            showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'Hapus'
+            title: 'Hapus Data?', icon: 'warning', showCancelButton: true,
+            confirmButtonColor: '#dc2626', confirmButtonText: 'Hapus'
         }).then((res) => {
-            if (res.isConfirmed) {
+            if(res.isConfirmed) {
                 masterData = masterData.filter(i => i.id !== id);
-                localStorage.setItem('ScanMasterData', JSON.stringify(masterData));
-                renderTable();
+                localStorage.setItem('ZXingBarcodeData', JSON.stringify(masterData));
+                renderData();
             }
         });
     }
 
-    function exportExcel() {
-        if(masterData.length === 0) return Swal.fire('Kosong', 'Tidak ada data!', 'warning');
-        
-        const excelData = masterData.map((item, index) => ({
-            "No": index + 1, "Kode Barcode": item.kode, "Panjang": item.panjang, "Lebar": item.lebar,
-            "Jml Potongan": item.potongan, "Persegi": item.persegi, "Tanggal": formatTgl(item.tanggal),
-            "Jam": item.jam, "Golongan": item.golongan
+    function downloadExcel() {
+        if(masterData.length === 0) return Swal.fire('Kosong', 'Tidak ada data untuk diexport', 'error');
+        const dt = masterData.map((i, idx) => ({
+            "No": idx+1, "Kode Barcode": i.kode, "Panjang": i.panjang, "Lebar": i.lebar,
+            "Potongan": i.potongan, "Persegi": i.persegi, "Tanggal": formatTgl(i.tanggal), "Jam": i.jam, "Gol": i.golongan
         }));
-
-        const worksheet = XLSX.utils.json_to_sheet(excelData);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Master Barang");
-        XLSX.writeFile(workbook, `Data_Scanner_${new Date().getTime()}.xlsx`);
+        const ws = XLSX.utils.json_to_sheet(dt);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Master Barang");
+        XLSX.writeFile(wb, `Data_Barcode_${new Date().getTime()}.xlsx`);
     }
 
-    window.onload = renderTable;
+    window.onload = renderData;
 </script>
 
 </body>
