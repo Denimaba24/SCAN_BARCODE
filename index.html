@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover"
     />
-    <title>Enterprise SCM Scanner - PERFECTION</title>
+    <title>Enterprise SCM Scanner - PREMIUM</title>
 
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
@@ -80,10 +80,10 @@
       .engine-badge {
         position: absolute;
         right: 20px;
-        font-size: 0.6rem;
+        font-size: 0.65rem;
         background: var(--success);
         color: white;
-        padding: 4px 8px;
+        padding: 5px 10px;
         border-radius: 20px;
         letter-spacing: 0.5px;
         font-weight: 700;
@@ -151,7 +151,7 @@
         transform: scale(1.02); 
       }
 
-      /* Area Penargetan Ultra-Wide */
+      /* Area Penargetan Ultra-Wide & Bebas Arah */
       .targeting-box {
         position: absolute;
         top: 5%; left: 5%; right: 5%; bottom: 5%;
@@ -246,7 +246,7 @@
         0% { background-color: #bae6fd; }
         100% { background-color: transparent; }
       }
-      .new-row { animation: highlightNew 1s ease-out; }
+      .new-row { animation: highlightNew 1.5s ease-out; }
 
       .badge {
         background: #f1f5f9; color: var(--text-dark); padding: 6px 12px; border-radius: 8px;
@@ -270,13 +270,13 @@
   <body>
     <div class="navbar">
       <i class="fas fa-qrcode" style="margin-right: 12px"></i> SCANNER SCM
-      <span class="engine-badge" id="engineBadge">INITIALIZING...</span>
+      <span class="engine-badge" id="engineBadge">PREMIUM MODE</span>
     </div>
 
     <div class="container">
       <div class="card">
         <div class="card-header">
-          <i class="fas fa-camera-viewfinder" style="color: var(--primary)"></i> Pemindai Mode Akurasi Tinggi
+          <i class="fas fa-camera-viewfinder" style="color: var(--primary)"></i> Pemindai Super Akurat
         </div>
 
         <div class="scanner-container" id="scannerBox">
@@ -375,21 +375,23 @@
     <script>
       const STORAGE_KEY = "SCMBarcodeMasterData";
       let allData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      
+      // KUNCI ANTI-DUPLIKAT (Mencegah Bug Konkurensi Kamera 60FPS)
+      // Menyimpan daftar kode ke dalam memory 'Set' agar pencarian duplikat 1000x lebih cepat (0 ms delay)
+      let scannedCodesSet = new Set(allData.map(item => item.kode)); 
 
       let isScanning = false;
       let currentCam = "environment";
-      let scanLockUntil = 0;
-      let lastScanText = null;
-      let lastErrorText = null;
       let lastErrorTime = 0; 
       let isTorchOn = false;
       let streamTrack = null;
+      let scanLoopFrame = null;
       let audioCtx = null; 
 
       const video = document.getElementById("videoElement");
       const Toast = Swal.mixin({ toast: true, position: "bottom-end", showConfirmButton: false, timer: 1500 });
 
-      // Deteksi iOS Safari untuk penyesuaian khusus
+      // Deteksi OS untuk Mode Optimasi
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
       const hasNativeScanner = "BarcodeDetector" in window;
       let nativeDetector = null;
@@ -429,30 +431,27 @@
         if (audioCtx.state === 'suspended') audioCtx.resume();
       }
 
-      // --- LOGIKA PENERJEMAH BARCODE (SANGAT AKURAT) ---
+      // --- PENERJEMAH RUMUS PABRIK YANG PRESISI ---
       function parsePayloadToFields(text) {
         const raw = (text || "").trim();
         if (!raw) return null;
 
-        // 1. CEK POLA RAHASIA PABRIK (Berawalan 86 dan memiliki panjang karakter di atas 24 digit)
-        // Mengekstrak informasi secara presisi dari indeks belakang agar dinamis terhadap panjang Golongan
+        // 1. Cek Pola Barcode Produksi Pabrik (Berawalan 86 dan panjang minimal 24 digit)
+        // Kita hitung dari digit BELAKANG karena panjang nama Golongan (Index tengah) bisa bervariasi
         if (raw.startsWith("86") && raw.length >= 24) {
             try {
-                // Ekstrak string dari arah belakang (karena 16 digit terakhir polanya pasti: Bundle, P, L, Pot)
-                const p_str = raw.slice(-4);          // 4 digit terakhir -> Potongan
-                const w_str = raw.slice(-9, -4);      // 5 digit sebelumnya -> Lebar (W)
-                const l_str = raw.slice(-12, -9);     // 3 digit sebelumnya -> Panjang (L)
-                const prefix = raw.slice(2, -16);     // Sisa string di tengah (buang "86" di awal dan 16 digit metrik di akhir)
+                const p_str = raw.slice(-4);          // 4 digit terakhir: Potongan
+                const w_str = raw.slice(-9, -4);      // 5 digit sebelumnya: Lebar (W)
+                const l_str = raw.slice(-12, -9);     // 3 digit sebelumnya: Panjang (L)
+                const prefix = raw.slice(2, -16);     // Sisanya di tengah: Golongan
                 
-                // Menghapus angka 0 di depan untuk mendapatkan kode Golongan
                 const golongan = prefix.replace(/^0+/, '') || "-";
 
-                const p_indo = parseInt(l_str, 10);              // Panjang
-                const l_indo = parseInt(w_str, 10) / 10;         // Lebar (dibagi 10 sesuai standar)
-                const potongan = parseInt(p_str, 10);            // Potongan
-                const persegi = (p_indo * l_indo * potongan) / 10000; // Rumus m2
+                const p_indo = parseInt(l_str, 10);              
+                const l_indo = parseInt(w_str, 10) / 10;         // Lebar selalu dibagi 10
+                const potongan = parseInt(p_str, 10);            
+                const persegi = (p_indo * l_indo * potongan) / 10000; // Standar perhitungan m2 pabrik
 
-                // Pastikan hasil parsing adalah angka valid sebelum direturn
                 if (!isNaN(p_indo) && !isNaN(l_indo) && !isNaN(potongan)) {
                     return {
                         panjang: p_indo,
@@ -462,19 +461,13 @@
                         golongan: golongan
                     };
                 }
-            } catch(e) {
-                // Jika gagal parsing index, lanjut ke fallback standar
-            }
+            } catch(e) { }
         }
 
-        // 2. JIKA BARCODE JENIS LAIN (EAN, QR Biasa, Code Ritel, dll)
-        // Sistem tidak akan membuat data palsu. Semua nilai dikosongkan ("-")
+        // 2. Jika Barcode Ritel Biasa (EAN, QR Code, Code Ritel, dll)
+        // Jangan diisi data palsu. Semua tabel ukuran dikosongkan.
         return {
-            panjang: "-",
-            lebar: "-",
-            potongan: "-",
-            persegi: "-",
-            golongan: "-"
+            panjang: "-", lebar: "-", potongan: "-", persegi: "-", golongan: "-"
         };
       }
 
@@ -494,7 +487,6 @@
         } catch (error) { Toast.fire({ icon: "error", title: "Gagal mengakses senter" }); }
       }
 
-      let scanLoopFrame;
       async function toggleScan() {
         const btn = document.getElementById("btnAction");
         const placeholder = document.getElementById("placeholderMsg");
@@ -536,6 +528,7 @@
               },
             };
 
+            // Constraint aman agar tidak ditolak iOS Safari
             if (!isIOS) { constraints.video.advanced = [{ focusMode: "continuous" }]; }
 
             const stream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -557,7 +550,8 @@
               scanLoopFrame = requestAnimationFrame(detectLoop);
             } else {
               zxingReader = new ZXing.BrowserMultiFormatReader(getZXingHints());
-              zxingReader.timeBetweenDecodingAttempts = 0; 
+              zxingReader.timeBetweenDecodingAttempts = 0; // Pemindaian beruntun tanpa batas lambat
+
               zxingReader.decodeFromStream(stream, "videoElement", (result, err) => {
                 if (result) {
                     processBarcodeDetected(result.getText(), result.getBarcodeFormat ? result.getBarcodeFormat().toString() : "UNKNOWN");
@@ -565,37 +559,30 @@
               });
             }
           } catch (err) {
-            Swal.fire("Error", "Kamera gagal dimuat. Periksa Izin Browser Anda.", "error");
+            Swal.fire("Error", "Kamera gagal dimuat. Pastikan izin kamera telah diberikan di Pengaturan/Browser.", "error");
             toggleScan();
           }
         }
       }
 
+      // --- LOGIKA UTAMA (ANTI-DUPLIKAT & SCAN BERUNTUN) ---
       function processBarcodeDetected(code, format) {
-        const now = Date.now();
-
-        // 1. CEK ANTI-DUPLIKAT MUTLAK (Tidak boleh ada data yang sama)
-        const isDuplicate = allData.some(item => item.kode === code);
-
-        if (isDuplicate) {
-          // Hanya memunculkan peringatan merah setiap 2 detik agar tidak berisik jika ditahan di barcode yang sama
-          if (code !== lastErrorText || (now - lastErrorTime) > 2000) {
-            triggerErrorFeedback();
-            Toast.fire({ icon: "error", title: "DITOLAK: Barcode Duplikat!" });
-            lastErrorText = code;
-            lastErrorTime = now;
-          }
-          return; // Menghentikan proses simpan
+        // 1. Cek di Memory Lock (Set) apakah kode ini SUDAH PERNAH DISCAN
+        if (scannedCodesSet.has(code)) {
+            const now = Date.now();
+            // Tahan bunyi peringatan agar tidak bising jika kamera terus menatap barcode yang sama
+            if (now - lastErrorTime > 2000) {
+                triggerErrorFeedback();
+                Toast.fire({ icon: "error", title: "DITOLAK: Barcode telah tersimpan!" });
+                lastErrorTime = now;
+            }
+            return; // BLOKIR MUTLAK. Data tidak diteruskan ke database.
         }
 
-        // 2. PROSES BARCODE BARU YANG BERBEDA
-        // Tidak ada lagi jeda waktu yang mengunci lama. Batas waktu hanya 300ms untuk UI refresh.
-        if (now - lastScanTime < 300) return;
-        
-        lastErrorText = null; 
-        lastScanText = code;
-        lastScanTime = now;
-        
+        // 2. Jika kode BARU dan BERBEDA, langsung kunci di memori seketika (Anti-Spam 60FPS)
+        scannedCodesSet.add(code);
+
+        // 3. Simpan data ke Database dan Tampilkan
         simpanData(code, format);
       }
 
@@ -657,11 +644,13 @@
         const val = document.getElementById("manualData").value.trim();
         if (!val) return Toast.fire({ icon: "error", title: "Kode tidak boleh kosong!" });
         
-        const isDuplicate = allData.some(item => item.kode === val);
-        if (isDuplicate) {
-          triggerErrorFeedback();
-          return Toast.fire({ icon: "error", title: "DITOLAK: Barcode Duplikat!" });
+        // Pengecekan Input Manual Anti-Duplikat
+        if (scannedCodesSet.has(val)) {
+            triggerErrorFeedback();
+            return Toast.fire({ icon: "error", title: "DITOLAK: Barcode telah tersimpan!" });
         }
+
+        scannedCodesSet.add(val);
         simpanData(val, "MANUAL_ENTRY");
         document.getElementById("manualData").value = "";
       }
@@ -671,7 +660,7 @@
         const nowMs = Date.now();
         const tglHariIni = new Date(nowDate.getTime() - nowDate.getTimezoneOffset() * 60000).toISOString().split("T")[0];
 
-        // MENGAMBIL DATA ASLI DARI BARCODE (JIKA ADA), JIKA TIDAK ADA MAKA KOSONG ("-")
+        // Jalankan Parser. Akan mengembalikan ukuran valid JIKA barcode dari pabrik, JIKA BUKAN akan terisi "-"
         const parsed = parsePayloadToFields(kode);
         
         const newData = {
@@ -748,7 +737,7 @@
             <td ${isRowNew}>${i.jam}</td>
             <td ${isRowNew}><b>${i.golongan}</b></td>
             <td ${isRowNew}>${formatBadge}</td>
-            <td ${isRowNew}><button class="btn-del" onclick="hapus(${i.id})"><i class="fas fa-trash-can"></i></button></td>
+            <td ${isRowNew}><button class="btn-del" onclick="hapus(${i.id}, '${i.kode}')"><i class="fas fa-trash-can"></i></button></td>
           `;
           tbody.appendChild(tr);
         });
@@ -759,7 +748,7 @@
         }
       }
 
-      function hapus(id) {
+      function hapus(id, kode) {
         Swal.fire({
           title: "Hapus Data?",
           text: "Data yang dihapus tidak bisa dikembalikan.",
@@ -773,6 +762,10 @@
           if (res.isConfirmed) {
             allData = allData.filter((i) => i.id !== id);
             localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
+            
+            // Hapus juga kodenya dari Memory Lock agar bisa discan ulang jika dibutuhkan
+            scannedCodesSet.delete(kode); 
+            
             renderData();
           }
         });
