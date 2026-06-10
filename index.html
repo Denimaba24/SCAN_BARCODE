@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover"
     />
-    <title>Enterprise SCM Scanner - iOS Support</title>
+    <title>Enterprise SCM Scanner - OVERDRIVE V3</title>
 
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
@@ -143,7 +143,6 @@
         transition: box-shadow 0.05s ease-out; 
       }
 
-      /* KUNCI IOS: autoplay playsinline muted diperlukan */
       #videoElement {
         width: 100%;
         height: 100%;
@@ -152,7 +151,6 @@
         transform: scale(1.02); 
       }
 
-      /* Area Penargetan Ultra-Wide */
       .targeting-box {
         position: absolute;
         top: 5%; left: 5%; right: 5%; bottom: 5%;
@@ -379,14 +377,14 @@
 
       let isScanning = false;
       let currentCam = "environment";
-      let lastScanText = null;
-      let lastScanTime = 0; 
-      let lastErrorText = null;
-      let lastErrorTime = 0; 
       let isTorchOn = false;
       let streamTrack = null;
       let scanLoopFrame = null;
       let audioCtx = null; 
+
+      // Variabel untuk Smart Silence (Sistem Bisu Otomatis)
+      let lastSeenCode = null;
+      let resetSeenTimeout = null;
 
       const video = document.getElementById("videoElement");
 
@@ -397,15 +395,12 @@
         timer: 1500,
       });
 
-      // Deteksi iOS Safari untuk penyesuaian khusus sistem operasi Apple
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-      
       const hasNativeScanner = "BarcodeDetector" in window;
       let nativeDetector = null;
       let zxingReader = null;
 
       if (hasNativeScanner && !isIOS) {
-        // Native Detector sering nge-bug di iOS lama, jadi kita utamakan untuk Android/PC
         document.getElementById("engineBadge").innerText = "HW ACCEL ON";
         document.getElementById("engineBadge").style.background = "#10b981"; 
         nativeDetector = new BarcodeDetector({
@@ -524,7 +519,6 @@
             btn.classList.add("stop");
             isScanning = true;
 
-            // Resolusi standar HD agar lancar di semua perangkat termasuk iPhone
             let constraints = {
               video: {
                 facingMode: currentCam,
@@ -533,8 +527,6 @@
               },
             };
 
-            // Tambahkan pengaturan lensa tingkat lanjut KHUSUS JIKA BUKAN iOS
-            // Karena iOS Safari sering menolak (crash) jika diberi constraint terlalu ketat
             if (!isIOS) {
                constraints.video.advanced = [{ focusMode: "continuous" }];
             }
@@ -557,11 +549,9 @@
               };
               scanLoopFrame = requestAnimationFrame(detectLoop);
             } else {
-              // Jika menggunakan ZXing (Termasuk di iPhone iOS)
               zxingReader = new ZXing.BrowserMultiFormatReader(getZXingHints());
               zxingReader.timeBetweenDecodingAttempts = 0; 
 
-              // Menggunakan decodeFromStream memastikan proses pembacaan berjalan terus menerus (Continuous Looping)
               zxingReader.decodeFromStream(stream, "videoElement", (result, err) => {
                 if (result) {
                     processBarcodeDetected(result.getText(), result.getBarcodeFormat ? result.getBarcodeFormat().toString() : "UNKNOWN");
@@ -569,41 +559,38 @@
               });
             }
           } catch (err) {
-            Swal.fire("Error", "Kamera gagal dimuat. Pastikan izin kamera sudah diberikan di pengaturan browser/iOS.", "error");
+            Swal.fire("Error", "Kamera gagal dimuat. Pastikan izin kamera sudah diberikan.", "error");
             toggleScan();
           }
         }
       }
 
-      // --- LOGIKA UTAMA: MULTI-SCAN BERUNTUN ---
+      // --- LOGIKA UTAMA: SMART SILENCE ---
       function processBarcodeDetected(code, format) {
-        const now = Date.now();
+        // Jika kamera masih menatap barcode yang SAMA PERSIS dengan sebelumnya secara terus-menerus,
+        // diamkan total (jangan bereaksi apapun, tidak ada bunyi, tidak ada error).
+        if (code === lastSeenCode) {
+            // Perbarui timer agar tetap diam selama kamera belum digeser ke tempat lain
+            clearTimeout(resetSeenTimeout);
+            resetSeenTimeout = setTimeout(() => { lastSeenCode = null; }, 2500);
+            return;
+        }
 
-        // 1. CEK ANTI-DUPLIKAT MUTLAK DI DATABASE
+        // Catat barcode ini sebagai barcode yang sedang dilihat saat ini
+        lastSeenCode = code;
+        clearTimeout(resetSeenTimeout);
+        resetSeenTimeout = setTimeout(() => { lastSeenCode = null; }, 2500);
+
+        // CEK DUPLIKAT MUTLAK DI DATABASE
         const isDuplicate = allData.some(item => item.kode === code);
 
         if (isDuplicate) {
-          // Jika ditahan di barcode yang SAMA, notif merah muncul setiap 2 detik agar tidak berisik
-          if (code !== lastErrorText || (now - lastErrorTime) > 2000) {
             triggerErrorFeedback();
-            Toast.fire({ icon: "error", title: "DITOLAK: Barcode sudah ada!" });
-            lastErrorText = code;
-            lastErrorTime = now;
-          }
-          return; // Hentikan di sini. Barcode tidak akan disimpan.
+            Toast.fire({ icon: "error", title: "DITOLAK: Barcode sudah tersimpan!" });
+            return; // Berhenti di sini, data ditolak
         }
 
-        // 2. CEK JIKA BARCODE BERBEDA (DATA BARU)
-        // Jeda waktu antar pembacaan BARU adalah 500ms agar tabel dan UI tidak hang
-        if (now - lastScanTime < 500) return;
-
-        // Reset error text agar jika kita scan duplikat lagi nanti bisa berbunyi langsung
-        lastErrorText = null; 
-        
-        lastScanText = code;
-        lastScanTime = now;
-
-        // Panggil fungsi simpan
+        // JIKA BARCODE BARU, SIMPAN KE DATABASE
         simpanData(code, format);
       }
 
@@ -679,6 +666,7 @@
           return Toast.fire({ icon: "error", title: "DITOLAK: Barcode sudah ada!" });
         }
 
+        lastSeenCode = val; // Mencegah scan kamera tidak sengaja membaca ini lagi
         simpanData(val, "MANUAL_ENTRY");
         document.getElementById("manualData").value = "";
       }
