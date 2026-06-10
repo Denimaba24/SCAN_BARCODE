@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover"
     />
-    <title>Enterprise SCM Scanner - OVERDRIVE MODE</title>
+    <title>Enterprise SCM Scanner - OVERDRIVE V2</title>
 
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
@@ -31,7 +31,7 @@
         --danger: #ef4444;
         --success: #10b981;
         --warning: #f59e0b;
-        --bg-main: #f0fdfa;
+        --bg-main: #f0fdfa; 
         --card-bg: #ffffff;
         --text-dark: #0f172a;
         --text-muted: #64748b;
@@ -46,8 +46,7 @@
         -webkit-tap-highlight-color: transparent;
       }
 
-      html,
-      body {
+      html, body {
         width: 100%;
         max-width: 100vw;
         overflow-x: hidden;
@@ -96,7 +95,7 @@
         padding: 0 16px;
         display: grid;
         gap: 16px;
-        grid-template-columns: minmax(0, 1fr);
+        grid-template-columns: minmax(0, 1fr); 
         width: 100%;
       }
 
@@ -113,7 +112,7 @@
         padding: 20px;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
         border: 1px solid rgba(226, 232, 240, 0.8);
-        min-width: 0;
+        min-width: 0; 
         max-width: 100%;
       }
 
@@ -136,12 +135,12 @@
         background: #020617;
         margin-bottom: 18px;
         aspect-ratio: 4/3;
-        max-height: 55vh;
+        max-height: 55vh; 
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.8);
-        transition: box-shadow 0.05s ease-out; /* Flash ultra instan */
+        box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
+        transition: box-shadow 0.05s ease-out; 
       }
 
       #videoElement {
@@ -149,63 +148,40 @@
         height: 100%;
         object-fit: cover;
         display: none;
-        transform: scale(1.02);
+        transform: scale(1.02); 
       }
 
+      /* Area Penargetan Ultra-Wide (Diperbesar) */
       .targeting-box {
         position: absolute;
-        top: 25%;
-        left: 15%;
-        right: 15%;
-        bottom: 25%;
+        top: 5%; left: 5%; right: 5%; bottom: 5%;
         border: 2px dashed rgba(56, 189, 248, 0.8);
         border-radius: 12px;
         display: none;
         pointer-events: none;
         z-index: 5;
-        box-shadow: 0 0 0 4000px rgba(0, 0, 0, 0.5);
+        box-shadow: 0 0 0 4000px rgba(0, 0, 0, 0.5); 
       }
 
-      .targeting-box::before,
-      .targeting-box::after {
-        content: "";
-        position: absolute;
-        width: 30px;
-        height: 30px;
-        border-color: #38bdf8;
-        border-style: solid;
+      .targeting-box::before, .targeting-box::after {
+        content: ""; position: absolute; width: 40px; height: 40px; border-color: #38bdf8; border-style: solid;
       }
-      .targeting-box::before {
-        top: -2px;
-        left: -2px;
-        border-width: 4px 0 0 4px;
-      }
-      .targeting-box::after {
-        bottom: -2px;
-        right: -2px;
-        border-width: 0 4px 4px 0;
-      }
+      .targeting-box::before { top: -2px; left: -2px; border-width: 4px 0 0 4px; }
+      .targeting-box::after { bottom: -2px; right: -2px; border-width: 0 4px 4px 0; }
 
       .laser-overlay {
         position: absolute;
-        top: 50%;
-        left: 15%;
-        right: 15%;
-        height: 3px;
+        top: 50%; left: 5%; right: 5%; height: 3px;
         background: #38bdf8;
         box-shadow: 0 0 20px 4px rgba(56, 189, 248, 0.9);
         display: none;
         z-index: 10;
-        animation: scanAnim 1s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
+        animation: scanAnim 1.5s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
       }
 
       @keyframes scanAnim {
-        0% {
-          top: 25%;
-        }
-        100% {
-          top: 75%;
-        }
+        0% { top: 5%; }
+        100% { top: 95%; }
       }
 
       .scanner-placeholder {
@@ -240,10 +216,8 @@
         color: var(--text-dark);
         background: #f1f5f9;
       }
-
-      .btn:active {
-        transform: scale(0.92);
-      }
+      
+      .btn:active { transform: scale(0.92); }
 
       .btn-scan {
         flex: 1;
@@ -251,173 +225,79 @@
         color: white;
         box-shadow: 0 6px 20px rgba(15, 23, 42, 0.3);
       }
-
+      
       .btn-scan.stop {
         background: var(--danger);
         box-shadow: 0 6px 20px rgba(239, 68, 68, 0.3);
       }
 
-      .btn-icon {
-        width: 60px;
-        font-size: 1.2rem;
-      }
-      .btn-icon.active {
-        background: var(--warning);
-        color: white;
-      }
+      .btn-icon { width: 60px; font-size: 1.2rem; }
+      .btn-icon.active { background: var(--warning); color: white; }
 
-      .input-group {
-        margin-bottom: 18px;
-      }
+      .input-group { margin-bottom: 18px; }
       .input-group label {
-        display: block;
-        font-size: 0.85rem;
-        font-weight: 700;
-        color: var(--text-muted);
-        margin-bottom: 8px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
+        display: block; font-size: 0.85rem; font-weight: 700;
+        color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;
       }
-
+      
       .form-control {
-        width: 100%;
-        padding: 15px 18px;
-        border: 2px solid var(--border);
-        border-radius: 12px;
-        outline: none;
-        font-size: 1rem;
-        background: #f8fafc;
-        transition: all 0.2s;
-        font-weight: 500;
+        width: 100%; padding: 15px 18px; border: 2px solid var(--border);
+        border-radius: 12px; outline: none; font-size: 1rem; background: #f8fafc; transition: all 0.2s; font-weight: 500;
       }
-
+      
       .form-control:focus {
-        border-color: var(--primary);
-        background: #fff;
-        box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.15);
+        border-color: var(--primary); background: #fff; box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.15);
       }
 
-      .manual-input-wrapper {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-      }
-      @media (min-width: 400px) {
-        .manual-input-wrapper {
-          flex-direction: row;
-        }
-      }
-      #manualData {
-        flex: 1;
-      }
-      .filter-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 14px;
-      }
+      .manual-input-wrapper { display: flex; flex-direction: column; gap: 12px; }
+      @media (min-width: 400px) { .manual-input-wrapper { flex-direction: row; } }
+      #manualData { flex: 1; }
+      .filter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 
       /* Tabel Responsive */
       .table-wrapper {
-        width: 100%;
-        max-width: 100%;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        border-radius: 14px;
-        border: 1px solid var(--border);
-        display: block;
-        background: #fff;
-        max-height: 450px;
+        width: 100%; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;
+        border-radius: 14px; border: 1px solid var(--border); display: block; background: #fff;
+        max-height: 450px; 
         overflow-y: auto;
         scroll-behavior: smooth;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
       }
+      
+      table { width: 100%; border-collapse: collapse; white-space: nowrap; }
+      
+      th, td {
+        padding: 16px 20px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.95rem;
+      }
+      
+      th { background: #f8fafc; font-weight: 800; color: var(--text-dark); position: sticky; top: 0; z-index: 2;}
 
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        white-space: nowrap;
-      }
-
-      th,
-      td {
-        padding: 16px 20px;
-        text-align: left;
-        border-bottom: 1px solid var(--border);
-        font-size: 0.95rem;
-      }
-
-      th {
-        background: #f8fafc;
-        font-weight: 800;
-        color: var(--text-dark);
-        position: sticky;
-        top: 0;
-        z-index: 2;
-      }
-
-      tbody tr {
-        transition: background-color 0.1s;
-      }
-      tbody tr:hover {
-        background-color: #f1f5f9;
-      }
-
+      tbody tr { transition: background-color 0.1s; }
+      tbody tr:hover { background-color: #f1f5f9; }
+      
       @keyframes highlightNew {
-        0% {
-          background-color: #bae6fd;
-        }
-        100% {
-          background-color: transparent;
-        }
+        0% { background-color: #bae6fd; }
+        100% { background-color: transparent; }
       }
-      .new-row {
-        animation: highlightNew 1s ease-out;
-      }
+      .new-row { animation: highlightNew 1s ease-out; }
 
       .badge {
-        background: #f1f5f9;
-        color: var(--text-dark);
-        padding: 6px 12px;
-        border-radius: 8px;
-        font-family: "Courier New", Courier, monospace;
-        font-weight: 800;
-        font-size: 1rem;
-        border: 1px solid #cbd5e1;
+        background: #f1f5f9; color: var(--text-dark); padding: 6px 12px; border-radius: 8px;
+        font-family: 'Courier New', Courier, monospace; font-weight: 800; font-size: 1rem; border: 1px solid #cbd5e1;
       }
-
+      
       .btn-del {
-        color: var(--danger);
-        background: #fee2e2;
-        border: none;
-        padding: 10px 14px;
-        border-radius: 10px;
-        cursor: pointer;
-        transition: 0.2s;
-        font-size: 1rem;
+        color: var(--danger); background: #fee2e2; border: none; padding: 10px 14px;
+        border-radius: 10px; cursor: pointer; transition: 0.2s; font-size: 1rem;
       }
-      .btn-del:active {
-        background: #fca5a5;
-        transform: scale(0.9);
-      }
+      .btn-del:active { background: #fca5a5; transform: scale(0.9); }
 
       .btn-export {
-        background: var(--success);
-        color: white;
-        width: 100%;
-        padding: 16px;
-        margin-top: 12px;
-        font-size: 1.05rem;
-        border: none;
-        border-radius: 14px;
-        font-weight: 800;
-        box-shadow: 0 6px 15px rgba(16, 185, 129, 0.25);
-        cursor: pointer;
-        transition: 0.2s;
+        background: var(--success); color: white; width: 100%; padding: 16px; margin-top: 12px;
+        font-size: 1.05rem; border: none; border-radius: 14px; font-weight: 800;
+        box-shadow: 0 6px 15px rgba(16, 185, 129, 0.25); cursor: pointer; transition: 0.2s;
       }
-      .btn-export:active {
-        transform: scale(0.97);
-        background: #059669;
-      }
+      .btn-export:active { transform: scale(0.97); background: #059669; }
     </style>
   </head>
   <body>
@@ -430,7 +310,7 @@
       <div class="card">
         <div class="card-header">
           <i class="fas fa-camera-viewfinder" style="color: var(--primary)"></i>
-          Pemindai OVERDRIVE Mode
+          Pemindai OVERDRIVE (Anti-Duplikat)
         </div>
 
         <div class="scanner-container" id="scannerBox">
@@ -444,19 +324,10 @@
         </div>
 
         <div class="controls">
-          <button
-            class="btn btn-icon"
-            id="btnTorch"
-            onclick="toggleTorch()"
-            title="Nyalakan Senter"
-          >
+          <button class="btn btn-icon" id="btnTorch" onclick="toggleTorch()" title="Nyalakan Senter">
             <i class="fas fa-bolt"></i>
           </button>
-          <button
-            class="btn btn-icon"
-            onclick="switchCamera()"
-            title="Tukar Kamera"
-          >
+          <button class="btn btn-icon" onclick="switchCamera()" title="Tukar Kamera">
             <i class="fas fa-camera-rotate"></i>
           </button>
           <button class="btn btn-scan" id="btnAction" onclick="toggleScan()">
@@ -467,22 +338,8 @@
         <div class="input-group" style="margin-top: 24px">
           <label>Input Manual (Darurat)</label>
           <div class="manual-input-wrapper">
-            <input
-              type="text"
-              id="manualData"
-              class="form-control"
-              placeholder="Ketik nomor barcode..."
-            />
-            <button
-              class="btn btn-scan"
-              style="
-                width: auto;
-                padding: 0 24px;
-                flex: none;
-                background: var(--primary);
-              "
-              onclick="inputManual()"
-            >
+            <input type="text" id="manualData" class="form-control" placeholder="Ketik nomor barcode..." />
+            <button class="btn btn-scan" style="width: auto; padding: 0 24px; flex: none; background: var(--primary);" onclick="inputManual()">
               <i class="fas fa-plus" style="margin-right: 6px"></i> Tambah
             </button>
           </div>
@@ -491,16 +348,13 @@
 
       <div class="card">
         <div class="card-header">
-          <i class="fas fa-database" style="color: var(--primary)"></i> Database
-          Barang
+          <i class="fas fa-database" style="color: var(--primary)"></i> Database Barang
         </div>
 
         <div class="input-group">
           <label>Mode Penyimpanan & Tampilan</label>
           <select class="form-control" id="dataMode" onchange="renderData()">
-            <option value="harian" selected>
-              Data Harian (Hanya Hari Ini)
-            </option>
+            <option value="harian" selected>Data Harian (Hanya Hari Ini)</option>
             <option value="semua">Semua Master Data (Riwayat Penuh)</option>
           </select>
         </div>
@@ -508,54 +362,28 @@
         <div class="filter-grid">
           <div class="input-group">
             <label>Dari Tanggal</label>
-            <input
-              type="date"
-              class="form-control"
-              id="start"
-              onchange="renderData()"
-            />
+            <input type="date" class="form-control" id="start" onchange="renderData()" />
           </div>
           <div class="input-group">
             <label>Sampai Tanggal</label>
-            <input
-              type="date"
-              class="form-control"
-              id="end"
-              onchange="renderData()"
-            />
+            <input type="date" class="form-control" id="end" onchange="renderData()" />
           </div>
         </div>
-
+        
         <div class="input-group">
           <label>Cari Data</label>
-          <input
-            type="text"
-            class="form-control"
-            id="search"
-            placeholder="Ketik barcode atau golongan..."
-            onkeyup="renderData()"
-          />
+          <input type="text" class="form-control" id="search" placeholder="Ketik barcode atau golongan..." onkeyup="renderData()" />
         </div>
 
         <button class="btn-export" onclick="downloadExcelHarian()">
-          <i class="fas fa-file-excel" style="margin-right: 8px"></i> Export
-          Harian (.xlsx)
+          <i class="fas fa-file-excel" style="margin-right: 8px"></i> Export Harian (.xlsx)
         </button>
 
-        <button
-          class="btn-export"
-          style="background: var(--text-dark); box-shadow: none"
-          onclick="downloadExcelSemua()"
-        >
-          <i class="fas fa-archive" style="margin-right: 8px"></i> Export Semua
-          Data (.xlsx)
+        <button class="btn-export" style="background: var(--text-dark); box-shadow: none" onclick="downloadExcelSemua()">
+          <i class="fas fa-archive" style="margin-right: 8px"></i> Export Semua Data (.xlsx)
         </button>
 
-        <div
-          class="table-wrapper"
-          id="tableScrollWrapper"
-          style="margin-top: 24px"
-        >
+        <div class="table-wrapper" id="tableScrollWrapper" style="margin-top: 24px">
           <table>
             <thead>
               <tr>
@@ -585,11 +413,10 @@
       let isScanning = false;
       let currentCam = "environment";
       let scanLockUntil = 0;
-      let lastScanText = null;
       let isTorchOn = false;
       let streamTrack = null;
       let scanLoopFrame = null;
-      let audioCtx = null; // Pre-warmed Audio Engine
+      let audioCtx = null; 
 
       const video = document.getElementById("videoElement");
 
@@ -597,7 +424,7 @@
         toast: true,
         position: "bottom-end",
         showConfirmButton: false,
-        timer: 1000,
+        timer: 1500,
       });
 
       const hasNativeScanner = "BarcodeDetector" in window;
@@ -606,27 +433,13 @@
 
       if (hasNativeScanner) {
         document.getElementById("engineBadge").innerText = "HW ACCEL ON";
-        document.getElementById("engineBadge").style.background = "#10b981";
+        document.getElementById("engineBadge").style.background = "#10b981"; 
         nativeDetector = new BarcodeDetector({
-          formats: [
-            "code_128",
-            "code_39",
-            "code_93",
-            "ean_13",
-            "ean_8",
-            "upc_a",
-            "upc_e",
-            "itf",
-            "codabar",
-            "qr_code",
-            "data_matrix",
-            "aztec",
-            "pdf417",
-          ],
+          formats: ["code_128", "code_39", "code_93", "ean_13", "ean_8", "upc_a", "upc_e", "itf", "codabar", "qr_code", "data_matrix", "aztec", "pdf417"],
         });
       } else {
         document.getElementById("engineBadge").innerText = "OVERDRIVE MODE";
-        document.getElementById("engineBadge").style.background = "#f59e0b";
+        document.getElementById("engineBadge").style.background = "#f59e0b"; 
       }
 
       function getZXingHints() {
@@ -636,20 +449,13 @@
             [
               ZXing.DecodeHintType.POSSIBLE_FORMATS,
               [
-                ZXing.BarcodeFormat.CODE_128,
-                ZXing.BarcodeFormat.CODE_39,
-                ZXing.BarcodeFormat.EAN_13,
-                ZXing.BarcodeFormat.EAN_8,
-                ZXing.BarcodeFormat.UPC_A,
-                ZXing.BarcodeFormat.ITF,
-                ZXing.BarcodeFormat.QR_CODE,
-                ZXing.BarcodeFormat.DATA_MATRIX,
+                ZXing.BarcodeFormat.CODE_128, ZXing.BarcodeFormat.CODE_39, ZXing.BarcodeFormat.EAN_13,
+                ZXing.BarcodeFormat.EAN_8, ZXing.BarcodeFormat.UPC_A, ZXing.BarcodeFormat.ITF,
+                ZXing.BarcodeFormat.QR_CODE, ZXing.BarcodeFormat.DATA_MATRIX,
               ],
             ],
           ]);
-        } catch (e) {
-          return undefined;
-        }
+        } catch (e) { return undefined; }
       }
 
       function initAudio() {
@@ -657,7 +463,7 @@
           const AudioContext = window.AudioContext || window.webkitAudioContext;
           audioCtx = new AudioContext();
         }
-        if (audioCtx.state === "suspended") audioCtx.resume();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
       }
 
       function parsePayloadToFields(text) {
@@ -678,21 +484,11 @@
           return null;
         };
 
-        const panjang = getByRegex([
-          /(?:Panjang|PANJANG|P)\s*[:=\-]?\s*([0-9]+(?:[\.,][0-9]+)?)/i,
-        ]);
-        const lebar = getByRegex([
-          /(?:Lebar|LEBAR|L)\s*[:=\-]?\s*([0-9]+(?:[\.,][0-9]+)?)/i,
-        ]);
-        const potongan = getByRegex([
-          /(?:Potongan|POTONGAN|POT|PO)\s*[:=\-]?\s*([0-9]+(?:[\.,][0-9]+)?)/i,
-        ]);
-        const persegi = getByRegex([
-          /(?:Persegi|PERSEGI|M2|\bAREA\b)\s*[:=\-]?\s*([0-9]+(?:[\.,][0-9]+)?)/i,
-        ]);
-        const golongan = getByRegex([
-          /(?:Gol|Golongan|GOL|GROUP)\s*[:=\-]?\s*([A-Za-z0-9]+)/i,
-        ]);
+        const panjang = getByRegex([/(?:Panjang|PANJANG|P)\s*[:=\-]?\s*([0-9]+(?:[\.,][0-9]+)?)/i]);
+        const lebar = getByRegex([/(?:Lebar|LEBAR|L)\s*[:=\-]?\s*([0-9]+(?:[\.,][0-9]+)?)/i]);
+        const potongan = getByRegex([/(?:Potongan|POTONGAN|POT|PO)\s*[:=\-]?\s*([0-9]+(?:[\.,][0-9]+)?)/i]);
+        const persegi = getByRegex([/(?:Persegi|PERSEGI|M2|\bAREA\b)\s*[:=\-]?\s*([0-9]+(?:[\.,][0-9]+)?)/i]);
+        const golongan = getByRegex([/(?:Gol|Golongan|GOL|GROUP)\s*[:=\-]?\s*([A-Za-z0-9]+)/i]);
 
         const parsed = {
           panjang: panjang != null ? pickNumber(panjang) : null,
@@ -702,40 +498,23 @@
           golongan: golongan != null ? String(golongan).trim() : null,
         };
 
-        return parsed.panjang != null ||
-          parsed.lebar != null ||
-          parsed.potongan != null ||
-          parsed.persegi != null ||
-          parsed.golongan != null
-          ? parsed
-          : null;
+        return parsed.panjang != null || parsed.lebar != null || parsed.potongan != null || parsed.persegi != null || parsed.golongan != null ? parsed : null;
       }
 
       async function toggleTorch() {
         const btnTorch = document.getElementById("btnTorch");
-        if (!isScanning || !streamTrack)
-          return Toast.fire({
-            icon: "warning",
-            title: "Mulai scan terlebih dahulu!",
-          });
+        if (!isScanning || !streamTrack) return Toast.fire({ icon: "warning", title: "Mulai scan terlebih dahulu!" });
 
         try {
           const capabilities = streamTrack.getCapabilities();
           if (capabilities.torch) {
             isTorchOn = !isTorchOn;
-            await streamTrack.applyConstraints({
-              advanced: [{ torch: isTorchOn }],
-            });
+            await streamTrack.applyConstraints({ advanced: [{ torch: isTorchOn }] });
             btnTorch.classList.toggle("active", isTorchOn);
           } else {
-            Toast.fire({
-              icon: "error",
-              title: "Senter tidak didukung kamera ini",
-            });
+            Toast.fire({ icon: "error", title: "Senter tidak didukung kamera ini" });
           }
-        } catch (error) {
-          Toast.fire({ icon: "error", title: "Gagal mengakses senter" });
-        }
+        } catch (error) { Toast.fire({ icon: "error", title: "Gagal mengakses senter" }); }
       }
 
       async function toggleScan() {
@@ -750,49 +529,37 @@
           document.getElementById("btnTorch").classList.remove("active");
           cancelAnimationFrame(scanLoopFrame);
 
-          if (streamTrack) {
-            streamTrack.stop();
-            streamTrack = null;
-          }
-          if (video.srcObject) {
-            video.srcObject.getTracks().forEach((t) => t.stop());
-            video.srcObject = null;
-          }
-          if (zxingReader) {
-            zxingReader.reset();
-            zxingReader = null;
-          }
+          if (streamTrack) { streamTrack.stop(); streamTrack = null; }
+          if (video.srcObject) { video.srcObject.getTracks().forEach((t) => t.stop()); video.srcObject = null; }
+          if (zxingReader) { zxingReader.reset(); zxingReader = null; }
 
           video.style.display = "none";
           laser.style.display = "none";
           targetBox.style.display = "none";
           placeholder.style.display = "flex";
-          btn.innerHTML =
-            '<i class="fas fa-bolt" style="margin-right: 8px;"></i> MULAI SCAN';
+          btn.innerHTML = '<i class="fas fa-bolt" style="margin-right: 8px;"></i> MULAI SCAN';
           btn.classList.remove("stop");
         } else {
-          initAudio(); // Panaskan audio engine
+          initAudio(); 
           try {
             video.style.display = "block";
             laser.style.display = "block";
             targetBox.style.display = "block";
             placeholder.style.display = "none";
-            btn.innerHTML =
-              '<i class="fas fa-stop" style="margin-right: 8px;"></i> BERHENTI SCAN';
+            btn.innerHTML = '<i class="fas fa-stop" style="margin-right: 8px;"></i> BERHENTI SCAN';
             btn.classList.add("stop");
             isScanning = true;
 
-            // OVERDRIVE CONSTRAINTS: 60FPS + Macro Focus + High Resolution
             const stream = await navigator.mediaDevices.getUserMedia({
               video: {
                 facingMode: currentCam,
                 width: { ideal: 1280 },
                 height: { ideal: 720 },
-                frameRate: { ideal: 60, min: 30 }, // Memaksa 60FPS agar pergerakan tidak blur
+                frameRate: { ideal: 60, min: 30 }, 
                 advanced: [
-                  { focusMode: "macro" }, // Fokus sedekat mungkin untuk barcode padat
+                  { focusMode: "macro" }, 
                   { focusMode: "continuous" },
-                  { zoom: 2.0 }, // Membesarkan area scan
+                  { zoom: 1.5 } 
                 ],
               },
             });
@@ -807,10 +574,7 @@
                 try {
                   const barcodes = await nativeDetector.detect(video);
                   if (barcodes.length > 0) {
-                    processBarcodeDetected(
-                      barcodes[0].rawValue,
-                      barcodes[0].format.toUpperCase(),
-                    );
+                    processBarcodeDetected(barcodes[0].rawValue, barcodes[0].format.toUpperCase());
                   }
                 } catch (e) {}
                 scanLoopFrame = requestAnimationFrame(detectLoop);
@@ -818,24 +582,14 @@
               scanLoopFrame = requestAnimationFrame(detectLoop);
             } else {
               zxingReader = new ZXing.BrowserMultiFormatReader(getZXingHints());
-              zxingReader.timeBetweenDecodingAttempts = 0; // ZERO DELAY
+              zxingReader.timeBetweenDecodingAttempts = 0; 
 
               zxingReader.decodeFromVideoElement(video, (result, err) => {
-                if (result)
-                  processBarcodeDetected(
-                    result.getText(),
-                    result.getBarcodeFormat
-                      ? result.getBarcodeFormat()
-                      : "UNKNOWN",
-                  );
+                if (result) processBarcodeDetected(result.getText(), result.getBarcodeFormat ? result.getBarcodeFormat() : "UNKNOWN");
               });
             }
           } catch (err) {
-            Swal.fire(
-              "Error",
-              "Kamera gagal dimuat atau izin ditolak.",
-              "error",
-            );
+            Swal.fire("Error", "Kamera gagal dimuat atau izin ditolak.", "error");
             toggleScan();
           }
         }
@@ -845,14 +599,17 @@
         const now = Date.now();
         if (now < scanLockUntil) return;
 
-        if (code === lastScanText) {
-          scanLockUntil = Date.now() + 1000;
-          return;
+        // FITUR ANTI-DUPLIKAT (Mencegah Barcode Sama Disimpan Lagi)
+        const isDuplicate = allData.some(item => item.kode === code);
+        
+        if (isDuplicate) {
+          scanLockUntil = Date.now() + 1500; // Jeda 1.5 detik jika error
+          triggerErrorFeedback();
+          Toast.fire({ icon: "error", title: "DUPLIKAT: Barcode sudah ada!" });
+          return; // Hentikan proses simpan
         }
 
-        lastScanText = code;
         scanLockUntil = Date.now() + 1000;
-
         simpanData(code, format);
       }
 
@@ -862,53 +619,74 @@
           toggleScan();
           setTimeout(toggleScan, 300);
         } else {
-          Toast.fire({
-            icon: "info",
-            title:
-              currentCam === "environment"
-                ? "Kamera Belakang Siap"
-                : "Kamera Depan Siap",
-          });
+          Toast.fire({ icon: "info", title: currentCam === "environment" ? "Kamera Belakang Siap" : "Kamera Depan Siap" });
         }
       }
 
       function triggerFeedback() {
-        if (navigator.vibrate) navigator.vibrate([30]); // Sangat singkat & tajam
+        if (navigator.vibrate) navigator.vibrate([30]); 
 
-        // Zero-Latency Beep
         if (audioCtx) {
           try {
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.connect(gain);
             gain.connect(audioCtx.destination);
-            osc.type = "square";
+            osc.type = "square"; 
             osc.frequency.setValueAtTime(3500, audioCtx.currentTime);
             gain.gain.setValueAtTime(0, audioCtx.currentTime);
-            gain.gain.linearRampToValueAtTime(
-              0.5,
-              audioCtx.currentTime + 0.005,
-            );
-            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.04);
+            gain.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.005);
+            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.04); 
             osc.start(audioCtx.currentTime);
             osc.stop(audioCtx.currentTime + 0.04);
           } catch (e) {}
         }
 
         const scannerBox = document.getElementById("scannerBox");
-        scannerBox.style.boxShadow = "inset 0 0 100px rgba(14, 165, 233, 1)";
+        scannerBox.style.boxShadow = "inset 0 0 100px rgba(14, 165, 233, 1)"; 
         setTimeout(() => {
           scannerBox.style.boxShadow = "inset 0 0 30px rgba(0,0,0,0.8)";
         }, 60);
       }
 
+      // Umpan Balik Jika Terjadi Duplikasi Barcode
+      function triggerErrorFeedback() {
+        if (navigator.vibrate) navigator.vibrate([100, 50, 100]); 
+
+        if (audioCtx) {
+          try {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = "sawtooth"; 
+            osc.frequency.setValueAtTime(300, audioCtx.currentTime); // Nada Rendah (Error)
+            gain.gain.setValueAtTime(0, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.01);
+            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.15); 
+            osc.start(audioCtx.currentTime);
+            osc.stop(audioCtx.currentTime + 0.15);
+          } catch (e) {}
+        }
+
+        const scannerBox = document.getElementById("scannerBox");
+        scannerBox.style.boxShadow = "inset 0 0 100px rgba(239, 68, 68, 1)"; // Flash Merah
+        setTimeout(() => {
+          scannerBox.style.boxShadow = "inset 0 0 30px rgba(0,0,0,0.8)";
+        }, 150);
+      }
+
       function inputManual() {
         const val = document.getElementById("manualData").value.trim();
-        if (!val)
-          return Toast.fire({
-            icon: "error",
-            title: "Kode tidak boleh kosong!",
-          });
+        if (!val) return Toast.fire({ icon: "error", title: "Kode tidak boleh kosong!" });
+        
+        // Pengecekan Duplikat pada Input Manual
+        const isDuplicate = allData.some(item => item.kode === val);
+        if (isDuplicate) {
+          triggerErrorFeedback();
+          return Toast.fire({ icon: "error", title: "DUPLIKAT: Barcode sudah ada!" });
+        }
+
         simpanData(val, "MANUAL_ENTRY");
         document.getElementById("manualData").value = "";
       }
@@ -916,21 +694,11 @@
       function simpanData(kode, barcodeFormat) {
         const nowDate = new Date();
         const nowMs = Date.now();
-        const tglHariIni = new Date(
-          nowDate.getTime() - nowDate.getTimezoneOffset() * 60000,
-        )
-          .toISOString()
-          .split("T")[0];
+        const tglHariIni = new Date(nowDate.getTime() - nowDate.getTimezoneOffset() * 60000).toISOString().split("T")[0];
 
-        const defaults = {
-          panjang: 280,
-          lebar: 18,
-          potongan: 24,
-          persegi: 12.1,
-          golongan: "A",
-        };
+        const defaults = { panjang: 280, lebar: 18, potongan: 24, persegi: 12.1, golongan: "A" };
         const parsed = parsePayloadToFields(kode);
-
+        
         const newData = {
           id: Date.now(),
           scannedAt: nowMs,
@@ -968,22 +736,13 @@
         const mode = document.getElementById("dataMode").value;
 
         const nowDate = new Date();
-        const hariIni = new Date(
-          nowDate.getTime() - nowDate.getTimezoneOffset() * 60000,
-        )
-          .toISOString()
-          .split("T")[0];
+        const hariIni = new Date(nowDate.getTime() - nowDate.getTimezoneOffset() * 60000).toISOString().split("T")[0];
 
         let fData = allData.filter((i) => {
           if (mode === "harian" && i.tanggal !== hariIni) return false;
           if (start && i.tanggal < start) return false;
           if (end && i.tanggal > end) return false;
-          if (
-            search &&
-            !i.kode.toLowerCase().includes(search) &&
-            !i.golongan.toLowerCase().includes(search)
-          )
-            return false;
+          if (search && !i.kode.toLowerCase().includes(search) && !i.golongan.toLowerCase().includes(search)) return false;
           return true;
         });
 
@@ -996,13 +755,11 @@
         }
 
         fData.forEach((i, idx) => {
-          const formatBadge =
-            i.format === "MANUAL_ENTRY"
+          const formatBadge = i.format === "MANUAL_ENTRY"
               ? `<span style="color:#ca8a04; font-size:0.75rem;"><i class="fas fa-keyboard"></i> Manual</span>`
               : `<span style="color:#64748b; font-size:0.75rem;">${i.format}</span>`;
 
-          const isRowNew =
-            isNewDataAdded && idx === fData.length - 1 ? 'class="new-row"' : "";
+          const isRowNew = isNewDataAdded && idx === fData.length - 1 ? 'class="new-row"' : "";
 
           const tr = document.createElement("tr");
           tr.innerHTML = `
@@ -1048,21 +805,15 @@
 
       function downloadExcelHarian() {
         const nowDate = new Date();
-        const hariIni = new Date(
-          nowDate.getTime() - nowDate.getTimezoneOffset() * 60000,
-        )
-          .toISOString()
-          .split("T")[0];
+        const hariIni = new Date(nowDate.getTime() - nowDate.getTimezoneOffset() * 60000).toISOString().split("T")[0];
         const dataHarian = allData.filter((i) => i.tanggal === hariIni);
 
-        if (dataHarian.length === 0)
-          return Swal.fire("Kosong", "Tidak ada data hari ini.", "info");
+        if (dataHarian.length === 0) return Swal.fire("Kosong", "Tidak ada data hari ini.", "info");
         exportToExcel(dataHarian, "Harian_" + hariIni);
       }
 
       function downloadExcelSemua() {
-        if (allData.length === 0)
-          return Swal.fire("Kosong", "Database kosong.", "info");
+        if (allData.length === 0) return Swal.fire("Kosong", "Database kosong.", "info");
         exportToExcel(allData, "Master_Data");
       }
 
