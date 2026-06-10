@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover"
     />
-    <title>Enterprise SCM Scanner - OVERDRIVE</title>
+    <title>Enterprise SCM Scanner - PERFECTION</title>
 
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
@@ -197,57 +197,33 @@
       }
 
       /* Kontrol & Form */
-      .controls {
-        display: flex;
-        gap: 12px;
-      }
+      .controls { display: flex; gap: 12px; }
 
       .btn {
-        border: none;
-        border-radius: 14px;
-        font-weight: 800;
-        font-size: 1.05rem;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
-        padding: 16px;
-        color: var(--text-dark);
-        background: #f1f5f9;
+        border: none; border-radius: 14px; font-weight: 800; font-size: 1.05rem;
+        cursor: pointer; display: flex; align-items: center; justify-content: center;
+        transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1); padding: 16px;
+        color: var(--text-dark); background: #f1f5f9;
       }
-      
       .btn:active { transform: scale(0.92); }
 
-      .btn-scan {
-        flex: 1;
-        background: var(--text-dark);
-        color: white;
-        box-shadow: 0 6px 20px rgba(15, 23, 42, 0.3);
-      }
-      
-      .btn-scan.stop {
-        background: var(--danger);
-        box-shadow: 0 6px 20px rgba(239, 68, 68, 0.3);
-      }
+      .btn-scan { flex: 1; background: var(--text-dark); color: white; box-shadow: 0 6px 20px rgba(15, 23, 42, 0.3); }
+      .btn-scan.stop { background: var(--danger); box-shadow: 0 6px 20px rgba(239, 68, 68, 0.3); }
 
       .btn-icon { width: 60px; font-size: 1.2rem; }
       .btn-icon.active { background: var(--warning); color: white; }
 
       .input-group { margin-bottom: 18px; }
       .input-group label {
-        display: block; font-size: 0.85rem; font-weight: 700;
-        color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;
+        display: block; font-size: 0.85rem; font-weight: 700; color: var(--text-muted);
+        margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;
       }
       
       .form-control {
-        width: 100%; padding: 15px 18px; border: 2px solid var(--border);
-        border-radius: 12px; outline: none; font-size: 1rem; background: #f8fafc; transition: all 0.2s; font-weight: 500;
+        width: 100%; padding: 15px 18px; border: 2px solid var(--border); border-radius: 12px;
+        outline: none; font-size: 1rem; background: #f8fafc; transition: all 0.2s; font-weight: 500;
       }
-      
-      .form-control:focus {
-        border-color: var(--primary); background: #fff; box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.15);
-      }
+      .form-control:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.15); }
 
       .manual-input-wrapper { display: flex; flex-direction: column; gap: 12px; }
       @media (min-width: 400px) { .manual-input-wrapper { flex-direction: row; } }
@@ -258,20 +234,11 @@
       .table-wrapper {
         width: 100%; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;
         border-radius: 14px; border: 1px solid var(--border); display: block; background: #fff;
-        max-height: 450px; 
-        overflow-y: auto;
-        scroll-behavior: smooth;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        max-height: 450px; overflow-y: auto; scroll-behavior: smooth; box-shadow: 0 4px 6px rgba(0,0,0,0.02);
       }
-      
       table { width: 100%; border-collapse: collapse; white-space: nowrap; }
-      
-      th, td {
-        padding: 16px 20px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.95rem;
-      }
-      
+      th, td { padding: 16px 20px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.95rem; }
       th { background: #f8fafc; font-weight: 800; color: var(--text-dark); position: sticky; top: 0; z-index: 2;}
-
       tbody tr { transition: background-color 0.1s; }
       tbody tr:hover { background-color: #f1f5f9; }
       
@@ -309,8 +276,7 @@
     <div class="container">
       <div class="card">
         <div class="card-header">
-          <i class="fas fa-camera-viewfinder" style="color: var(--primary)"></i>
-          Pemindai OVERDRIVE Mode
+          <i class="fas fa-camera-viewfinder" style="color: var(--primary)"></i> Pemindai Mode Akurasi Tinggi
         </div>
 
         <div class="scanner-container" id="scannerBox">
@@ -318,7 +284,7 @@
             <i class="fas fa-video-slash fa-3x" style="opacity: 0.2"></i>
             <span>Kamera Siap Digunakan</span>
           </div>
-          <video id="videoElement" autoplay="autoplay" muted="muted" playsinline="true" webkit-playsinline="true"></video>
+          <video id="videoElement" autoplay playsinline muted></video>
           <div class="targeting-box" id="targetBox"></div>
           <div class="laser-overlay" id="laser"></div>
         </div>
@@ -331,7 +297,7 @@
             <i class="fas fa-camera-rotate"></i>
           </button>
           <button class="btn btn-scan" id="btnAction" onclick="toggleScan()">
-            <i class="fas fa-bolt" style="margin-right: 8px"></i> MULAI SCAN
+            <i class="fas fa-play" style="margin-right: 8px"></i> MULAI SCAN
           </button>
         </div>
 
@@ -412,41 +378,37 @@
 
       let isScanning = false;
       let currentCam = "environment";
+      let scanLockUntil = 0;
       let lastScanText = null;
-      let lastScanTime = 0; 
+      let lastErrorText = null;
+      let lastErrorTime = 0; 
       let isTorchOn = false;
       let streamTrack = null;
-      let scanLoopFrame = null;
       let audioCtx = null; 
 
       const video = document.getElementById("videoElement");
+      const Toast = Swal.mixin({ toast: true, position: "bottom-end", showConfirmButton: false, timer: 1500 });
 
-      const Toast = Swal.mixin({
-        toast: true,
-        position: "bottom-end",
-        showConfirmButton: false,
-        timer: 1500,
-      });
-
+      // Deteksi iOS Safari untuk penyesuaian khusus
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
       const hasNativeScanner = "BarcodeDetector" in window;
       let nativeDetector = null;
       let zxingReader = null;
 
-      if (hasNativeScanner) {
+      if (hasNativeScanner && !isIOS) {
         document.getElementById("engineBadge").innerText = "HW ACCEL ON";
-        document.getElementById("engineBadge").style.background = "#10b981"; 
         nativeDetector = new BarcodeDetector({
-          formats: ["code_128", "code_39", "code_93", "ean_13", "ean_8", "upc_a", "upc_e", "itf", "codabar", "qr_code", "data_matrix", "aztec", "pdf417"],
+          formats: ["code_128", "code_39", "code_93", "ean_13", "ean_8", "upc_a", "upc_e", "itf", "codabar", "qr_code", "data_matrix", "pdf417"],
         });
       } else {
-        document.getElementById("engineBadge").innerText = "OVERDRIVE MODE";
-        document.getElementById("engineBadge").style.background = "#f59e0b"; 
+        document.getElementById("engineBadge").innerText = isIOS ? "iOS OPTIMIZED" : "SOFTWARE MODE";
       }
 
       function getZXingHints() {
         try {
           return new Map([
             [ZXing.DecodeHintType.TRY_HARDER, true],
+            [ZXing.DecodeHintType.ASSUME_GS1, true],
             [
               ZXing.DecodeHintType.POSSIBLE_FORMATS,
               [
@@ -467,39 +429,53 @@
         if (audioCtx.state === 'suspended') audioCtx.resume();
       }
 
+      // --- LOGIKA PENERJEMAH BARCODE (SANGAT AKURAT) ---
       function parsePayloadToFields(text) {
         const raw = (text || "").trim();
         if (!raw) return null;
-        const t = raw.replace(/\r/g, "\n");
-        const pickNumber = (v) => {
-          const m = String(v).match(/-?\d+(?:[\.,]\d+)?/);
-          if (!m) return null;
-          return Number(m[0].replace(",", "."));
+
+        // 1. CEK POLA RAHASIA PABRIK (Berawalan 86 dan memiliki panjang karakter di atas 24 digit)
+        // Mengekstrak informasi secara presisi dari indeks belakang agar dinamis terhadap panjang Golongan
+        if (raw.startsWith("86") && raw.length >= 24) {
+            try {
+                // Ekstrak string dari arah belakang (karena 16 digit terakhir polanya pasti: Bundle, P, L, Pot)
+                const p_str = raw.slice(-4);          // 4 digit terakhir -> Potongan
+                const w_str = raw.slice(-9, -4);      // 5 digit sebelumnya -> Lebar (W)
+                const l_str = raw.slice(-12, -9);     // 3 digit sebelumnya -> Panjang (L)
+                const prefix = raw.slice(2, -16);     // Sisa string di tengah (buang "86" di awal dan 16 digit metrik di akhir)
+                
+                // Menghapus angka 0 di depan untuk mendapatkan kode Golongan
+                const golongan = prefix.replace(/^0+/, '') || "-";
+
+                const p_indo = parseInt(l_str, 10);              // Panjang
+                const l_indo = parseInt(w_str, 10) / 10;         // Lebar (dibagi 10 sesuai standar)
+                const potongan = parseInt(p_str, 10);            // Potongan
+                const persegi = (p_indo * l_indo * potongan) / 10000; // Rumus m2
+
+                // Pastikan hasil parsing adalah angka valid sebelum direturn
+                if (!isNaN(p_indo) && !isNaN(l_indo) && !isNaN(potongan)) {
+                    return {
+                        panjang: p_indo,
+                        lebar: l_indo,
+                        potongan: potongan,
+                        persegi: persegi.toFixed(2),
+                        golongan: golongan
+                    };
+                }
+            } catch(e) {
+                // Jika gagal parsing index, lanjut ke fallback standar
+            }
+        }
+
+        // 2. JIKA BARCODE JENIS LAIN (EAN, QR Biasa, Code Ritel, dll)
+        // Sistem tidak akan membuat data palsu. Semua nilai dikosongkan ("-")
+        return {
+            panjang: "-",
+            lebar: "-",
+            potongan: "-",
+            persegi: "-",
+            golongan: "-"
         };
-
-        const getByRegex = (patterns) => {
-          for (const p of patterns) {
-            const m = t.match(p);
-            if (m && m[1] != null) return m[1];
-          }
-          return null;
-        };
-
-        const panjang = getByRegex([/(?:Panjang|PANJANG|P)\s*[:=\-]?\s*([0-9]+(?:[\.,][0-9]+)?)/i]);
-        const lebar = getByRegex([/(?:Lebar|LEBAR|L)\s*[:=\-]?\s*([0-9]+(?:[\.,][0-9]+)?)/i]);
-        const potongan = getByRegex([/(?:Potongan|POTONGAN|POT|PO)\s*[:=\-]?\s*([0-9]+(?:[\.,][0-9]+)?)/i]);
-        const persegi = getByRegex([/(?:Persegi|PERSEGI|M2|\bAREA\b)\s*[:=\-]?\s*([0-9]+(?:[\.,][0-9]+)?)/i]);
-        const golongan = getByRegex([/(?:Gol|Golongan|GOL|GROUP)\s*[:=\-]?\s*([A-Za-z0-9]+)/i]);
-
-        const parsed = {
-          panjang: panjang != null ? pickNumber(panjang) : null,
-          lebar: lebar != null ? pickNumber(lebar) : null,
-          potongan: potongan != null ? pickNumber(potongan) : null,
-          persegi: persegi != null ? pickNumber(persegi) : null,
-          golongan: golongan != null ? String(golongan).trim() : null,
-        };
-
-        return parsed.panjang != null || parsed.lebar != null || parsed.potongan != null || parsed.persegi != null || parsed.golongan != null ? parsed : null;
       }
 
       async function toggleTorch() {
@@ -518,7 +494,7 @@
         } catch (error) { Toast.fire({ icon: "error", title: "Gagal mengakses senter" }); }
       }
 
-      // PERBAIKAN: Fungsi toggleScan Universal untuk iOS dan Android
+      let scanLoopFrame;
       async function toggleScan() {
         const btn = document.getElementById("btnAction");
         const placeholder = document.getElementById("placeholderMsg");
@@ -526,7 +502,6 @@
         const targetBox = document.getElementById("targetBox");
 
         if (isScanning) {
-          // --- PROSES BERHENTI SCAN ---
           isScanning = false;
           isTorchOn = false;
           document.getElementById("btnTorch").classList.remove("active");
@@ -540,85 +515,57 @@
           laser.style.display = "none";
           targetBox.style.display = "none";
           placeholder.style.display = "flex";
-          btn.innerHTML = '<i class="fas fa-bolt" style="margin-right: 8px;"></i> MULAI SCAN';
+          btn.innerHTML = '<i class="fas fa-play" style="margin-right: 8px;"></i> MULAI SCAN';
           btn.classList.remove("stop");
         } else {
-          // --- PROSES MULAI SCAN ---
           initAudio(); 
           try {
             video.style.display = "block";
             laser.style.display = "block";
             targetBox.style.display = "block";
             placeholder.style.display = "none";
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right: 8px;"></i> MEMUAT...';
+            btn.innerHTML = '<i class="fas fa-stop" style="margin-right: 8px;"></i> BERHENTI SCAN';
+            btn.classList.add("stop");
             isScanning = true;
 
-            // 1. Constraint Universal (Aman untuk iOS dan Android)
-            const constraints = {
-              audio: false,
+            let constraints = {
               video: {
-                facingMode: currentCam === "environment" ? "environment" : "user",
+                facingMode: currentCam,
                 width: { ideal: 1280 },
                 height: { ideal: 720 }
-              }
+              },
             };
+
+            if (!isIOS) { constraints.video.advanced = [{ focusMode: "continuous" }]; }
 
             const stream = await navigator.mediaDevices.getUserMedia(constraints);
-            
-            // Pastikan atribut diset ulang via JS untuk mem-bypass security iOS
-            video.setAttribute("playsinline", true);
-            video.setAttribute("webkit-playsinline", true);
-            video.muted = true;
-            video.autoplay = true;
-
             video.srcObject = stream;
             streamTrack = stream.getVideoTracks()[0];
+            await video.play();
 
-            // 2. Kunci Universal: Tunggu metadata video siap sebelum memutar
-            video.onloadedmetadata = async () => {
-              try {
-                await video.play();
-                btn.innerHTML = '<i class="fas fa-stop" style="margin-right: 8px;"></i> BERHENTI SCAN';
-                btn.classList.add("stop");
-
-                // 3. Alokasi Engine: Android vs iOS
-                if (hasNativeScanner) {
-                  // (ANDROID) Gunakan Hardware Acceleration
-                  const detectLoop = async () => {
-                    if (!isScanning) return;
-                    try {
-                      const barcodes = await nativeDetector.detect(video);
-                      if (barcodes.length > 0) {
-                        processBarcodeDetected(barcodes[0].rawValue, barcodes[0].format.toUpperCase());
-                      }
-                    } catch (e) {}
-                    scanLoopFrame = requestAnimationFrame(detectLoop);
-                  };
-                  scanLoopFrame = requestAnimationFrame(detectLoop);
-                } else {
-                  // (iOS / IPHONE) Gunakan ZXing sebagai Fallback
-                  if (!zxingReader) {
-                    zxingReader = new ZXing.BrowserMultiFormatReader(getZXingHints());
-                    zxingReader.timeBetweenDecodingAttempts = 200; // Jeda agar iPhone tidak overheat
+            if (nativeDetector) {
+              const detectLoop = async () => {
+                if (!isScanning) return;
+                try {
+                  const barcodes = await nativeDetector.detect(video);
+                  if (barcodes.length > 0) {
+                    processBarcodeDetected(barcodes[0].rawValue, barcodes[0].format.toUpperCase());
                   }
-                  zxingReader.decodeFromVideoElement(video, (result, err) => {
-                    if (result) {
-                      processBarcodeDetected(result.getText(), result.getBarcodeFormat ? result.getBarcodeFormat() : "UNKNOWN");
-                    }
-                  });
+                } catch (e) {}
+                scanLoopFrame = requestAnimationFrame(detectLoop);
+              };
+              scanLoopFrame = requestAnimationFrame(detectLoop);
+            } else {
+              zxingReader = new ZXing.BrowserMultiFormatReader(getZXingHints());
+              zxingReader.timeBetweenDecodingAttempts = 0; 
+              zxingReader.decodeFromStream(stream, "videoElement", (result, err) => {
+                if (result) {
+                    processBarcodeDetected(result.getText(), result.getBarcodeFormat ? result.getBarcodeFormat().toString() : "UNKNOWN");
                 }
-              } catch (playErr) {
-                Swal.fire("Error", "Video gagal diputar oleh perangkat.", "error");
-                toggleScan();
-              }
-            };
-
+              });
+            }
           } catch (err) {
-            console.error("Kamera Error:", err);
-            let errMsg = "Kamera gagal dimuat. Pastikan Anda menggunakan koneksi HTTPS.";
-            if (err.name === 'NotAllowedError') errMsg = "Izin kamera ditolak. Silakan izinkan di Pengaturan HP Anda.";
-            
-            Swal.fire("Kamera Diblokir", errMsg, "error");
+            Swal.fire("Error", "Kamera gagal dimuat. Periksa Izin Browser Anda.", "error");
             toggleScan();
           }
         }
@@ -626,11 +573,29 @@
 
       function processBarcodeDetected(code, format) {
         const now = Date.now();
-        if (code === lastScanText && (now - lastScanTime) < 1500) {
-            return; 
+
+        // 1. CEK ANTI-DUPLIKAT MUTLAK (Tidak boleh ada data yang sama)
+        const isDuplicate = allData.some(item => item.kode === code);
+
+        if (isDuplicate) {
+          // Hanya memunculkan peringatan merah setiap 2 detik agar tidak berisik jika ditahan di barcode yang sama
+          if (code !== lastErrorText || (now - lastErrorTime) > 2000) {
+            triggerErrorFeedback();
+            Toast.fire({ icon: "error", title: "DITOLAK: Barcode Duplikat!" });
+            lastErrorText = code;
+            lastErrorTime = now;
+          }
+          return; // Menghentikan proses simpan
         }
+
+        // 2. PROSES BARCODE BARU YANG BERBEDA
+        // Tidak ada lagi jeda waktu yang mengunci lama. Batas waktu hanya 300ms untuk UI refresh.
+        if (now - lastScanTime < 300) return;
+        
+        lastErrorText = null; 
         lastScanText = code;
         lastScanTime = now;
+        
         simpanData(code, format);
       }
 
@@ -646,7 +611,6 @@
 
       function triggerFeedback() {
         if (navigator.vibrate) navigator.vibrate([30]); 
-
         if (audioCtx) {
           try {
             const osc = audioCtx.createOscillator();
@@ -662,18 +626,42 @@
             osc.stop(audioCtx.currentTime + 0.04);
           } catch (e) {}
         }
-
         const scannerBox = document.getElementById("scannerBox");
         scannerBox.style.boxShadow = "inset 0 0 100px rgba(14, 165, 233, 1)"; 
-        setTimeout(() => {
-          scannerBox.style.boxShadow = "inset 0 0 30px rgba(0,0,0,0.8)";
-        }, 60);
+        setTimeout(() => { scannerBox.style.boxShadow = "inset 0 0 30px rgba(0,0,0,0.8)"; }, 60);
+      }
+
+      function triggerErrorFeedback() {
+        if (navigator.vibrate) navigator.vibrate([100, 50, 100]); 
+        if (audioCtx) {
+          try {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = "sawtooth"; 
+            osc.frequency.setValueAtTime(300, audioCtx.currentTime); 
+            gain.gain.setValueAtTime(0, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.01);
+            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.15); 
+            osc.start(audioCtx.currentTime);
+            osc.stop(audioCtx.currentTime + 0.15);
+          } catch (e) {}
+        }
+        const scannerBox = document.getElementById("scannerBox");
+        scannerBox.style.boxShadow = "inset 0 0 100px rgba(239, 68, 68, 1)"; 
+        setTimeout(() => { scannerBox.style.boxShadow = "inset 0 0 30px rgba(0,0,0,0.8)"; }, 150);
       }
 
       function inputManual() {
         const val = document.getElementById("manualData").value.trim();
         if (!val) return Toast.fire({ icon: "error", title: "Kode tidak boleh kosong!" });
         
+        const isDuplicate = allData.some(item => item.kode === val);
+        if (isDuplicate) {
+          triggerErrorFeedback();
+          return Toast.fire({ icon: "error", title: "DITOLAK: Barcode Duplikat!" });
+        }
         simpanData(val, "MANUAL_ENTRY");
         document.getElementById("manualData").value = "";
       }
@@ -683,20 +671,20 @@
         const nowMs = Date.now();
         const tglHariIni = new Date(nowDate.getTime() - nowDate.getTimezoneOffset() * 60000).toISOString().split("T")[0];
 
-        const defaults = { panjang: 280, lebar: 18, potongan: 24, persegi: 12.1, golongan: "A" };
+        // MENGAMBIL DATA ASLI DARI BARCODE (JIKA ADA), JIKA TIDAK ADA MAKA KOSONG ("-")
         const parsed = parsePayloadToFields(kode);
         
         const newData = {
           id: Date.now(),
           scannedAt: nowMs,
           kode: kode,
-          panjang: parsed?.panjang ?? defaults.panjang,
-          lebar: parsed?.lebar ?? defaults.lebar,
-          potongan: parsed?.potongan ?? defaults.potongan,
-          persegi: parsed?.persegi ?? defaults.persegi,
+          panjang: parsed?.panjang ?? "-",
+          lebar: parsed?.lebar ?? "-",
+          potongan: parsed?.potongan ?? "-",
+          persegi: parsed?.persegi ?? "-",
           tanggal: tglHariIni,
           jam: nowDate.toTimeString().split(" ")[0],
-          golongan: parsed?.golongan ?? defaults.golongan,
+          golongan: parsed?.golongan ?? "-",
           format: barcodeFormat,
         };
 
@@ -704,12 +692,12 @@
         localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
 
         triggerFeedback();
-        Toast.fire({ icon: "success", title: `SUCCESS: ${kode}` });
+        Toast.fire({ icon: "success", title: `SUCCESS: Tersimpan` });
         renderData(true);
       }
 
       function formatTgl(tgl) {
-        if (!tgl) return "-";
+        if (!tgl || tgl === "-") return "-";
         const p = tgl.split("-");
         if (p.length === 3) return `${p[2]}/${p[1]}/${p[0]}`;
         return tgl;
