@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover"
     />
-    <title>Enterprise SCM Scanner - OVERDRIVE</title>
+    <title>Enterprise SCM Scanner - OVERDRIVE V3</title>
 
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
@@ -310,7 +310,7 @@
       <div class="card">
         <div class="card-header">
           <i class="fas fa-camera-viewfinder" style="color: var(--primary)"></i>
-          Pemindai OVERDRIVE Mode
+          Pemindai OVERDRIVE (Anti-Duplikat)
         </div>
 
         <div class="scanner-container" id="scannerBox">
@@ -413,7 +413,9 @@
       let isScanning = false;
       let currentCam = "environment";
       let lastScanText = null;
-      let lastScanTime = 0; // Waktu terakhir scan barcode berhasil
+      let lastScanTime = 0; 
+      let lastErrorText = null;
+      let lastErrorTime = 0; 
       let isTorchOn = false;
       let streamTrack = null;
       let scanLoopFrame = null;
@@ -596,20 +598,31 @@
         }
       }
 
+      // --- LOGIKA UTAMA (FIXED) ---
       function processBarcodeDetected(code, format) {
         const now = Date.now();
 
-        // SMART DEBOUNCE: Mencegah scan beruntun yang tidak disengaja pada fisik barang yang sama
-        // Jika teks barcodenya SAMA PERSIS dengan sebelumnya, pastikan ada jeda 1.5 detik
-        // sebelum mesin diizinkan menyimpannya lagi (mengizinkan scan dus lain yang kodenya kembar).
-        if (code === lastScanText && (now - lastScanTime) < 1500) {
-            return; 
+        // 1. CEK ANTI-DUPLIKAT MUTLAK DI DATABASE
+        const isDuplicate = allData.some(item => item.kode === code);
+
+        if (isDuplicate) {
+          // Jika ditahan di barcode yang SAMA, notif merah muncul setiap 1.5 detik agar tidak berisik
+          if (code !== lastErrorText || (now - lastErrorTime) > 1500) {
+            triggerErrorFeedback();
+            Toast.fire({ icon: "error", title: "DITOLAK: Barcode sudah ada!" });
+            lastErrorText = code;
+            lastErrorTime = now;
+          }
+          return; // Hentikan fungsi di sini. Jangan simpan!
         }
 
-        // Catat jejak scan terakhir
+        // 2. CEK JIKA BARCODE BERBEDA (DATA BARU)
+        // Jeda sangat singkat (300ms) untuk mencegah sistem tersendat saat membaca barcode baru
+        if (now - lastScanTime < 300) return;
+
+        // Jika berhasil lewat, catat jejaknya dan simpan secepat kilat
         lastScanText = code;
         lastScanTime = now;
-
         simpanData(code, format);
       }
 
@@ -649,10 +662,42 @@
         }, 60);
       }
 
+      function triggerErrorFeedback() {
+        if (navigator.vibrate) navigator.vibrate([100, 50, 100]); 
+
+        if (audioCtx) {
+          try {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = "sawtooth"; 
+            osc.frequency.setValueAtTime(300, audioCtx.currentTime); // Nada Rendah
+            gain.gain.setValueAtTime(0, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.01);
+            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.15); 
+            osc.start(audioCtx.currentTime);
+            osc.stop(audioCtx.currentTime + 0.15);
+          } catch (e) {}
+        }
+
+        const scannerBox = document.getElementById("scannerBox");
+        scannerBox.style.boxShadow = "inset 0 0 100px rgba(239, 68, 68, 1)"; // Flash Merah
+        setTimeout(() => {
+          scannerBox.style.boxShadow = "inset 0 0 30px rgba(0,0,0,0.8)";
+        }, 150);
+      }
+
       function inputManual() {
         const val = document.getElementById("manualData").value.trim();
         if (!val) return Toast.fire({ icon: "error", title: "Kode tidak boleh kosong!" });
         
+        const isDuplicate = allData.some(item => item.kode === val);
+        if (isDuplicate) {
+          triggerErrorFeedback();
+          return Toast.fire({ icon: "error", title: "DITOLAK: Barcode sudah ada!" });
+        }
+
         simpanData(val, "MANUAL_ENTRY");
         document.getElementById("manualData").value = "";
       }
