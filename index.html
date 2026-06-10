@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover"
     />
-    <title>Enterprise SCM Scanner - OVERDRIVE V3</title>
+    <title>Enterprise SCM Scanner - OVERDRIVE</title>
 
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
@@ -151,6 +151,7 @@
         transform: scale(1.02); 
       }
 
+      /* Area Penargetan Ultra-Wide */
       .targeting-box {
         position: absolute;
         top: 5%; left: 5%; right: 5%; bottom: 5%;
@@ -196,33 +197,57 @@
       }
 
       /* Kontrol & Form */
-      .controls { display: flex; gap: 12px; }
+      .controls {
+        display: flex;
+        gap: 12px;
+      }
 
       .btn {
-        border: none; border-radius: 14px; font-weight: 800; font-size: 1.05rem;
-        cursor: pointer; display: flex; align-items: center; justify-content: center;
-        transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1); padding: 16px;
-        color: var(--text-dark); background: #f1f5f9;
+        border: none;
+        border-radius: 14px;
+        font-weight: 800;
+        font-size: 1.05rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+        padding: 16px;
+        color: var(--text-dark);
+        background: #f1f5f9;
       }
+      
       .btn:active { transform: scale(0.92); }
 
-      .btn-scan { flex: 1; background: var(--text-dark); color: white; box-shadow: 0 6px 20px rgba(15, 23, 42, 0.3); }
-      .btn-scan.stop { background: var(--danger); box-shadow: 0 6px 20px rgba(239, 68, 68, 0.3); }
+      .btn-scan {
+        flex: 1;
+        background: var(--text-dark);
+        color: white;
+        box-shadow: 0 6px 20px rgba(15, 23, 42, 0.3);
+      }
+      
+      .btn-scan.stop {
+        background: var(--danger);
+        box-shadow: 0 6px 20px rgba(239, 68, 68, 0.3);
+      }
 
       .btn-icon { width: 60px; font-size: 1.2rem; }
       .btn-icon.active { background: var(--warning); color: white; }
 
       .input-group { margin-bottom: 18px; }
       .input-group label {
-        display: block; font-size: 0.85rem; font-weight: 700; color: var(--text-muted);
-        margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;
+        display: block; font-size: 0.85rem; font-weight: 700;
+        color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;
       }
       
       .form-control {
-        width: 100%; padding: 15px 18px; border: 2px solid var(--border); border-radius: 12px;
-        outline: none; font-size: 1rem; background: #f8fafc; transition: all 0.2s; font-weight: 500;
+        width: 100%; padding: 15px 18px; border: 2px solid var(--border);
+        border-radius: 12px; outline: none; font-size: 1rem; background: #f8fafc; transition: all 0.2s; font-weight: 500;
       }
-      .form-control:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.15); }
+      
+      .form-control:focus {
+        border-color: var(--primary); background: #fff; box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.15);
+      }
 
       .manual-input-wrapper { display: flex; flex-direction: column; gap: 12px; }
       @media (min-width: 400px) { .manual-input-wrapper { flex-direction: row; } }
@@ -233,11 +258,20 @@
       .table-wrapper {
         width: 100%; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;
         border-radius: 14px; border: 1px solid var(--border); display: block; background: #fff;
-        max-height: 450px; overflow-y: auto; scroll-behavior: smooth; box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        max-height: 450px; 
+        overflow-y: auto;
+        scroll-behavior: smooth;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
       }
+      
       table { width: 100%; border-collapse: collapse; white-space: nowrap; }
-      th, td { padding: 16px 20px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.95rem; }
+      
+      th, td {
+        padding: 16px 20px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.95rem;
+      }
+      
       th { background: #f8fafc; font-weight: 800; color: var(--text-dark); position: sticky; top: 0; z-index: 2;}
+
       tbody tr { transition: background-color 0.1s; }
       tbody tr:hover { background-color: #f1f5f9; }
       
@@ -275,7 +309,8 @@
     <div class="container">
       <div class="card">
         <div class="card-header">
-          <i class="fas fa-camera-viewfinder" style="color: var(--primary)"></i> Pemindai Super Responsif
+          <i class="fas fa-camera-viewfinder" style="color: var(--primary)"></i>
+          Pemindai OVERDRIVE Mode
         </div>
 
         <div class="scanner-container" id="scannerBox">
@@ -283,7 +318,7 @@
             <i class="fas fa-video-slash fa-3x" style="opacity: 0.2"></i>
             <span>Kamera Siap Digunakan</span>
           </div>
-          <video id="videoElement" autoplay playsinline muted></video>
+          <video id="videoElement" autoplay="autoplay" muted="muted" playsinline="true" webkit-playsinline="true"></video>
           <div class="targeting-box" id="targetBox"></div>
           <div class="laser-overlay" id="laser"></div>
         </div>
@@ -296,7 +331,7 @@
             <i class="fas fa-camera-rotate"></i>
           </button>
           <button class="btn btn-scan" id="btnAction" onclick="toggleScan()">
-            <i class="fas fa-play" style="margin-right: 8px"></i> MULAI SCAN
+            <i class="fas fa-bolt" style="margin-right: 8px"></i> MULAI SCAN
           </button>
         </div>
 
@@ -377,14 +412,12 @@
 
       let isScanning = false;
       let currentCam = "environment";
+      let lastScanText = null;
+      let lastScanTime = 0; 
       let isTorchOn = false;
       let streamTrack = null;
       let scanLoopFrame = null;
       let audioCtx = null; 
-
-      // Variabel untuk Smart Silence (Sistem Bisu Otomatis)
-      let lastSeenCode = null;
-      let resetSeenTimeout = null;
 
       const video = document.getElementById("videoElement");
 
@@ -395,19 +428,18 @@
         timer: 1500,
       });
 
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
       const hasNativeScanner = "BarcodeDetector" in window;
       let nativeDetector = null;
       let zxingReader = null;
 
-      if (hasNativeScanner && !isIOS) {
+      if (hasNativeScanner) {
         document.getElementById("engineBadge").innerText = "HW ACCEL ON";
         document.getElementById("engineBadge").style.background = "#10b981"; 
         nativeDetector = new BarcodeDetector({
-          formats: ["code_128", "code_39", "code_93", "ean_13", "ean_8", "upc_a", "upc_e", "itf", "codabar", "qr_code", "data_matrix", "pdf417"],
+          formats: ["code_128", "code_39", "code_93", "ean_13", "ean_8", "upc_a", "upc_e", "itf", "codabar", "qr_code", "data_matrix", "aztec", "pdf417"],
         });
       } else {
-        document.getElementById("engineBadge").innerText = isIOS ? "iOS OPTIMIZED" : "SOFTWARE MODE";
+        document.getElementById("engineBadge").innerText = "OVERDRIVE MODE";
         document.getElementById("engineBadge").style.background = "#f59e0b"; 
       }
 
@@ -486,6 +518,7 @@
         } catch (error) { Toast.fire({ icon: "error", title: "Gagal mengakses senter" }); }
       }
 
+      // PERBAIKAN: Fungsi toggleScan Universal untuk iOS dan Android
       async function toggleScan() {
         const btn = document.getElementById("btnAction");
         const placeholder = document.getElementById("placeholderMsg");
@@ -493,6 +526,7 @@
         const targetBox = document.getElementById("targetBox");
 
         if (isScanning) {
+          // --- PROSES BERHENTI SCAN ---
           isScanning = false;
           isTorchOn = false;
           document.getElementById("btnTorch").classList.remove("active");
@@ -506,91 +540,97 @@
           laser.style.display = "none";
           targetBox.style.display = "none";
           placeholder.style.display = "flex";
-          btn.innerHTML = '<i class="fas fa-play" style="margin-right: 8px;"></i> MULAI SCAN';
+          btn.innerHTML = '<i class="fas fa-bolt" style="margin-right: 8px;"></i> MULAI SCAN';
           btn.classList.remove("stop");
         } else {
+          // --- PROSES MULAI SCAN ---
           initAudio(); 
           try {
             video.style.display = "block";
             laser.style.display = "block";
             targetBox.style.display = "block";
             placeholder.style.display = "none";
-            btn.innerHTML = '<i class="fas fa-stop" style="margin-right: 8px;"></i> BERHENTI SCAN';
-            btn.classList.add("stop");
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right: 8px;"></i> MEMUAT...';
             isScanning = true;
 
-            let constraints = {
+            // 1. Constraint Universal (Aman untuk iOS dan Android)
+            const constraints = {
+              audio: false,
               video: {
-                facingMode: currentCam,
+                facingMode: currentCam === "environment" ? "environment" : "user",
                 width: { ideal: 1280 },
                 height: { ideal: 720 }
-              },
+              }
             };
 
-            if (!isIOS) {
-               constraints.video.advanced = [{ focusMode: "continuous" }];
-            }
-
             const stream = await navigator.mediaDevices.getUserMedia(constraints);
+            
+            // Pastikan atribut diset ulang via JS untuk mem-bypass security iOS
+            video.setAttribute("playsinline", true);
+            video.setAttribute("webkit-playsinline", true);
+            video.muted = true;
+            video.autoplay = true;
+
             video.srcObject = stream;
             streamTrack = stream.getVideoTracks()[0];
-            await video.play();
 
-            if (nativeDetector) {
-              const detectLoop = async () => {
-                if (!isScanning) return;
-                try {
-                  const barcodes = await nativeDetector.detect(video);
-                  if (barcodes.length > 0) {
-                    processBarcodeDetected(barcodes[0].rawValue, barcodes[0].format.toUpperCase());
+            // 2. Kunci Universal: Tunggu metadata video siap sebelum memutar
+            video.onloadedmetadata = async () => {
+              try {
+                await video.play();
+                btn.innerHTML = '<i class="fas fa-stop" style="margin-right: 8px;"></i> BERHENTI SCAN';
+                btn.classList.add("stop");
+
+                // 3. Alokasi Engine: Android vs iOS
+                if (hasNativeScanner) {
+                  // (ANDROID) Gunakan Hardware Acceleration
+                  const detectLoop = async () => {
+                    if (!isScanning) return;
+                    try {
+                      const barcodes = await nativeDetector.detect(video);
+                      if (barcodes.length > 0) {
+                        processBarcodeDetected(barcodes[0].rawValue, barcodes[0].format.toUpperCase());
+                      }
+                    } catch (e) {}
+                    scanLoopFrame = requestAnimationFrame(detectLoop);
+                  };
+                  scanLoopFrame = requestAnimationFrame(detectLoop);
+                } else {
+                  // (iOS / IPHONE) Gunakan ZXing sebagai Fallback
+                  if (!zxingReader) {
+                    zxingReader = new ZXing.BrowserMultiFormatReader(getZXingHints());
+                    zxingReader.timeBetweenDecodingAttempts = 200; // Jeda agar iPhone tidak overheat
                   }
-                } catch (e) {}
-                scanLoopFrame = requestAnimationFrame(detectLoop);
-              };
-              scanLoopFrame = requestAnimationFrame(detectLoop);
-            } else {
-              zxingReader = new ZXing.BrowserMultiFormatReader(getZXingHints());
-              zxingReader.timeBetweenDecodingAttempts = 0; 
-
-              zxingReader.decodeFromStream(stream, "videoElement", (result, err) => {
-                if (result) {
-                    processBarcodeDetected(result.getText(), result.getBarcodeFormat ? result.getBarcodeFormat().toString() : "UNKNOWN");
+                  zxingReader.decodeFromVideoElement(video, (result, err) => {
+                    if (result) {
+                      processBarcodeDetected(result.getText(), result.getBarcodeFormat ? result.getBarcodeFormat() : "UNKNOWN");
+                    }
+                  });
                 }
-              });
-            }
+              } catch (playErr) {
+                Swal.fire("Error", "Video gagal diputar oleh perangkat.", "error");
+                toggleScan();
+              }
+            };
+
           } catch (err) {
-            Swal.fire("Error", "Kamera gagal dimuat. Pastikan izin kamera sudah diberikan.", "error");
+            console.error("Kamera Error:", err);
+            let errMsg = "Kamera gagal dimuat. Pastikan Anda menggunakan koneksi HTTPS.";
+            if (err.name === 'NotAllowedError') errMsg = "Izin kamera ditolak. Silakan izinkan di Pengaturan HP Anda.";
+            
+            Swal.fire("Kamera Diblokir", errMsg, "error");
             toggleScan();
           }
         }
       }
 
-      // --- LOGIKA UTAMA: SMART SILENCE ---
       function processBarcodeDetected(code, format) {
-        // Jika kamera masih menatap barcode yang SAMA PERSIS dengan sebelumnya secara terus-menerus,
-        // diamkan total (jangan bereaksi apapun, tidak ada bunyi, tidak ada error).
-        if (code === lastSeenCode) {
-            // Perbarui timer agar tetap diam selama kamera belum digeser ke tempat lain
-            clearTimeout(resetSeenTimeout);
-            resetSeenTimeout = setTimeout(() => { lastSeenCode = null; }, 2500);
-            return;
+        const now = Date.now();
+        if (code === lastScanText && (now - lastScanTime) < 1500) {
+            return; 
         }
-
-        // Catat barcode ini sebagai barcode yang sedang dilihat saat ini
-        lastSeenCode = code;
-        clearTimeout(resetSeenTimeout);
-        resetSeenTimeout = setTimeout(() => { lastSeenCode = null; }, 2500);
-
-        // CEK DUPLIKAT MUTLAK DI DATABASE
-        const isDuplicate = allData.some(item => item.kode === code);
-
-        if (isDuplicate) {
-            triggerErrorFeedback();
-            Toast.fire({ icon: "error", title: "DITOLAK: Barcode sudah tersimpan!" });
-            return; // Berhenti di sini, data ditolak
-        }
-
-        // JIKA BARCODE BARU, SIMPAN KE DATABASE
+        lastScanText = code;
+        lastScanTime = now;
         simpanData(code, format);
       }
 
@@ -630,43 +670,10 @@
         }, 60);
       }
 
-      function triggerErrorFeedback() {
-        if (navigator.vibrate) navigator.vibrate([100, 50, 100]); 
-
-        if (audioCtx) {
-          try {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.type = "sawtooth"; 
-            osc.frequency.setValueAtTime(300, audioCtx.currentTime); 
-            gain.gain.setValueAtTime(0, audioCtx.currentTime);
-            gain.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.01);
-            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.15); 
-            osc.start(audioCtx.currentTime);
-            osc.stop(audioCtx.currentTime + 0.15);
-          } catch (e) {}
-        }
-
-        const scannerBox = document.getElementById("scannerBox");
-        scannerBox.style.boxShadow = "inset 0 0 100px rgba(239, 68, 68, 1)"; 
-        setTimeout(() => {
-          scannerBox.style.boxShadow = "inset 0 0 30px rgba(0,0,0,0.8)";
-        }, 150);
-      }
-
       function inputManual() {
         const val = document.getElementById("manualData").value.trim();
         if (!val) return Toast.fire({ icon: "error", title: "Kode tidak boleh kosong!" });
         
-        const isDuplicate = allData.some(item => item.kode === val);
-        if (isDuplicate) {
-          triggerErrorFeedback();
-          return Toast.fire({ icon: "error", title: "DITOLAK: Barcode sudah ada!" });
-        }
-
-        lastSeenCode = val; // Mencegah scan kamera tidak sengaja membaca ini lagi
         simpanData(val, "MANUAL_ENTRY");
         document.getElementById("manualData").value = "";
       }
