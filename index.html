@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover"
     />
-    <title>Enterprise SCM Scanner - OVERDRIVE V2</title>
+    <title>Enterprise SCM Scanner - OVERDRIVE</title>
 
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
@@ -151,7 +151,7 @@
         transform: scale(1.02); 
       }
 
-      /* Area Penargetan Ultra-Wide (Diperbesar) */
+      /* Area Penargetan Ultra-Wide */
       .targeting-box {
         position: absolute;
         top: 5%; left: 5%; right: 5%; bottom: 5%;
@@ -310,7 +310,7 @@
       <div class="card">
         <div class="card-header">
           <i class="fas fa-camera-viewfinder" style="color: var(--primary)"></i>
-          Pemindai OVERDRIVE (Anti-Duplikat)
+          Pemindai OVERDRIVE Mode
         </div>
 
         <div class="scanner-container" id="scannerBox">
@@ -412,7 +412,8 @@
 
       let isScanning = false;
       let currentCam = "environment";
-      let scanLockUntil = 0;
+      let lastScanText = null;
+      let lastScanTime = 0; // Waktu terakhir scan barcode berhasil
       let isTorchOn = false;
       let streamTrack = null;
       let scanLoopFrame = null;
@@ -597,19 +598,18 @@
 
       function processBarcodeDetected(code, format) {
         const now = Date.now();
-        if (now < scanLockUntil) return;
 
-        // FITUR ANTI-DUPLIKAT (Mencegah Barcode Sama Disimpan Lagi)
-        const isDuplicate = allData.some(item => item.kode === code);
-        
-        if (isDuplicate) {
-          scanLockUntil = Date.now() + 1500; // Jeda 1.5 detik jika error
-          triggerErrorFeedback();
-          Toast.fire({ icon: "error", title: "DUPLIKAT: Barcode sudah ada!" });
-          return; // Hentikan proses simpan
+        // SMART DEBOUNCE: Mencegah scan beruntun yang tidak disengaja pada fisik barang yang sama
+        // Jika teks barcodenya SAMA PERSIS dengan sebelumnya, pastikan ada jeda 1.5 detik
+        // sebelum mesin diizinkan menyimpannya lagi (mengizinkan scan dus lain yang kodenya kembar).
+        if (code === lastScanText && (now - lastScanTime) < 1500) {
+            return; 
         }
 
-        scanLockUntil = Date.now() + 1000;
+        // Catat jejak scan terakhir
+        lastScanText = code;
+        lastScanTime = now;
+
         simpanData(code, format);
       }
 
@@ -649,44 +649,10 @@
         }, 60);
       }
 
-      // Umpan Balik Jika Terjadi Duplikasi Barcode
-      function triggerErrorFeedback() {
-        if (navigator.vibrate) navigator.vibrate([100, 50, 100]); 
-
-        if (audioCtx) {
-          try {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.type = "sawtooth"; 
-            osc.frequency.setValueAtTime(300, audioCtx.currentTime); // Nada Rendah (Error)
-            gain.gain.setValueAtTime(0, audioCtx.currentTime);
-            gain.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.01);
-            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.15); 
-            osc.start(audioCtx.currentTime);
-            osc.stop(audioCtx.currentTime + 0.15);
-          } catch (e) {}
-        }
-
-        const scannerBox = document.getElementById("scannerBox");
-        scannerBox.style.boxShadow = "inset 0 0 100px rgba(239, 68, 68, 1)"; // Flash Merah
-        setTimeout(() => {
-          scannerBox.style.boxShadow = "inset 0 0 30px rgba(0,0,0,0.8)";
-        }, 150);
-      }
-
       function inputManual() {
         const val = document.getElementById("manualData").value.trim();
         if (!val) return Toast.fire({ icon: "error", title: "Kode tidak boleh kosong!" });
         
-        // Pengecekan Duplikat pada Input Manual
-        const isDuplicate = allData.some(item => item.kode === val);
-        if (isDuplicate) {
-          triggerErrorFeedback();
-          return Toast.fire({ icon: "error", title: "DUPLIKAT: Barcode sudah ada!" });
-        }
-
         simpanData(val, "MANUAL_ENTRY");
         document.getElementById("manualData").value = "";
       }
