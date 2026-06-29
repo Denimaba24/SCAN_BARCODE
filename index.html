@@ -169,18 +169,15 @@
         font-size: 1.3rem;
         transition: transform 0.2s ease;
       }
-
       .nav-item span {
         font-size: 0.65rem;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.5px;
       }
-
       .nav-item.active {
         color: var(--primary-light);
       }
-
       .nav-item.active i {
         transform: translateY(-3px) scale(1.1);
         color: var(--primary-light);
@@ -194,14 +191,12 @@
         transition: opacity 0.3s ease;
         animation: fadeIn 0.4s forwards;
       }
-
       .view-page.active {
         display: flex;
         flex-direction: column;
         gap: 24px;
         opacity: 1;
       }
-
       @keyframes fadeIn {
         from {
           opacity: 0;
@@ -212,7 +207,6 @@
           transform: translateY(0);
         }
       }
-
       .container {
         padding: 20px 16px;
         padding-bottom: calc(100px + env(safe-area-inset-bottom));
@@ -232,7 +226,6 @@
         box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
         border: 1px solid var(--glass-border);
       }
-
       .card-header {
         font-weight: 700;
         margin-bottom: 24px;
@@ -242,7 +235,6 @@
         gap: 12px;
         color: var(--text-primary);
       }
-
       .card-header i {
         color: var(--primary-light);
         background: rgba(139, 92, 246, 0.2);
@@ -255,7 +247,6 @@
         position: relative;
         margin-bottom: 28px;
       }
-
       .scanner-container {
         position: relative;
         width: 100%;
@@ -270,7 +261,6 @@
         border: 2px solid rgba(139, 92, 246, 0.3);
         box-shadow: 0 0 30px rgba(139, 92, 246, 0.15);
       }
-
       #videoElement {
         width: 100%;
         height: 100%;
@@ -378,7 +368,6 @@
         margin-left: auto;
         margin-right: auto;
       }
-
       .btn {
         border: none;
         font-weight: 700;
@@ -395,7 +384,6 @@
       .btn:active {
         transform: scale(0.95);
       }
-
       .btn-icon {
         width: 50px;
         border-radius: 50%;
@@ -408,7 +396,6 @@
         color: #000;
         border-color: var(--warning);
       }
-
       .btn-scan {
         flex: 1;
         background: linear-gradient(135deg, var(--primary), var(--secondary));
@@ -448,7 +435,6 @@
         border-color: var(--primary-light);
         background: rgba(0, 0, 0, 0.4);
       }
-
       .manual-input-wrapper {
         display: flex;
         gap: 10px;
@@ -502,7 +488,6 @@
         font-size: 0.75rem;
         text-transform: uppercase;
       }
-
       .badge {
         background: linear-gradient(
           135deg,
@@ -516,7 +501,6 @@
         font-size: 0.8rem;
         font-family: "Space Grotesk", monospace;
       }
-
       .btn-del {
         color: #fca5a5;
         background: rgba(239, 68, 68, 0.15);
@@ -534,24 +518,24 @@
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 12px;
+        margin-bottom: 24px;
       }
-
       .btn-export-big {
         background: rgba(255, 255, 255, 0.05);
         border: 1px solid var(--glass-border);
         color: var(--text-primary);
         width: 100%;
-        padding: 20px 10px;
+        padding: 18px 12px;
         border-radius: var(--radius-lg);
-        font-size: 1rem;
+        font-size: 0.9rem;
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 12px;
-        margin-bottom: 16px;
+        gap: 8px;
+        text-align: center;
       }
       .btn-export-big i {
-        font-size: 2.5rem;
+        font-size: 2rem;
       }
       .btn-export-big.excel {
         background: linear-gradient(
@@ -569,7 +553,7 @@
           rgba(239, 68, 68, 0.05)
         );
         border-color: rgba(239, 68, 68, 0.3);
-        color: #f87171;
+        color: #fca5a5;
       }
       .btn-export-big.blue {
         background: linear-gradient(
@@ -606,18 +590,15 @@
           <div class="card-header">
             <i class="fas fa-camera-viewfinder"></i> Pindai Barcode
           </div>
-
           <div class="scanner-wrapper">
             <div class="scanner-container" id="scannerBox">
               <div class="scanner-placeholder" id="placeholderMsg">
-                <i class="fas fa-video-slash"></i>
-                <span>Kamera Offline</span>
+                <i class="fas fa-video-slash"></i><span>Kamera Offline</span>
               </div>
               <video id="videoElement" autoplay playsinline muted></video>
               <div class="targeting-box" id="targetBox"></div>
               <div class="laser-overlay" id="laser"></div>
             </div>
-
             <div class="floating-controls">
               <button
                 class="btn btn-icon"
@@ -638,7 +619,6 @@
               </button>
             </div>
           </div>
-
           <div class="input-group" style="margin-top: 10px">
             <label>Input Manual (Darurat)</label>
             <div class="manual-input-wrapper">
@@ -688,7 +668,6 @@
           <div class="card-header">
             <i class="fas fa-database"></i> Master Database
           </div>
-
           <div class="filter-grid">
             <div class="input-group">
               <label>Dari Tanggal</label>
@@ -709,7 +688,6 @@
               />
             </div>
           </div>
-
           <div class="input-group">
             <label>Pencarian</label>
             <input
@@ -720,7 +698,6 @@
               onkeyup="renderDatabase()"
             />
           </div>
-
           <div class="table-wrapper">
             <table>
               <thead>
@@ -815,26 +792,21 @@
     </div>
 
     <nav class="bottom-nav">
-      <a class="nav-item active" onclick="switchPage('view-scan', this)">
-        <i class="fas fa-qrcode"></i>
-        <span>Scan</span>
-      </a>
-      <a class="nav-item" onclick="switchPage('view-session', this)">
-        <i class="fas fa-clipboard-check"></i>
-        <span>Hari Ini</span>
-      </a>
-      <a class="nav-item" onclick="switchPage('view-database', this)">
-        <i class="fas fa-server"></i>
-        <span>Database</span>
-      </a>
-      <a class="nav-item" onclick="switchPage('view-export', this)">
-        <i class="fas fa-download"></i>
-        <span>Export</span>
-      </a>
+      <a class="nav-item active" onclick="switchPage('view-scan', this)"
+        ><i class="fas fa-qrcode"></i><span>Scan</span></a
+      >
+      <a class="nav-item" onclick="switchPage('view-session', this)"
+        ><i class="fas fa-clipboard-check"></i><span>Hari Ini</span></a
+      >
+      <a class="nav-item" onclick="switchPage('view-database', this)"
+        ><i class="fas fa-server"></i><span>Database</span></a
+      >
+      <a class="nav-item" onclick="switchPage('view-export', this)"
+        ><i class="fas fa-download"></i><span>Export</span></a
+      >
     </nav>
 
     <script>
-      // === PENYIMPANAN DATA PERMANEN ===
       const STORAGE_KEY = "SCMBarcodeMasterData";
       let allData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
       let scannedCodesSet = new Set(allData.map((item) => item.kode));
@@ -863,9 +835,9 @@
         const currentDay = new Date().getDate();
         if (currentDay !== lastCheckedDay) {
           lastCheckedDay = currentDay;
-          renderToday(); // Refresh otomatis jika hari berganti
+          renderToday(); // Hanya menyegarkan view hari ini
         }
-      }, 60000); // Mengecek kalender HP setiap 1 menit
+      }, 60000);
 
       document.addEventListener("visibilitychange", () => {
         if (document.visibilityState === "visible") {
@@ -881,15 +853,12 @@
         if (pageId !== "view-scan" && isScanning) {
           toggleScan();
         }
-
         document.querySelectorAll(".view-page").forEach((page) => {
           page.classList.remove("active");
         });
-
         document.querySelectorAll(".nav-item").forEach((item) => {
           item.classList.remove("active");
         });
-
         document.getElementById(pageId).classList.add("active");
         navElement.classList.add("active");
 
@@ -930,23 +899,20 @@
 
       function getZXingHints() {
         try {
-          return new Map([
-            [ZXing.DecodeHintType.TRY_HARDER, true],
-            [ZXing.DecodeHintType.ASSUME_GS1, true],
-            [
-              ZXing.DecodeHintType.POSSIBLE_FORMATS,
-              [
-                ZXing.BarcodeFormat.CODE_128,
-                ZXing.BarcodeFormat.CODE_39,
-                ZXing.BarcodeFormat.EAN_13,
-                ZXing.BarcodeFormat.EAN_8,
-                ZXing.BarcodeFormat.UPC_A,
-                ZXing.BarcodeFormat.ITF,
-                ZXing.BarcodeFormat.QR_CODE,
-                ZXing.BarcodeFormat.DATA_MATRIX,
-              ],
-            ],
+          const hints = new Map();
+          // PENTING: Dihapus TRY_HARDER agar frame kamera tidak drop/lagging dan tetap bisa autofocus
+          hints.set(ZXing.DecodeHintType.ASSUME_GS1, true);
+          hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
+            ZXing.BarcodeFormat.CODE_128,
+            ZXing.BarcodeFormat.CODE_39,
+            ZXing.BarcodeFormat.EAN_13,
+            ZXing.BarcodeFormat.EAN_8,
+            ZXing.BarcodeFormat.UPC_A,
+            ZXing.BarcodeFormat.ITF,
+            ZXing.BarcodeFormat.QR_CODE,
+            ZXing.BarcodeFormat.DATA_MATRIX,
           ]);
+          return hints;
         } catch (e) {
           return undefined;
         }
@@ -959,7 +925,6 @@
         if (audioCtx.state === "suspended") audioCtx.resume();
       }
 
-      // === LOGIKA SCAN ASLI DARI KODE ANDA ===
       function parsePayloadToFields(text) {
         const raw = (text || "").trim();
         if (!raw) return null;
@@ -1014,7 +979,7 @@
         }
       }
 
-      // === KAMERA SCANNER KEMBALI KE KODE ORIGINAL ANDA YANG RESPONSIF ===
+      // === LOGIKA KAMERA YANG SANGAT RESPONSIF ===
       async function toggleScan() {
         const btn = document.getElementById("btnAction");
         const placeholder = document.getElementById("placeholderMsg");
@@ -1057,16 +1022,17 @@
             btn.classList.add("stop");
             isScanning = true;
 
-            // KODE ASLI KAMERA ANDA: Stabil & Responsif di Semua HP
+            // PENTING: Resolusi kamera diubah ke 1280x720 (Standar HD) agar Autofocus HP cepat aktif & kamera tidak patah-patah
             let constraints = {
               video: {
                 facingMode: currentCam,
-                width: { ideal: 1080 },
-                height: { ideal: 1080 },
+                width: { ideal: 1280 },
+                height: { ideal: 720 },
               },
             };
             if (!isIOS)
               constraints.video.advanced = [{ focusMode: "continuous" }];
+
             const stream =
               await navigator.mediaDevices.getUserMedia(constraints);
             video.srcObject = stream;
@@ -1084,23 +1050,30 @@
                       barcodes[0].format.toUpperCase(),
                     );
                 } catch (e) {}
-                scanLoopFrame = requestAnimationFrame(detectLoop);
+
+                // Memberi jeda sejenak (50ms) agar processor HP tidak kepanasan
+                setTimeout(() => {
+                  if (isScanning)
+                    scanLoopFrame = requestAnimationFrame(detectLoop);
+                }, 50);
               };
               scanLoopFrame = requestAnimationFrame(detectLoop);
             } else {
               zxingReader = new ZXing.BrowserMultiFormatReader(getZXingHints());
-              zxingReader.timeBetweenDecodingAttempts = 0;
+              // Mencegah HP Lag dengan memberi delay baca 100ms
+              zxingReader.timeBetweenDecodingAttempts = 100;
               zxingReader.decodeFromStream(
                 stream,
                 "videoElement",
                 (result, err) => {
-                  if (result)
+                  if (result) {
                     processBarcodeDetected(
                       result.getText(),
                       result.getBarcodeFormat
                         ? result.getBarcodeFormat().toString()
                         : "UNKNOWN",
                     );
+                  }
                 },
               );
             }
@@ -1264,17 +1237,11 @@
           tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 40px; color: var(--text-muted);">Belum ada data di-scan pada hari ini</td></tr>`;
           return;
         }
-
         fData.forEach((i, idx) => {
           const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${idx + 1}</td>
-            <td><span class="badge">${i.kode}</span></td>
-            <td><b>${i.golongan}</b></td>
-            <td>${i.panjang}</td><td>${i.lebar}</td><td>${i.potongan}</td><td>${i.persegi}</td>
-            <td>${i.jam.substring(0, 5)}</td>
-            <td><button class="btn-del" onclick="hapus(${i.id}, '${i.kode}', 'today')"><i class="fas fa-trash"></i></button></td>
-          `;
+          tr.innerHTML = `<td>${idx + 1}</td><td><span class="badge">${i.kode}</span></td><td><b>${i.golongan}</b></td>
+            <td>${i.panjang}</td><td>${i.lebar}</td><td>${i.potongan}</td><td>${i.persegi}</td><td>${i.jam.substring(0, 5)}</td>
+            <td><button class="btn-del" onclick="hapus(${i.id}, '${i.kode}', 'today')"><i class="fas fa-trash"></i></button></td>`;
           tbody.appendChild(tr);
         });
       }
@@ -1304,17 +1271,12 @@
           tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding: 40px; color: var(--text-muted);">Database kosong atau data tidak ditemukan</td></tr>`;
           return;
         }
-
         fData.forEach((i, idx) => {
           const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${idx + 1}</td>
-            <td><span class="badge">${i.kode}</span></td>
-            <td><b>${i.golongan}</b></td>
+          tr.innerHTML = `<td>${idx + 1}</td><td><span class="badge">${i.kode}</span></td><td><b>${i.golongan}</b></td>
             <td>${i.panjang}</td><td>${i.lebar}</td><td>${i.potongan}</td><td>${i.persegi}</td>
             <td>${formatTgl(i.tanggal)}</td><td>${i.jam.substring(0, 5)}</td>
-            <td><button class="btn-del" onclick="hapus(${i.id}, '${i.kode}', 'db')"><i class="fas fa-trash"></i></button></td>
-          `;
+            <td><button class="btn-del" onclick="hapus(${i.id}, '${i.kode}', 'db')"><i class="fas fa-trash"></i></button></td>`;
           tbody.appendChild(tr);
         });
       }
@@ -1346,7 +1308,6 @@
         });
       }
 
-      // === FUNGSI EXPORT EXCEL ===
       function downloadExcelHarian() {
         const nowDate = new Date();
         const hariIni = new Date(
@@ -1385,7 +1346,6 @@
         XLSX.writeFile(wb, `Export_SCM_${label}_${new Date().getTime()}.xlsx`);
       }
 
-      // === FUNGSI EXPORT PDF ===
       function downloadPDFHarian() {
         const nowDate = new Date();
         const hariIni = new Date(
@@ -1408,7 +1368,6 @@
       function exportToPDF(dataArray, label) {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF("p", "pt", "a4");
-
         doc.setFontSize(14);
         doc.text(`Laporan Data Scan - PT. Daya Sakti Niaga`, 40, 40);
         doc.setFontSize(10);
@@ -1427,7 +1386,6 @@
           "Jam",
         ];
         const tableRows = [];
-
         dataArray
           .sort((a, b) => (a.scannedAt || 0) - (b.scannedAt || 0))
           .forEach((i, idx) => {
@@ -1451,7 +1409,6 @@
           styles: { fontSize: 8 },
           headStyles: { fillColor: [139, 92, 246] },
         });
-
         doc.save(`Export_SCM_${label}_${new Date().getTime()}.pdf`);
       }
     </script>
