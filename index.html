@@ -894,7 +894,8 @@
       function getZXingHints() {
         try {
           return new Map([
-            [ZXing.DecodeHintType.TRY_HARDER, false],
+            [ZXing.DecodeHintType.TRY_HARDER, true],
+            [ZXing.DecodeHintType.ASSUME_GS1, true],
             [
               ZXing.DecodeHintType.POSSIBLE_FORMATS,
               [
@@ -921,7 +922,7 @@
       }
 
       // =======================================================
-      // PERBAIKAN: RUMUS PARSING DIKEMBALIKAN 100% SEPERTI ASLI
+      // FUNGSI INI DIMODIFIKASI UNTUK MENAMPILKAN KODE (085/117)
       // =======================================================
       function parsePayloadToFields(text) {
         const raw = (text || "").trim();
@@ -929,11 +930,12 @@
 
         if (raw.startsWith("86") && raw.length >= 24) {
           try {
-            // Pemotongan data persis sama dengan kode original Anda
-            const p_str = raw.slice(-4);
-            const w_str = raw.slice(-9, -4);
-            const l_str = raw.slice(-12, -9);
-            const prefix = raw.slice(2, -16);
+            // Pemotongan data persis sama dengan kode original
+            const p_str = raw.slice(-4); // Potongan
+            const w_str = raw.slice(-9, -4); // Lebar
+            const l_str = raw.slice(-12, -9); // Panjang
+            const ext_str = raw.slice(-16, -12); // Kode Tambahan (085 / 117)
+            const prefix = raw.slice(2, -16); // Golongan
 
             let golongan = prefix.replace(/^0+/, "");
             if (!golongan) golongan = "-";
@@ -943,13 +945,20 @@
             const potongan = parseInt(p_str, 10);
             const persegi = (p_indo * l_indo * potongan) / 10000;
 
+            // Memformat agar kode 3 digit (misal 085 atau 117) muncul di sebelah nama golongan
+            const extNum = parseInt(ext_str, 10);
+            const golonganDisplay =
+              extNum > 0
+                ? `${golongan} (${extNum.toString().padStart(3, "0")})`
+                : golongan;
+
             if (!isNaN(p_indo) && !isNaN(l_indo) && !isNaN(potongan)) {
               return {
                 panjang: p_indo,
                 lebar: l_indo,
                 potongan: potongan,
                 persegi: persegi.toFixed(2),
-                golongan: golongan, // Murni hanya Golongan, tanpa tambahan angka lain
+                golongan: golonganDisplay, // Data ditampilkan dengan kode tambahan
               };
             }
           } catch (e) {}
