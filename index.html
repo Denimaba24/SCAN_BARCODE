@@ -27,9 +27,10 @@
       src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"
     ></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
       :root {
@@ -289,7 +290,6 @@
         z-index: 5;
         box-shadow: 0 0 0 4000px rgba(0, 0, 0, 0.5);
       }
-
       .targeting-box::before,
       .targeting-box::after {
         content: "";
@@ -534,24 +534,24 @@
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 12px;
-        margin-bottom: 24px;
       }
+
       .btn-export-big {
         background: rgba(255, 255, 255, 0.05);
         border: 1px solid var(--glass-border);
         color: var(--text-primary);
         width: 100%;
-        padding: 18px 12px;
+        padding: 20px 10px;
         border-radius: var(--radius-lg);
-        font-size: 0.9rem;
+        font-size: 1rem;
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 8px;
-        text-align: center;
+        gap: 12px;
+        margin-bottom: 16px;
       }
       .btn-export-big i {
-        font-size: 2rem;
+        font-size: 2.5rem;
       }
       .btn-export-big.excel {
         background: linear-gradient(
@@ -569,10 +569,18 @@
           rgba(239, 68, 68, 0.05)
         );
         border-color: rgba(239, 68, 68, 0.3);
-        color: #fca5a5;
+        color: #f87171;
+      }
+      .btn-export-big.blue {
+        background: linear-gradient(
+          135deg,
+          rgba(59, 130, 246, 0.2),
+          rgba(59, 130, 246, 0.05)
+        );
+        border-color: rgba(59, 130, 246, 0.3);
+        color: #60a5fa;
       }
 
-      /* SweetAlert2 Mobile Fixes */
       div:where(.swal2-container) div:where(.swal2-popup) {
         background: rgba(15, 23, 42, 0.85);
         backdrop-filter: blur(20px);
@@ -750,17 +758,16 @@
             Pilih format laporan yang ingin Anda unduh (Excel / PDF).
           </p>
 
-          <label
+          <h4
             style="
-              display: block;
-              font-size: 0.8rem;
-              font-weight: 700;
-              color: var(--text-secondary);
-              margin-bottom: 12px;
+              margin-bottom: 10px;
+              font-size: 0.85rem;
+              color: var(--text-muted);
               text-transform: uppercase;
             "
-            >Export Khusus Hari Ini</label
           >
+            Export Harian
+          </h4>
           <div class="export-grid">
             <button
               class="btn btn-export-big excel"
@@ -778,20 +785,21 @@
             </button>
           </div>
 
-          <label
+          <hr style="border-color: rgba(255, 255, 255, 0.05); margin: 20px 0" />
+
+          <h4
             style="
-              display: block;
-              font-size: 0.8rem;
-              font-weight: 700;
-              color: var(--text-secondary);
-              margin-bottom: 12px;
+              margin-bottom: 10px;
+              font-size: 0.85rem;
+              color: var(--text-muted);
               text-transform: uppercase;
             "
-            >Export Keseluruhan Database</label
           >
+            Export Master
+          </h4>
           <div class="export-grid">
             <button
-              class="btn btn-export-big excel"
+              class="btn btn-export-big blue"
               onclick="downloadExcelSemua()"
             >
               <i class="fas fa-archive"></i>
@@ -808,21 +816,25 @@
 
     <nav class="bottom-nav">
       <a class="nav-item active" onclick="switchPage('view-scan', this)">
-        <i class="fas fa-qrcode"></i><span>Scan</span>
+        <i class="fas fa-qrcode"></i>
+        <span>Scan</span>
       </a>
       <a class="nav-item" onclick="switchPage('view-session', this)">
-        <i class="fas fa-clipboard-check"></i><span>Hari Ini</span>
+        <i class="fas fa-clipboard-check"></i>
+        <span>Hari Ini</span>
       </a>
       <a class="nav-item" onclick="switchPage('view-database', this)">
-        <i class="fas fa-server"></i><span>Database</span>
+        <i class="fas fa-server"></i>
+        <span>Database</span>
       </a>
       <a class="nav-item" onclick="switchPage('view-export', this)">
-        <i class="fas fa-download"></i><span>Export</span>
+        <i class="fas fa-download"></i>
+        <span>Export</span>
       </a>
     </nav>
 
     <script>
-      // 1. DATA PERSISTENT: Tetap ada saat browser di close (Menggunakan LocalStorage)
+      // === PENYIMPANAN DATA PERMANEN ===
       const STORAGE_KEY = "SCMBarcodeMasterData";
       let allData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
       let scannedCodesSet = new Set(allData.map((item) => item.kode));
@@ -845,34 +857,39 @@
         color: "#fff",
       });
 
-      // 2. RESET OTOMATIS: Memantau perubahan hari (Jam 23:59 ke 00:00)
+      // === FITUR RESET OTOMATIS JAM 23:59 ===
       let lastCheckedDay = new Date().getDate();
       setInterval(() => {
         const currentDay = new Date().getDate();
         if (currentDay !== lastCheckedDay) {
           lastCheckedDay = currentDay;
-          renderToday(); // Otomatis mengosongkan tab "Hari Ini" tanpa menghapus Master
-          Toast.fire({
-            icon: "info",
-            title: "Sesi hari ini telah ditutup (00:00)",
-          });
+          renderToday(); // Refresh otomatis jika hari berganti
         }
-      }, 60000); // Cek setiap 1 menit
+      }, 60000); // Mengecek kalender HP setiap 1 menit
 
       document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "visible") renderToday();
+        if (document.visibilityState === "visible") {
+          const currentDay = new Date().getDate();
+          if (currentDay !== lastCheckedDay) {
+            lastCheckedDay = currentDay;
+            renderToday();
+          }
+        }
       });
 
       function switchPage(pageId, navElement) {
         if (pageId !== "view-scan" && isScanning) {
           toggleScan();
         }
-        document
-          .querySelectorAll(".view-page")
-          .forEach((page) => page.classList.remove("active"));
-        document
-          .querySelectorAll(".nav-item")
-          .forEach((item) => item.classList.remove("active"));
+
+        document.querySelectorAll(".view-page").forEach((page) => {
+          page.classList.remove("active");
+        });
+
+        document.querySelectorAll(".nav-item").forEach((item) => {
+          item.classList.remove("active");
+        });
+
         document.getElementById(pageId).classList.add("active");
         navElement.classList.add("active");
 
@@ -880,7 +897,6 @@
         if (pageId === "view-database") renderDatabase();
       }
 
-      // KOMPATIBILITAS IPHONE & ANDROID
       const isIOS =
         /iPad|iPhone|iPod/.test(navigator.userAgent) ||
         (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
@@ -937,11 +953,13 @@
       }
 
       function initAudio() {
-        if (!audioCtx)
+        if (!audioCtx) {
           audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
         if (audioCtx.state === "suspended") audioCtx.resume();
       }
 
+      // === LOGIKA SCAN ASLI DARI KODE ANDA ===
       function parsePayloadToFields(text) {
         const raw = (text || "").trim();
         if (!raw) return null;
@@ -996,6 +1014,7 @@
         }
       }
 
+      // === KAMERA SCANNER KEMBALI KE KODE ORIGINAL ANDA YANG RESPONSIF ===
       async function toggleScan() {
         const btn = document.getElementById("btnAction");
         const placeholder = document.getElementById("placeholderMsg");
@@ -1038,35 +1057,18 @@
             btn.classList.add("stop");
             isScanning = true;
 
-            // 3. KAMERA DIKEMBALIKAN KE VERSI AMAN (SAFE FALLBACK)
-            // Meminta standar HD (16:9), jika ditolak HP akan otomatis mencari resolusi terbaik bawaan.
+            // KODE ASLI KAMERA ANDA: Stabil & Responsif di Semua HP
             let constraints = {
               video: {
                 facingMode: currentCam,
-                width: { ideal: 1280 },
-                height: { ideal: 720 },
+                width: { ideal: 1080 },
+                height: { ideal: 1080 },
               },
             };
-
-            // Menghindari Crash / Blank Screen pada Oppo/Vivo/Xiaomi akibat "OverconstrainedError"
-            try {
-              const supportedConstraints =
-                navigator.mediaDevices.getSupportedConstraints();
-              if (!isIOS && supportedConstraints.focusMode) {
-                constraints.video.advanced = [{ focusMode: "continuous" }];
-              }
-            } catch (e) {}
-
-            let stream;
-            try {
-              stream = await navigator.mediaDevices.getUserMedia(constraints);
-            } catch (err) {
-              // Jika HP terlalu jadul/iPhone menolak format di atas, fallback ke default kamera tanpa batasan
-              stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: currentCam },
-              });
-            }
-
+            if (!isIOS)
+              constraints.video.advanced = [{ focusMode: "continuous" }];
+            const stream =
+              await navigator.mediaDevices.getUserMedia(constraints);
             video.srcObject = stream;
             streamTrack = stream.getVideoTracks()[0];
             await video.play();
@@ -1105,7 +1107,7 @@
           } catch (err) {
             Swal.fire(
               "Error",
-              "Kamera gagal dimuat. Pastikan izin kamera aktif pada browser.",
+              "Kamera gagal dimuat. Izinkan akses kamera di pengaturan browser.",
               "error",
             );
             toggleScan();
@@ -1235,7 +1237,7 @@
         allData.push(newData);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
         triggerFeedback();
-        Toast.fire({ icon: "success", title: `Data Tersimpan` });
+        Toast.fire({ icon: "success", title: `Tersimpan di Sesi Harian` });
       }
 
       function formatTgl(tgl) {
@@ -1344,7 +1346,7 @@
         });
       }
 
-      // 4. EXPORT EXCEL
+      // === FUNGSI EXPORT EXCEL ===
       function downloadExcelHarian() {
         const nowDate = new Date();
         const hariIni = new Date(
@@ -1383,7 +1385,7 @@
         XLSX.writeFile(wb, `Export_SCM_${label}_${new Date().getTime()}.xlsx`);
       }
 
-      // 5. EXPORT PDF
+      // === FUNGSI EXPORT PDF ===
       function downloadPDFHarian() {
         const nowDate = new Date();
         const hariIni = new Date(
@@ -1416,11 +1418,11 @@
         const tableColumn = [
           "No",
           "Kode Barcode",
-          "Golongan",
-          "P",
-          "L",
+          "Gol",
+          "Panjang",
+          "Lebar",
           "Pot",
-          "M²",
+          "M2",
           "Tanggal",
           "Jam",
         ];
