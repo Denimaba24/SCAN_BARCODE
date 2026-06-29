@@ -921,20 +921,17 @@
         if (audioCtx.state === "suspended") audioCtx.resume();
       }
 
-      // =========================================================================
-      // KODE PARSING DIKUNCI: Menampilkan kode 3 digit persis seperti permintaan!
-      // =========================================================================
       function parsePayloadToFields(text) {
         const raw = (text || "").trim();
         if (!raw) return null;
 
         if (raw.startsWith("86") && raw.length >= 24) {
           try {
-            const p_str = raw.slice(-4); // Potongan
-            const w_str = raw.slice(-9, -4); // Lebar
-            const l_str = raw.slice(-12, -9); // Panjang
-            const ext_str = raw.slice(-16, -12); // KODE 3 DIGIT (117, 085, dll)
-            const prefix = raw.slice(2, -16); // Golongan
+            const p_str = raw.slice(-4);
+            const w_str = raw.slice(-9, -4);
+            const l_str = raw.slice(-12, -9);
+            const ext_str = raw.slice(-16, -12);
+            const prefix = raw.slice(2, -16);
 
             let golongan = prefix.replace(/^0+/, "");
             if (!golongan) golongan = "-";
@@ -944,7 +941,6 @@
             const potongan = parseInt(p_str, 10);
             const persegi = (p_indo * l_indo * potongan) / 10000;
 
-            // Logika menggabungkan "Golongan (KODE)"
             const extNum = parseInt(ext_str, 10);
             const golonganDisplay = !isNaN(extNum)
               ? `${golongan} (${extNum.toString().padStart(3, "0")})`
@@ -956,7 +952,7 @@
                 lebar: l_indo,
                 potongan: potongan,
                 persegi: persegi.toFixed(2),
-                golongan: golonganDisplay, // PASTI TAMPIL SEPERTI: 21270A (085)
+                golongan: golonganDisplay,
               };
             }
           } catch (e) {}
@@ -998,10 +994,12 @@
         const targetBox = document.getElementById("targetBox");
 
         if (isScanning) {
+          // === PROSES STOP SCANNING ===
           isScanning = false;
           isTorchOn = false;
           document.getElementById("btnTorch").classList.remove("active");
           cancelAnimationFrame(scanLoopFrame);
+
           if (streamTrack) {
             streamTrack.stop();
             streamTrack = null;
@@ -1014,6 +1012,7 @@
             zxingReader.reset();
             zxingReader = null;
           }
+
           video.style.display = "none";
           laser.style.display = "none";
           targetBox.style.display = "none";
@@ -1022,6 +1021,7 @@
             '<i class="fas fa-play" style="margin-right: 6px;"></i> SCAN';
           btn.classList.remove("stop");
         } else {
+          // === PROSES MULAI SCANNING ===
           initAudio();
           try {
             video.style.display = "block";
@@ -1033,69 +1033,126 @@
             btn.classList.add("stop");
             isScanning = true;
 
+            // Meminta resolusi HD yang didukung semua chipset
             let constraints = {
               video: {
-                facingMode: currentCam,
-                width: { ideal: 1080 },
-                height: { ideal: 1080 },
+                facingMode: { ideal: currentCam },
+                width: { ideal: 1280, min: 640 },
+                height: { ideal: 720, min: 480 },
               },
             };
 
             let stream;
             try {
-              let advConstraints = JSON.parse(JSON.stringify(constraints));
-              if (!isIOS)
-                advConstraints.video.advanced = [{ focusMode: "continuous" }];
-              stream =
-                await navigator.mediaDevices.getUserMedia(advConstraints);
+              stream = await navigator.mediaDevices.getUserMedia(constraints);
             } catch (e) {
+              // Fallback terakhir jika gagal
               stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: currentCam },
+                video: { facingMode: "environment" },
               });
             }
 
+            video.setAttribute("autoplay", "");
+            video.setAttribute("muted", "");
+            video.setAttribute("playsinline", "");
+
             video.srcObject = stream;
             streamTrack = stream.getVideoTracks()[0];
+
+            // ================================================================
+            // FITUR BARU: SUNTIKAN AUTO-ZOOM & CONTINUOUS FOCUS UNTUK ANDROID
+            // Memaksa kamera agak zoom agar user menjauhkan HP dan fokus dapat
+            // ================================================================
+            try {
+              const capabilities = streamTrack.getCapabilities();
+              let advancedConstraints = [];
+
+              // 1. Paksa Autofocus jika HP mendukung
+              if (
+                capabilities.focusMode &&
+                capabilities.focusMode.includes("continuous")
+              ) {
+                advancedConstraints.push({ focusMode: "continuous" });
+              }
+
+              // 2. Paksa Zoom 1.7x - 2.0x (Sangat krusial untuk ketepatan baca Barcode 1D)
+              if (capabilities.zoom) {
+                // Ambil nilai tengah atau setidaknya 1.7x zoom
+                const minZoom = capabilities.zoom.min || 1;
+                const maxZoom = capabilities.zoom.max || 2;
+                const targetZoom = Math.min(maxZoom, Math.max(minZoom, 1.7));
+                advancedConstraints.push({ zoom: targetZoom });
+              }
+
+              // Terapkan constraint jika ada
+              if (advancedConstraints.length > 0) {
+                await streamTrack.applyConstraints({
+                  advanced: advancedConstraints,
+                });
+              }
+            } catch (err) {
+              console.log(
+                "Perangkat tidak mendukung kontrol zoom/fokus manual",
+                err,
+              );
+            }
+            // ================================================================
+
+            await new Promise((resolve) => {
+              video.onloadedmetadata = () => resolve();
+            });
             await video.play();
 
             if (nativeDetector) {
+              // ENGINE 1: HARDWARE ACCEL (Chrome Android Baru)
               const detectLoop = async () => {
                 if (!isScanning) return;
                 try {
                   const barcodes = await nativeDetector.detect(video);
-                  if (barcodes.length > 0)
+                  if (barcodes.length > 0) {
                     processBarcodeDetected(
                       barcodes[0].rawValue,
                       barcodes[0].format.toUpperCase(),
                     );
+                  }
                 } catch (e) {}
-                scanLoopFrame = requestAnimationFrame(detectLoop);
+
+                setTimeout(() => {
+                  if (isScanning)
+                    scanLoopFrame = requestAnimationFrame(detectLoop);
+                }, 50); // Kecepatan responsif
               };
               scanLoopFrame = requestAnimationFrame(detectLoop);
             } else {
+              // ENGINE 2: SOFTWARE MODE (ZXing)
               zxingReader = new ZXing.BrowserMultiFormatReader(getZXingHints());
-              zxingReader.timeBetweenDecodingAttempts = 0;
+
+              // Waktu jeda dipercepat sedikit menjadi 80ms agar lebih responsif menangkap pergerakan cepat
+              zxingReader.timeBetweenDecodingAttempts = 80;
+
               zxingReader.decodeFromStream(
                 stream,
                 "videoElement",
                 (result, err) => {
-                  if (result)
+                  if (result) {
                     processBarcodeDetected(
                       result.getText(),
                       result.getBarcodeFormat
                         ? result.getBarcodeFormat().toString()
                         : "UNKNOWN",
                     );
+                  }
                 },
               );
             }
           } catch (err) {
+            console.error("Camera Init Error:", err);
             Swal.fire(
-              "Error",
-              "Kamera gagal dimuat. Pastikan izin aktif dan link menggunakan HTTPS.",
+              "Kamera Gagal",
+              "Izin kamera belum diberikan atau browser tidak mendukung fitur ini.",
               "error",
             );
-            toggleScan();
+            if (isScanning) toggleScan();
           }
         }
       }
