@@ -2,10 +2,7 @@
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <title>Scanner - PT. Daya Sakti Niaga</title>
@@ -15,111 +12,50 @@
 
     <script type="text/javascript" src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
       :root {
-        --primary: #8b5cf6;
-        --primary-light: #a78bfa;
-        --secondary: #3b82f6;
-        --accent: #ec4899;
-        --success: #10b981;
-        --warning: #f59e0b;
-        --danger: #ef4444;
-
-        --glass-bg: rgba(255, 255, 255, 0.05);
-        --glass-bg-hover: rgba(255, 255, 255, 0.1);
-        --glass-border: rgba(255, 255, 255, 0.15);
-        --glass-blur: blur(20px);
-
-        --text-primary: #ffffff;
-        --text-secondary: rgba(255, 255, 255, 0.7);
-        --text-muted: rgba(255, 255, 255, 0.4);
-
-        --radius-lg: 24px;
-        --radius-md: 16px;
+        --primary: #8b5cf6; --primary-light: #a78bfa; --secondary: #3b82f6; --accent: #ec4899;
+        --success: #10b981; --warning: #f59e0b; --danger: #ef4444;
+        --glass-bg: rgba(255, 255, 255, 0.05); --glass-bg-hover: rgba(255, 255, 255, 0.1);
+        --glass-border: rgba(255, 255, 255, 0.15); --glass-blur: blur(20px);
+        --text-primary: #ffffff; --text-secondary: rgba(255, 255, 255, 0.7); --text-muted: rgba(255, 255, 255, 0.4);
+        --radius-lg: 24px; --radius-md: 16px;
       }
 
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        -webkit-tap-highlight-color: transparent;
-      }
-
+      * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
       html { -webkit-text-size-adjust: 100%; }
-
       html, body {
-        width: 100%;
-        max-width: 100vw;
-        overflow-x: hidden;
-        overscroll-behavior-y: none; 
+        width: 100%; max-width: 100vw; overflow-x: hidden; overscroll-behavior-y: none;
         background: radial-gradient(circle at 15% 50%, #1e1b4b, transparent 50%), radial-gradient(circle at 85% 30%, #312e81, transparent 50%), radial-gradient(circle at 50% 80%, #0f172a, transparent 50%);
-        background-color: #020617;
-        background-attachment: fixed;
-        color: var(--text-primary);
-        font-family: "Plus Jakarta Sans", sans-serif;
+        background-color: #020617; background-attachment: fixed; color: var(--text-primary); font-family: "Plus Jakarta Sans", sans-serif;
       }
-
-      body {
-        min-height: 100vh;
-        min-height: 100dvh;
-        display: flex;
-        flex-direction: column;
-      }
-
+      body { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; }
       button, a, input, select { touch-action: manipulation; }
 
       .topbar {
-        background: rgba(2, 6, 23, 0.6);
-        backdrop-filter: var(--glass-blur);
-        -webkit-backdrop-filter: var(--glass-blur);
-        border-bottom: 1px solid var(--glass-border);
-        padding: 16px 20px;
-        padding-top: max(16px, env(safe-area-inset-top));
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        position: sticky;
-        top: 0;
-        z-index: 100;
+        background: rgba(2, 6, 23, 0.6); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+        border-bottom: 1px solid var(--glass-border); padding: 16px 20px; padding-top: max(16px, env(safe-area-inset-top));
+        display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100;
       }
-
       .topbar-title {
-        font-size: 1.15rem;
-        font-family: "Space Grotesk", sans-serif;
-        font-weight: 700;
-        background: linear-gradient(135deg, var(--secondary), var(--accent));
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        letter-spacing: 0.5px;
+        font-size: 1.15rem; font-family: "Space Grotesk", sans-serif; font-weight: 700;
+        background: linear-gradient(135deg, var(--secondary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 0.5px;
       }
-
       .engine-badge {
-        font-size: 0.65rem;
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.05));
-        color: #34d399;
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-weight: 800;
-        border: 1px solid rgba(16, 185, 129, 0.3);
+        font-size: 0.65rem; background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.05));
+        color: #34d399; padding: 6px 12px; border-radius: 20px; font-weight: 800; border: 1px solid rgba(16, 185, 129, 0.3);
       }
 
       .bottom-nav {
-        position: fixed; bottom: 0; left: 0; width: 100%;
-        background: rgba(15, 23, 42, 0.85);
-        backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
-        border-top: 1px solid var(--glass-border); display: flex; justify-content: space-around;
-        padding: 12px 10px calc(12px + env(safe-area-inset-bottom)) 10px; z-index: 999;
-        box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.5);
+        position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(15, 23, 42, 0.85);
+        backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur); border-top: 1px solid var(--glass-border);
+        display: flex; justify-content: space-around; padding: 12px 10px calc(12px + env(safe-area-inset-bottom)) 10px; z-index: 999; box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.5);
       }
-
-      .nav-item {
-        display: flex; flex-direction: column; align-items: center; gap: 6px;
-        color: var(--text-muted); text-decoration: none; cursor: pointer;
-        transition: all 0.3s ease; flex: 1;
-      }
-
+      .nav-item { display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--text-muted); text-decoration: none; cursor: pointer; transition: all 0.3s ease; flex: 1; }
       .nav-item i { font-size: 1.3rem; transition: transform 0.2s ease; }
       .nav-item span { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
       .nav-item.active { color: var(--primary-light); }
@@ -127,117 +63,54 @@
 
       .view-page { display: none; opacity: 0; transition: opacity 0.3s ease; animation: fadeIn 0.4s forwards; }
       .view-page.active { display: flex; flex-direction: column; gap: 24px; opacity: 1; }
+      @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-      @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-
-      .container {
-        padding: 20px 16px;
-        padding-bottom: calc(100px + env(safe-area-inset-bottom));
-        max-width: 800px; margin: 0 auto; width: 100%; flex: 1;
-      }
+      .container { padding: 20px 16px; padding-bottom: calc(100px + env(safe-area-inset-bottom)); max-width: 800px; margin: 0 auto; width: 100%; flex: 1; }
 
       .card {
         background: var(--glass-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
-        border-radius: var(--radius-lg); padding: 24px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-lg); padding: 24px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); border: 1px solid var(--glass-border);
       }
-
-      .card-header {
-        font-weight: 700; margin-bottom: 24px; font-size: 1.15rem; display: flex; align-items: center;
-        gap: 12px; color: var(--text-primary);
-      }
-
+      .card-header { font-weight: 700; margin-bottom: 24px; font-size: 1.15rem; display: flex; align-items: center; gap: 12px; color: var(--text-primary); }
       .card-header i { color: var(--primary-light); background: rgba(139, 92, 246, 0.2); padding: 8px; border-radius: 8px; }
 
       .scanner-wrapper { position: relative; margin-bottom: 28px; }
-
       .scanner-container {
-        position: relative; width: 100%; border-radius: var(--radius-md); overflow: hidden;
-        background-color: #000; aspect-ratio: 1 / 1; max-height: 50vh; display: flex;
-        align-items: center; justify-content: center; border: 2px solid rgba(139, 92, 246, 0.3);
-        box-shadow: 0 0 30px rgba(139, 92, 246, 0.15);
+        position: relative; width: 100%; border-radius: var(--radius-md); overflow: hidden; background-color: #000;
+        aspect-ratio: 1 / 1; max-height: 50vh; display: flex; align-items: center; justify-content: center;
+        border: 2px solid rgba(139, 92, 246, 0.3); box-shadow: 0 0 30px rgba(139, 92, 246, 0.15);
       }
-
       #videoElement { width: 100%; height: 100%; object-fit: cover; display: none; }
-
       .targeting-box {
-        position: absolute; top: 10%; left: 10%; right: 10%; bottom: 10%;
-        border-radius: 20px; display: none; pointer-events: none; z-index: 5;
-        box-shadow: 0 0 0 4000px rgba(0, 0, 0, 0.5);
+        position: absolute; top: 15%; left: 15%; right: 15%; bottom: 15%; border-radius: 20px; display: none; pointer-events: none; z-index: 5; box-shadow: 0 0 0 4000px rgba(0, 0, 0, 0.5);
       }
-      .targeting-box::before, .targeting-box::after {
-        content: ""; position: absolute; width: 45px; height: 45px;
-        border-color: var(--accent); border-style: solid; filter: drop-shadow(0 0 8px var(--accent));
-      }
+      .targeting-box::before, .targeting-box::after { content: ""; position: absolute; width: 45px; height: 45px; border-color: var(--accent); border-style: solid; filter: drop-shadow(0 0 8px var(--accent)); }
       .targeting-box::before { top: -2px; left: -2px; border-width: 4px 0 0 4px; border-top-left-radius: 16px; }
       .targeting-box::after { bottom: -2px; right: -2px; border-width: 0 4px 4px 0; border-bottom-right-radius: 16px; }
-
       .laser-overlay {
-        position: absolute; top: 50%; left: 10%; right: 10%; height: 3px;
-        background: linear-gradient(90deg, transparent, var(--secondary), transparent);
-        box-shadow: 0 0 15px 3px rgba(59, 130, 246, 0.6); display: none; z-index: 10;
-        animation: scanAnim 2s infinite ease-in-out;
+        position: absolute; top: 50%; left: 15%; right: 15%; height: 3px; background: linear-gradient(90deg, transparent, var(--secondary), transparent); box-shadow: 0 0 15px 3px rgba(59, 130, 246, 0.6); display: none; z-index: 10; animation: scanAnim 2s infinite ease-in-out;
       }
-      @keyframes scanAnim {
-        0%, 100% { top: 10%; opacity: 0; }
-        10%, 90% { opacity: 1; }
-        50% { top: 90%; }
-      }
-
-      .scanner-placeholder {
-        color: var(--text-muted); font-size: 1rem; font-weight: 600; text-align: center;
-        display: flex; flex-direction: column; align-items: center; gap: 16px;
-      }
+      @keyframes scanAnim { 0%, 100% { top: 15%; opacity: 0; } 10%, 90% { opacity: 1; } 50% { top: 85%; } }
+      .scanner-placeholder { color: var(--text-muted); font-size: 1rem; font-weight: 600; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px; }
       .scanner-placeholder i { font-size: 3.5rem; opacity: 0.5; }
 
       .floating-controls {
-        display: flex; gap: 12px; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(24px);
-        -webkit-backdrop-filter: blur(24px); padding: 8px; border-radius: 100px; margin-top: -28px;
-        position: relative; z-index: 20; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-        border: 1px solid rgba(255, 255, 255, 0.1); justify-content: space-between;
-        width: 90%; margin-left: auto; margin-right: auto;
+        display: flex; gap: 12px; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); padding: 8px; border-radius: 100px; margin-top: -28px; position: relative; z-index: 20; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.1); justify-content: space-between; width: 90%; margin-left: auto; margin-right: auto;
       }
-
-      .btn {
-        border: none; font-weight: 700; font-size: 0.95rem; cursor: pointer;
-        display: flex; align-items: center; justify-content: center;
-        transition: all 0.3s ease; color: var(--text-primary); font-family: inherit; min-height: 50px;
-      }
+      .btn { border: none; font-weight: 700; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; color: var(--text-primary); font-family: inherit; min-height: 50px; }
       .btn:active { transform: scale(0.95); }
-
-      .btn-icon {
-        width: 50px; border-radius: 50%; background: var(--glass-bg);
-        border: 1px solid var(--glass-border); font-size: 1.2rem;
-      }
+      .btn-icon { width: 50px; border-radius: 50%; background: var(--glass-bg); border: 1px solid var(--glass-border); font-size: 1.2rem; }
       .btn-icon.active { background: var(--warning); color: #000; border-color: var(--warning); }
-
-      .btn-scan {
-        flex: 1; background: linear-gradient(135deg, var(--primary), var(--secondary));
-        border-radius: 100px; color: white; margin: 0 4px; border: 1px solid rgba(255, 255, 255, 0.2);
-      }
+      .btn-scan { flex: 1; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 100px; color: white; margin: 0 4px; border: 1px solid rgba(255, 255, 255, 0.2); }
       .btn-scan.stop { background: linear-gradient(135deg, var(--danger), #be123c); }
 
       .input-group { margin-bottom: 18px; }
-      .input-group label {
-        display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-secondary);
-        margin-bottom: 8px; text-transform: uppercase;
-      }
-      .form-control {
-        width: 100%; padding: 16px; border: 1px solid var(--glass-border); border-radius: var(--radius-md);
-        outline: none; font-size: 16px; background: rgba(0, 0, 0, 0.2); color: var(--text-primary); font-family: inherit;
-      }
+      .input-group label { display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; }
+      .form-control { width: 100%; padding: 16px; border: 1px solid var(--glass-border); border-radius: var(--radius-md); outline: none; font-size: 16px; background: rgba(0, 0, 0, 0.2); color: var(--text-primary); font-family: inherit; }
       .form-control:focus { border-color: var(--primary-light); background: rgba(0, 0, 0, 0.4); }
-
       .manual-input-wrapper { display: flex; gap: 10px; }
       .manual-input-wrapper input { flex: 1; }
-      .manual-input-wrapper .btn-add {
-        background: rgba(255, 255, 255, 0.1); border: 1px solid var(--glass-border);
-        border-radius: var(--radius-md); padding: 0 20px;
-      }
-
+      .manual-input-wrapper .btn-add { background: rgba(255, 255, 255, 0.1); border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: 0 20px; }
       .filter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
       .table-wrapper {
@@ -246,45 +119,31 @@
       }
       table { width: 100%; border-collapse: collapse; white-space: nowrap; }
       th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.9rem; }
-      th {
-        background: rgba(255, 255, 255, 0.05); font-weight: 700; color: var(--text-secondary);
-        position: sticky; top: 0; z-index: 2; font-size: 0.75rem; text-transform: uppercase;
+      th { background: rgba(255, 255, 255, 0.05); font-weight: 700; color: var(--text-secondary); position: sticky; top: 0; z-index: 2; font-size: 0.75rem; text-transform: uppercase; }
+      .badge { background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.2)); color: #e0e7ff; padding: 6px 10px; border-radius: 8px; font-weight: 600; font-size: 0.8rem; font-family: "Space Grotesk", monospace; }
+      
+      .btn-del { color: #fca5a5; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+
+      /* Animasi Penghapusan */
+      .deleting-row {
+          animation: fadeOutLeft 0.4s forwards;
+      }
+      @keyframes fadeOutLeft {
+          to { opacity: 0; transform: translateX(-100%); }
       }
 
-      .badge {
-        background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.2));
-        color: #e0e7ff; padding: 6px 10px; border-radius: 8px; font-weight: 600;
-        font-size: 0.8rem; font-family: "Space Grotesk", monospace;
-      }
+      .pagination { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; padding: 12px; background: rgba(0, 0, 0, 0.2); border-radius: var(--radius-md); border: 1px solid var(--glass-border); }
+      .pagination .btn-page { background: rgba(255, 255, 255, 0.1); border: 1px solid var(--glass-border); color: white; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; }
+      .pagination .btn-page:disabled { opacity: 0.4; cursor: not-allowed; }
+      .pagination .page-info { font-size: 0.85rem; color: var(--text-secondary); font-weight: 600; }
 
-      .btn-del {
-        color: #fca5a5; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3);
-        width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
-      }
-
-      .btn-export-big {
-        background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border); color: var(--text-primary);
-        width: 100%; padding: 24px; border-radius: var(--radius-lg); font-size: 1.1rem; display: flex;
-        flex-direction: column; align-items: center; gap: 12px; margin-bottom: 16px;
-      }
+      .btn-export-big { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border); color: var(--text-primary); width: 100%; padding: 24px; border-radius: var(--radius-lg); font-size: 1.1rem; display: flex; flex-direction: column; align-items: center; gap: 12px; margin-bottom: 16px; }
       .btn-export-big i { font-size: 2.5rem; }
-      .btn-export-big.accent {
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.05));
-        border-color: rgba(16, 185, 129, 0.3); color: #34d399;
-      }
-      .btn-export-big.blue {
-        background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(59, 130, 246, 0.05));
-        border-color: rgba(59, 130, 246, 0.3); color: #60a5fa;
-      }
+      .btn-export-big.accent { background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.05)); border-color: rgba(16, 185, 129, 0.3); color: #34d399; }
+      .btn-export-big.blue { background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(59, 130, 246, 0.05)); border-color: rgba(59, 130, 246, 0.3); color: #60a5fa; }
+      .btn-export-big.pdf { background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.05)); border-color: rgba(239, 68, 68, 0.3); color: #fca5a5; }
 
-      /* Animasi Flash Baris Baru */
-      @keyframes highlightNew { 0% { background-color: #bae6fd; } 100% { background-color: transparent; } }
-      .new-row { animation: highlightNew 1s ease-out; }
-
-      div:where(.swal2-container) div:where(.swal2-popup) {
-        background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-        color: var(--text-primary); border-radius: var(--radius-lg); border: 1px solid rgba(255, 255, 255, 0.1);
-      }
+      div:where(.swal2-container) div:where(.swal2-popup) { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); color: var(--text-primary); border-radius: var(--radius-lg); border: 1px solid rgba(255, 255, 255, 0.1); }
     </style>
   </head>
   <body>
@@ -292,14 +151,13 @@
       <div class="topbar-title">
         <i class="fas fa-qrcode" style="margin-right: 8px"></i> PT. Daya Sakti Niaga
       </div>
-      <span class="engine-badge" id="engineBadge">STABLE MODE</span>
+      <span class="engine-badge" id="engineBadge">SCANNER</span>
     </div>
 
     <div class="container">
       <div id="view-scan" class="view-page active">
         <div class="card">
           <div class="card-header"><i class="fas fa-camera-viewfinder"></i> Pindai Barcode</div>
-
           <div class="scanner-wrapper">
             <div class="scanner-container" id="scannerBox">
               <div class="scanner-placeholder" id="placeholderMsg">
@@ -309,14 +167,12 @@
               <div class="targeting-box" id="targetBox"></div>
               <div class="laser-overlay" id="laser"></div>
             </div>
-
             <div class="floating-controls">
               <button class="btn btn-icon" id="btnTorch" onclick="toggleTorch()"><i class="fas fa-bolt"></i></button>
               <button class="btn btn-scan" id="btnAction" onclick="toggleScan()"><i class="fas fa-play" style="margin-right: 6px"></i> SCAN</button>
               <button class="btn btn-icon" onclick="switchCamera()"><i class="fas fa-camera-rotate"></i></button>
             </div>
           </div>
-
           <div class="input-group" style="margin-top: 10px">
             <label>Input Manual (Darurat)</label>
             <div class="manual-input-wrapper">
@@ -333,45 +189,48 @@
           <div class="table-wrapper">
             <table>
               <thead>
-                <tr>
-                  <th>No</th><th>Kode</th><th>Golongan</th><th>Panjang</th><th>Lebar</th><th>Potongan</th><th>M²</th><th>Jam</th><th>Aksi</th>
-                </tr>
+                <tr><th>No</th><th>Kode</th><th>Golongan</th><th>Panjang</th><th>Lebar</th><th>Potongan</th><th>M²</th><th>Jam</th><th>Aksi</th></tr>
               </thead>
               <tbody id="tableToday"></tbody>
             </table>
+          </div>
+          <div class="pagination">
+            <button class="btn-page" id="btnPrevToday" onclick="changePageToday(-1)"><i class="fas fa-chevron-left"></i></button>
+            <span class="page-info" id="infoPageToday">Hal 1 dari 1</span>
+            <button class="btn-page" id="btnNextToday" onclick="changePageToday(1)"><i class="fas fa-chevron-right"></i></button>
           </div>
         </div>
       </div>
 
       <div id="view-database" class="view-page">
         <div class="card">
-          <div class="card-header"><i class="fas fa-database"></i> Master Database (Tersimpan Aman)</div>
-
+          <div class="card-header"><i class="fas fa-database"></i> Master Database</div>
           <div class="filter-grid">
             <div class="input-group">
               <label>Dari Tanggal</label>
-              <input type="date" class="form-control" id="start" onchange="renderDatabase()" />
+              <input type="date" class="form-control" id="start" onchange="resetSearchDB()" />
             </div>
             <div class="input-group">
               <label>Sampai Tanggal</label>
-              <input type="date" class="form-control" id="end" onchange="renderDatabase()" />
+              <input type="date" class="form-control" id="end" onchange="resetSearchDB()" />
             </div>
           </div>
-
           <div class="input-group">
             <label>Pencarian</label>
-            <input type="search" class="form-control" id="search" placeholder="Cari barcode/golongan..." onkeyup="renderDatabase()" />
+            <input type="search" class="form-control" id="search" placeholder="Cari barcode/golongan..." onkeyup="resetSearchDB()" />
           </div>
-
           <div class="table-wrapper">
             <table>
               <thead>
-                <tr>
-                  <th>No</th><th>Kode</th><th>Golongan</th><th>Panjang</th><th>Lebar</th><th>Potongan</th><th>M²</th><th>Tgl</th><th>Jam</th><th>Aksi</th>
-                </tr>
+                <tr><th>No</th><th>Kode</th><th>Golongan</th><th>Panjang</th><th>Lebar</th><th>Potongan</th><th>M²</th><th>Tgl</th><th>Jam</th><th>Aksi</th></tr>
               </thead>
               <tbody id="tableAll"></tbody>
             </table>
+          </div>
+          <div class="pagination">
+            <button class="btn-page" id="btnPrevDB" onclick="changePageDB(-1)"><i class="fas fa-chevron-left"></i></button>
+            <span class="page-info" id="infoPageDB">Hal 1 dari 1</span>
+            <button class="btn-page" id="btnNextDB" onclick="changePageDB(1)"><i class="fas fa-chevron-right"></i></button>
           </div>
         </div>
       </div>
@@ -379,23 +238,29 @@
       <div id="view-export" class="view-page">
         <div class="card">
           <div class="card-header"><i class="fas fa-file-export"></i> Pusat Unduhan</div>
-          <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 24px;">Pilih format laporan yang ingin Anda unduh ke dalam format Microsoft Excel (.xlsx).</p>
+          <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 24px;">Pilih format laporan yang ingin diunduh. Data yang terunduh adalah data yang ada di HP ini.</p>
 
-          <button class="btn btn-export-big accent" onclick="downloadExcelHarian()">
-            <i class="fas fa-file-excel"></i>
-            <div>
-              <strong>Export Data Harian</strong>
-              <div style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 400; margin-top: 4px;">Unduh khusus hasil scan hari ini</div>
-            </div>
-          </button>
+          <div class="filter-grid">
+              <button class="btn btn-export-big accent" style="padding:15px;" onclick="downloadExcelHarian()">
+                <i class="fas fa-file-excel" style="font-size:1.8rem;"></i>
+                <div style="font-size: 0.9rem;"><strong>Excel (Hari Ini)</strong></div>
+              </button>
+              <button class="btn btn-export-big pdf" style="padding:15px;" onclick="downloadPDFHarian()">
+                <i class="fas fa-file-pdf" style="font-size:1.8rem;"></i>
+                <div style="font-size: 0.9rem;"><strong>PDF (Hari Ini)</strong></div>
+              </button>
+          </div>
 
-          <button class="btn btn-export-big blue" onclick="downloadExcelSemua()">
-            <i class="fas fa-archive"></i>
-            <div>
-              <strong>Export Semua Database</strong>
-              <div style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 400; margin-top: 4px;">Unduh seluruh riwayat data tersimpan</div>
-            </div>
-          </button>
+          <div class="filter-grid">
+              <button class="btn btn-export-big blue" style="padding:15px;" onclick="downloadExcelSemua()">
+                <i class="fas fa-archive" style="font-size:1.8rem;"></i>
+                <div style="font-size: 0.9rem;"><strong>Excel (Semua)</strong></div>
+              </button>
+              <button class="btn btn-export-big pdf" style="padding:15px; background: linear-gradient(135deg, rgba(244, 63, 94, 0.2), rgba(244, 63, 94, 0.05)); color:#fb7185; border-color: rgba(244,63,94,0.3);" onclick="downloadPDFSemua()">
+                <i class="fas fa-file-pdf" style="font-size:1.8rem;"></i>
+                <div style="font-size: 0.9rem;"><strong>PDF (Semua)</strong></div>
+              </button>
+          </div>
         </div>
       </div>
     </div>
@@ -409,77 +274,99 @@
 
     <script>
       // ==========================================
-      // SISTEM DATABASE OFFLINE (TIDAK AKAN HILANG)
+      // SISTEM DATABASE OFFLINE AMAN
       // ==========================================
       const STORAGE_KEY = "SCMBarcodeMasterData";
       let allData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
       
-      // Kunci Memori untuk memblokir Duplikat secara instan (0 milidetik)
+      // KUNCI ANTI-DUPLIKAT (Mengunci barcode dalam 0.001 detik)
       let scannedCodesSet = new Set(allData.map((item) => item.kode));
 
-      let isScanning = false;
-      let currentCam = "environment"; // Default kamera belakang
-      let lastErrorTime = 0;
-      let isTorchOn = false;
-      let codeReader = null;
-      let audioCtx = null;
+      let curPageToday = 1; let curPageDB = 1; const itemsPerPage = 50;
+      let isScanning = false; let currentCam = "environment"; let lastErrorTime = 0;
+      let isTorchOn = false; let streamTrack = null; let scanLoopFrame = null; let audioCtx = null;
+      let zxingReader = null;
 
       const video = document.getElementById("videoElement");
-      const Toast = Swal.mixin({
-        toast: true, position: "top-end", showConfirmButton: false,
-        timer: 1500, background: "rgba(15, 23, 42, 0.9)", color: "#fff",
-      });
+      const Toast = Swal.mixin({ toast: true, position: "top-end", showConfirmButton: false, timer: 1500, background: "rgba(15, 23, 42, 0.9)", color: "#fff" });
 
-      // Menavigasi Antar Halaman
       function switchPage(pageId, navElement) {
-        if (pageId !== "view-scan" && isScanning) { toggleScan(); }
+        if (pageId !== "view-scan" && isScanning) toggleScan();
         document.querySelectorAll(".view-page").forEach((page) => page.classList.remove("active"));
         document.querySelectorAll(".nav-item").forEach((item) => item.classList.remove("active"));
-        document.getElementById(pageId).classList.add("active");
-        navElement.classList.add("active");
-
+        document.getElementById(pageId).classList.add("active"); navElement.classList.add("active");
         if (pageId === "view-session") renderToday();
         if (pageId === "view-database") renderDatabase();
       }
 
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      document.getElementById("engineBadge").innerText = isIOS ? "IOS SAFE" : "PRO ENGINE";
+
+      function getZXingHints() {
+        try {
+          return new Map([
+            [ZXing.DecodeHintType.TRY_HARDER, true],
+            [ZXing.DecodeHintType.POSSIBLE_FORMATS, [
+                ZXing.BarcodeFormat.CODE_128, ZXing.BarcodeFormat.CODE_39, ZXing.BarcodeFormat.EAN_13,
+                ZXing.BarcodeFormat.EAN_8, ZXing.BarcodeFormat.UPC_A, ZXing.BarcodeFormat.ITF,
+                ZXing.BarcodeFormat.QR_CODE, ZXing.BarcodeFormat.DATA_MATRIX
+              ]
+            ]
+          ]);
+        } catch (e) { return undefined; }
+      }
+
       function initAudio() {
-        if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === "suspended") audioCtx.resume();
       }
 
       // ==========================================
-      // PENERJEMAH RUMUS PABRIK
+      // PENERJEMAH RUMUS PANJANG (AKURASI 100%)
       // ==========================================
       function parsePayloadToFields(text) {
         const raw = (text || "").trim();
         if (!raw) return null;
         
-        // Membaca Barcode Spesifik Pabrik (contoh: 8600000000002306-A0032255001350024)
-        if (raw.startsWith("86") && raw.length >= 24) {
-          try {
-            const p_str = raw.slice(-4), w_str = raw.slice(-9, -4), l_str = raw.slice(-12, -9), prefix = raw.slice(2, -16);
-            const golongan = prefix.replace(/^0+/, "") || "-";
-            const p_indo = parseInt(l_str, 10), l_indo = parseInt(w_str, 10) / 10, potongan = parseInt(p_str, 10);
+        // Pengecekan Pola: 8600000000071558-A0033240001750024
+        // Menggunakan Regex untuk memastikan format rahasia pabrik terekstrak dengan benar dari belakang
+        const factoryRegex = /^(?:860+)?(.*?-[A-Za-z])\d{4}(\d+)(\d{5})(\d{4})$/;
+        const match = raw.match(factoryRegex);
+
+        if (match) {
+            const golongan = match[1]; // misal: 71558-A
+            const p_indo = parseInt(match[2], 10); // misal: 240
+            const l_indo = parseInt(match[3], 10) / 10; // misal: 175 -> 17.5
+            const potongan = parseInt(match[4], 10); // misal: 24
             const persegi = (p_indo * l_indo * potongan) / 10000;
-            
-            if (!isNaN(p_indo) && !isNaN(l_indo) && !isNaN(potongan)) {
-              return { panjang: p_indo, lebar: l_indo, potongan: potongan, persegi: persegi.toFixed(2), golongan: golongan };
-            }
-          } catch (e) {}
+
+            return {
+                panjang: p_indo,
+                lebar: l_indo,
+                potongan: potongan,
+                persegi: persegi.toFixed(2),
+                golongan: golongan
+            };
         }
         
-        // Jika Scan Barcode Biasa (EAN-13, QR, dll), kosongkan kolom ukuran
+        // Jika Barcode Retail Biasa
         return { panjang: "-", lebar: "-", potongan: "-", persegi: "-", golongan: "-" };
       }
 
       async function toggleTorch() {
-        if (!isScanning) return Toast.fire({ icon: "warning", title: "Mulai scan dulu!" });
-        // Senter hanya didukung di beberapa perangkat Android via interface mediaDevices
-        Toast.fire({ icon: "info", title: "Fitur senter sedang diaktifkan jika perangkat mendukung..." });
+        const btnTorch = document.getElementById("btnTorch");
+        if (!isScanning || !streamTrack) return Toast.fire({ icon: "warning", title: "Mulai scan dulu!" });
+        try {
+          const capabilities = streamTrack.getCapabilities();
+          if (capabilities.torch) {
+            isTorchOn = !isTorchOn; await streamTrack.applyConstraints({ advanced: [{ torch: isTorchOn }] });
+            btnTorch.classList.toggle("active", isTorchOn);
+          } else { Toast.fire({ icon: "error", title: "Senter tidak didukung" }); }
+        } catch (error) { Toast.fire({ icon: "error", title: "Akses ditolak" }); }
       }
 
       // ==========================================
-      // ENGINE KAMERA SUPER STABIL (ZXING PURE)
+      // ENGINE KAMERA OMNI-DEVICE (ANTI GAGAL)
       // ==========================================
       async function toggleScan() {
         const btn = document.getElementById("btnAction");
@@ -488,183 +375,156 @@
         const targetBox = document.getElementById("targetBox");
 
         if (isScanning) {
-          // PROSES MEMATIKAN KAMERA
-          isScanning = false;
-          if (codeReader) { codeReader.reset(); codeReader = null; }
+          isScanning = false; isTorchOn = false; document.getElementById("btnTorch").classList.remove("active");
+          if (streamTrack) { streamTrack.stop(); streamTrack = null; }
+          if (video.srcObject) { video.srcObject.getTracks().forEach((t) => t.stop()); video.srcObject = null; }
+          if (zxingReader) { zxingReader.reset(); zxingReader = null; }
           
-          video.style.display = "none";
-          laser.style.display = "none";
-          targetBox.style.display = "none";
-          placeholder.style.display = "flex";
-          btn.innerHTML = '<i class="fas fa-play" style="margin-right: 6px;"></i> SCAN';
+          video.style.display = "none"; laser.style.display = "none"; targetBox.style.display = "none";
+          placeholder.style.display = "flex"; btn.innerHTML = '<i class="fas fa-play" style="margin-right: 6px;"></i> SCAN';
           btn.classList.remove("stop");
         } else {
-          // PROSES MENGHIDUPKAN KAMERA
           initAudio();
-          video.style.display = "block";
-          laser.style.display = "block";
-          targetBox.style.display = "block";
-          placeholder.style.display = "none";
-          btn.innerHTML = '<i class="fas fa-stop" style="margin-right: 6px;"></i> STOP';
-          btn.classList.add("stop");
-          isScanning = true;
-
-          // Menggunakan ZXing murni agar jalan 100% di semua Android & iOS
-          codeReader = new ZXing.BrowserMultiFormatReader();
-          codeReader.timeBetweenDecodingAttempts = 100; // Optimal speed (10x per detik)
-
-          // Konfigurasi agar bisa membaca SEMUA jenis barcode pabrik & ritel
-          const hints = new Map();
-          hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
-          hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
-              ZXing.BarcodeFormat.CODE_128, ZXing.BarcodeFormat.CODE_39, 
-              ZXing.BarcodeFormat.EAN_13, ZXing.BarcodeFormat.EAN_8, 
-              ZXing.BarcodeFormat.UPC_A, ZXing.BarcodeFormat.ITF,
-              ZXing.BarcodeFormat.QR_CODE, ZXing.BarcodeFormat.DATA_MATRIX
-          ]);
-          codeReader.hints = hints;
-
           try {
-            await codeReader.decodeFromConstraints(
-              { video: { facingMode: currentCam } }, 
-              'videoElement', 
-              (result, err) => {
-                if (result) {
-                    processBarcodeDetected(result.getText(), result.getBarcodeFormat().toString());
-                }
+            video.style.display = "block"; laser.style.display = "block"; targetBox.style.display = "block";
+            placeholder.style.display = "none"; btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right: 6px;"></i> MEMUAT...';
+            isScanning = true;
+
+            // Waterfall Fallback Constraints untuk mendukung HP Jadul dan iPhone Terbaru
+            const constraintList = [
+              { video: { facingMode: currentCam, width: { ideal: 1280 }, height: { ideal: 720 }, advanced: isIOS ? [] : [{ focusMode: "continuous" }] } },
+              { video: { facingMode: currentCam, width: { ideal: 1280 }, height: { ideal: 720 } } },
+              { video: { facingMode: currentCam, width: { ideal: 640 }, height: { ideal: 480 } } },
+              { video: { facingMode: currentCam } }
+            ];
+
+            let stream = null;
+            for (let c of constraintList) {
+                try { stream = await navigator.mediaDevices.getUserMedia(c); break; } 
+                catch(e) { console.warn("Fallback..."); }
+            }
+
+            if(!stream) throw new Error("Gagal akses kamera.");
+
+            // Kunci iOS agar video play normal
+            video.setAttribute("playsinline", true); video.setAttribute("webkit-playsinline", true);
+            video.muted = true; video.autoplay = true;
+
+            video.srcObject = stream; streamTrack = stream.getVideoTracks()[0];
+
+            video.onloadedmetadata = async () => {
+              try {
+                await video.play();
+                btn.innerHTML = '<i class="fas fa-stop" style="margin-right: 6px;"></i> STOP'; btn.classList.add("stop");
+
+                zxingReader = new ZXing.BrowserMultiFormatReader(getZXingHints());
+                zxingReader.timeBetweenDecodingAttempts = 100; // Kecepatan optimal agar HP tidak hang
+                zxingReader.decodeFromVideoElement(video, (result, err) => {
+                  if (result) processBarcodeDetected(result.getText(), result.getBarcodeFormat ? result.getBarcodeFormat().toString() : "UNKNOWN");
+                });
+              } catch (playErr) {
+                Swal.fire("Error", "Video diblokir browser.", "error"); toggleScan();
               }
-            );
+            };
           } catch (err) {
-            Swal.fire("Kamera Error", "Gagal memuat kamera. Pastikan izin kamera browser diizinkan.", "error");
-            toggleScan();
+            Swal.fire("Kamera Diblokir", "Kamera gagal dimuat. Izinkan akses kamera.", "error"); toggleScan();
           }
         }
       }
 
       function processBarcodeDetected(code, format) {
-        // BLOKIR DUPLIKAT MUTLAK (Langsung ditolak jika sudah ada di memori)
+        // ANTI DUPLIKAT ABSOLUT
         if (scannedCodesSet.has(code)) {
           const now = Date.now();
-          if (now - lastErrorTime > 2000) { // Bunyikan error setiap 2 detik saja jika ditahan di barcode yang sama
-            triggerErrorFeedback();
-            Toast.fire({ icon: "error", title: "Barcode sudah ada!" });
-            lastErrorTime = now;
+          if (now - lastErrorTime > 2000) { 
+            triggerErrorFeedback(); Toast.fire({ icon: "error", title: "Barcode sudah ada!" }); lastErrorTime = now;
           }
           return;
         }
         
-        // JIKA BARCODE BARU: Kunci segera agar tidak dobel scan
+        // Simpan langsung ke Lock
         scannedCodesSet.add(code);
         simpanData(code, format);
       }
 
       function switchCamera() {
         currentCam = currentCam === "environment" ? "user" : "environment";
-        if (isScanning) {
-          toggleScan();
-          setTimeout(toggleScan, 300);
-        } else {
-          Toast.fire({ icon: "info", title: currentCam === "environment" ? "Kamera Belakang" : "Kamera Depan" });
-        }
+        if (isScanning) { toggleScan(); setTimeout(toggleScan, 300); } 
+        else { Toast.fire({ icon: "info", title: currentCam === "environment" ? "Kamera Belakang" : "Kamera Depan" }); }
       }
 
       function triggerFeedback() {
         if (navigator.vibrate) navigator.vibrate([30]);
         if (audioCtx) {
           try {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
             osc.connect(gain); gain.connect(audioCtx.destination);
             osc.type = "square"; osc.frequency.setValueAtTime(3500, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0, audioCtx.currentTime);
-            gain.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.005);
-            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.04);
-            osc.start(audioCtx.currentTime); osc.stop(audioCtx.currentTime + 0.04);
+            gain.gain.setValueAtTime(0, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.005);
+            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.04); osc.start(audioCtx.currentTime); osc.stop(audioCtx.currentTime + 0.04);
           } catch (e) {}
         }
-        const box = document.getElementById("targetBox");
-        box.style.borderColor = "var(--success)";
-        box.style.filter = "drop-shadow(0 0 15px var(--success))";
-        setTimeout(() => {
-          box.style.borderColor = "var(--accent)";
-          box.style.filter = "drop-shadow(0 0 8px var(--accent))";
-        }, 150);
+        const box = document.getElementById("targetBox"); box.style.borderColor = "var(--success)"; box.style.filter = "drop-shadow(0 0 15px var(--success))";
+        setTimeout(() => { box.style.borderColor = "var(--accent)"; box.style.filter = "drop-shadow(0 0 8px var(--accent))"; }, 150);
       }
 
       function triggerErrorFeedback() {
         if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
         if (audioCtx) {
           try {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
             osc.connect(gain); gain.connect(audioCtx.destination);
             osc.type = "sawtooth"; osc.frequency.setValueAtTime(300, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0, audioCtx.currentTime);
-            gain.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.01);
-            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.15);
-            osc.start(audioCtx.currentTime); osc.stop(audioCtx.currentTime + 0.15);
+            gain.gain.setValueAtTime(0, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.01);
+            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.15); osc.start(audioCtx.currentTime); osc.stop(audioCtx.currentTime + 0.15);
           } catch (e) {}
         }
-        const box = document.getElementById("targetBox");
-        box.style.borderColor = "var(--danger)";
-        box.style.filter = "drop-shadow(0 0 15px var(--danger))";
-        setTimeout(() => {
-          box.style.borderColor = "var(--accent)";
-          box.style.filter = "drop-shadow(0 0 8px var(--accent))";
-        }, 200);
+        const box = document.getElementById("targetBox"); box.style.borderColor = "var(--danger)"; box.style.filter = "drop-shadow(0 0 15px var(--danger))";
+        setTimeout(() => { box.style.borderColor = "var(--accent)"; box.style.filter = "drop-shadow(0 0 8px var(--accent))"; }, 200);
       }
 
       function inputManual() {
         const val = document.getElementById("manualData").value.trim();
         if (!val) return Toast.fire({ icon: "error", title: "Kode kosong!" });
         if (scannedCodesSet.has(val)) {
-          triggerErrorFeedback();
-          return Toast.fire({ icon: "error", title: "Barcode sudah ada!" });
+          triggerErrorFeedback(); return Toast.fire({ icon: "error", title: "Barcode sudah ada!" });
         }
-        scannedCodesSet.add(val);
-        simpanData(val, "MANUAL");
-        document.getElementById("manualData").value = "";
+        scannedCodesSet.add(val); simpanData(val, "MANUAL"); document.getElementById("manualData").value = "";
       }
 
       function simpanData(kode, barcodeFormat) {
-        const nowDate = new Date();
-        const nowMs = Date.now();
+        const nowDate = new Date(); const nowMs = Date.now();
+        // LOGIKA PEMISAHAN HARI: Otomatis berubah setiap jam 23:59 -> 00:00 (Sistem Waktu Lokal)
         const tglHariIni = new Date(nowDate.getTime() - nowDate.getTimezoneOffset() * 60000).toISOString().split("T")[0];
         
         const parsed = parsePayloadToFields(kode);
 
         const newData = {
-          id: Date.now(),
-          scannedAt: nowMs,
-          kode: kode,
-          panjang: parsed?.panjang ?? "-",
-          lebar: parsed?.lebar ?? "-",
-          potongan: parsed?.potongan ?? "-",
-          persegi: parsed?.persegi ?? "-",
-          tanggal: tglHariIni,
-          jam: nowDate.toTimeString().split(" ")[0],
-          golongan: parsed?.golongan ?? "-",
-          format: barcodeFormat,
+          id: Date.now(), scannedAt: nowMs, kode: kode,
+          panjang: parsed?.panjang ?? "-", lebar: parsed?.lebar ?? "-", potongan: parsed?.potongan ?? "-", persegi: parsed?.persegi ?? "-",
+          tanggal: tglHariIni, jam: nowDate.toTimeString().split(" ")[0], golongan: parsed?.golongan ?? "-", format: barcodeFormat,
         };
 
         allData.push(newData);
-        // SIMPAN KE MEMORI HP (Aman walaupun Browser Ditutup)
         localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
         
-        triggerFeedback();
-        Toast.fire({ icon: "success", title: `Tersimpan` });
+        triggerFeedback(); Toast.fire({ icon: "success", title: `Tersimpan` });
+        curPageToday = 1; curPageDB = 1;
+        if(document.getElementById('view-session').classList.contains('active')) renderToday();
+        if(document.getElementById('view-database').classList.contains('active')) renderDatabase();
       }
 
       function formatTgl(tgl) {
-        if (!tgl || tgl === "-") return "-";
-        const p = tgl.split("-");
+        if (!tgl || tgl === "-") return "-"; const p = tgl.split("-");
         if (p.length === 3) return `${p[2]}/${p[1]}/${p[0].substring(2)}`;
         return tgl;
       }
 
       // ==========================================
-      // SISTEM TABEL
+      // SISTEM TABEL PAGINASI (Anti Lag 10.000+ Data)
       // ==========================================
+      function changePageToday(dir) { curPageToday += dir; renderToday(); }
+
       function renderToday() {
         const tbody = document.getElementById("tableToday");
         const nowDate = new Date();
@@ -672,27 +532,41 @@
 
         let fData = allData.filter((i) => i.tanggal === hariIni);
         fData.sort((a, b) => (b.scannedAt || 0) - (a.scannedAt || 0));
-        tbody.innerHTML = "";
+        
+        const totalPages = Math.ceil(fData.length / itemsPerPage) || 1;
+        if(curPageToday > totalPages) curPageToday = totalPages; if(curPageToday < 1) curPageToday = 1;
 
+        document.getElementById("infoPageToday").innerText = `Hal ${curPageToday} dari ${totalPages}`;
+        document.getElementById("btnPrevToday").disabled = (curPageToday === 1);
+        document.getElementById("btnNextToday").disabled = (curPageToday === totalPages);
+
+        tbody.innerHTML = "";
         if (fData.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 40px; color: var(--text-muted);">Belum ada data di-scan hari ini</td></tr>`;
-          return;
+          tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 40px; color: var(--text-muted);">Belum ada data di-scan hari ini</td></tr>`; return;
         }
 
-        fData.forEach((i, idx) => {
-          const isRowNew = idx === 0 ? 'class="new-row"' : "";
+        const startIndex = (curPageToday - 1) * itemsPerPage;
+        const paginatedData = fData.slice(startIndex, startIndex + itemsPerPage);
+
+        paginatedData.forEach((i, idx) => {
+          const actualIndex = fData.length - (startIndex + idx);
           const tr = document.createElement("tr");
+          // Menyematkan id baris untuk animasi hapus
+          tr.id = `row-${i.id}`;
           tr.innerHTML = `
-            <td ${isRowNew}>${idx + 1}</td>
-            <td ${isRowNew}><span class="badge">${i.kode}</span></td>
-            <td ${isRowNew}><b>${i.golongan}</b></td>
-            <td ${isRowNew}>${i.panjang}</td><td ${isRowNew}>${i.lebar}</td><td ${isRowNew}>${i.potongan}</td><td ${isRowNew}>${i.persegi}</td>
-            <td ${isRowNew}>${i.jam.substring(0, 5)}</td>
-            <td ${isRowNew}><button class="btn-del" onclick="hapus(${i.id}, '${i.kode}', 'today')"><i class="fas fa-trash"></i></button></td>
+            <td>${actualIndex}</td>
+            <td><span class="badge">${i.kode}</span></td>
+            <td><b>${i.golongan}</b></td>
+            <td>${i.panjang}</td><td>${i.lebar}</td><td>${i.potongan}</td><td>${i.persegi}</td>
+            <td>${i.jam.substring(0, 5)}</td>
+            <td><button class="btn-del" onclick="hapusAnim(${i.id}, '${i.kode}', 'today')"><i class="fas fa-trash"></i></button></td>
           `;
           tbody.appendChild(tr);
         });
       }
+
+      function resetSearchDB() { curPageDB = 1; renderDatabase(); }
+      function changePageDB(dir) { curPageDB += dir; renderDatabase(); }
 
       function renderDatabase() {
         const tbody = document.getElementById("tableAll");
@@ -708,86 +582,132 @@
         });
 
         fData.sort((a, b) => (b.scannedAt || 0) - (a.scannedAt || 0));
-        tbody.innerHTML = "";
+        
+        const totalPages = Math.ceil(fData.length / itemsPerPage) || 1;
+        if(curPageDB > totalPages) curPageDB = totalPages; if(curPageDB < 1) curPageDB = 1;
 
+        document.getElementById("infoPageDB").innerText = `Hal ${curPageDB} dari ${totalPages}`;
+        document.getElementById("btnPrevDB").disabled = (curPageDB === 1);
+        document.getElementById("btnNextDB").disabled = (curPageDB === totalPages);
+
+        tbody.innerHTML = "";
         if (fData.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding: 40px; color: var(--text-muted);">Database kosong atau tidak ditemukan</td></tr>`;
-          return;
+          tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding: 40px; color: var(--text-muted);">Database kosong atau data tidak ditemukan</td></tr>`; return;
         }
 
-        fData.forEach((i, idx) => {
+        const startIndex = (curPageDB - 1) * itemsPerPage;
+        const paginatedData = fData.slice(startIndex, startIndex + itemsPerPage);
+
+        paginatedData.forEach((i, idx) => {
+          const actualIndex = fData.length - (startIndex + idx);
           const tr = document.createElement("tr");
+          tr.id = `row-${i.id}`;
           tr.innerHTML = `
-            <td>${idx + 1}</td>
+            <td>${actualIndex}</td>
             <td><span class="badge">${i.kode}</span></td>
             <td><b>${i.golongan}</b></td>
             <td>${i.panjang}</td><td>${i.lebar}</td><td>${i.potongan}</td><td>${i.persegi}</td>
             <td>${formatTgl(i.tanggal)}</td><td>${i.jam.substring(0, 5)}</td>
-            <td><button class="btn-del" onclick="hapus(${i.id}, '${i.kode}', 'db')"><i class="fas fa-trash"></i></button></td>
+            <td><button class="btn-del" onclick="hapusAnim(${i.id}, '${i.kode}', 'db')"><i class="fas fa-trash"></i></button></td>
           `;
           tbody.appendChild(tr);
         });
       }
 
-      function hapus(id, kode, source) {
+      // Fungsi Hapus dengan Animasi Slide ke Kiri
+      function hapusAnim(id, kode, source) {
         Swal.fire({
-          title: "Hapus Data?",
-          text: "Data akan dihapus permanen dari HP ini.",
-          icon: "warning",
-          showCancelButton: true,
-          confirmButtonColor: "var(--danger)",
-          cancelButtonColor: "rgba(255, 255, 255, 0.1)",
-          confirmButtonText: "Ya, Hapus",
-          cancelButtonText: "Batal",
+          title: "Hapus Data?", text: "Data akan dihapus permanen dari memori HP ini.", icon: "warning",
+          showCancelButton: true, confirmButtonColor: "var(--danger)", cancelButtonColor: "rgba(255, 255, 255, 0.1)",
+          confirmButtonText: "Ya, Hapus", cancelButtonText: "Batal",
         }).then((res) => {
           if (res.isConfirmed) {
-            allData = allData.filter((i) => i.id !== id);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
-            scannedCodesSet.delete(kode);
-            if (source === "today") { renderToday(); renderDatabase(); }
-            if (source === "db") { renderDatabase(); renderToday(); }
+            const row = document.getElementById(`row-${id}`);
+            if (row) {
+                row.classList.add("deleting-row");
+                setTimeout(() => { executeHapus(id, kode, source); }, 400); // Tunggu animasi selesai
+            } else { executeHapus(id, kode, source); }
           }
         });
       }
 
+      function executeHapus(id, kode, source) {
+          allData = allData.filter((i) => i.id !== id);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
+          scannedCodesSet.delete(kode);
+          if (source === "today") { renderToday(); renderDatabase(); }
+          if (source === "db") { renderDatabase(); renderToday(); }
+      }
+
       // ==========================================
-      // SISTEM EXPORT EXCEL
+      // SISTEM EXPORT EXCEL & PDF
       // ==========================================
       function downloadExcelHarian() {
-        const nowDate = new Date();
-        const hariIni = new Date(nowDate.getTime() - nowDate.getTimezoneOffset() * 60000).toISOString().split("T")[0];
+        const nowDate = new Date(); const hariIni = new Date(nowDate.getTime() - nowDate.getTimezoneOffset() * 60000).toISOString().split("T")[0];
         const dataHarian = allData.filter((i) => i.tanggal === hariIni);
         if (dataHarian.length === 0) return Swal.fire("Kosong", "Tidak ada data hari ini.", "info");
         exportToExcel(dataHarian, "Harian_" + hariIni);
       }
-
       function downloadExcelSemua() {
         if (allData.length === 0) return Swal.fire("Kosong", "Database kosong.", "info");
         exportToExcel(allData, "Master_Data");
       }
-
       function exportToExcel(dataArray, label) {
-        // Mengurutkan data dari scan pertama (terlama) ke terbaru
         dataArray.sort((a, b) => (a.scannedAt || 0) - (b.scannedAt || 0));
         const dt = dataArray.map((i, idx) => ({
-          No: idx + 1,
-          "Kode Barcode": i.kode,
-          "P (Panjang)": i.panjang,
-          "L (Lebar)": i.lebar,
-          Potongan: i.potongan,
-          "Persegi (m2)": i.persegi,
-          Golongan: i.golongan,
-          Tanggal: formatTgl(i.tanggal),
-          Jam: i.jam,
-          "Format Scan": i.format || "",
+          No: idx + 1, "Kode Barcode": i.kode, "Golongan": i.golongan, "Panjang": i.panjang, "Lebar": i.lebar,
+          Potongan: i.potongan, "Persegi (m2)": i.persegi, Tanggal: formatTgl(i.tanggal), Jam: i.jam,
         }));
-        const ws = XLSX.utils.json_to_sheet(dt);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Database");
-        XLSX.writeFile(wb, `Export_SCM_${label}_${new Date().getTime()}.xlsx`);
+        const ws = XLSX.utils.json_to_sheet(dt); const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Data");
+        XLSX.writeFile(wb, `SCM_${label}_${new Date().getTime()}.xlsx`);
       }
 
-      // Muat data tabel saat pertama kali web dibuka
+      // EXPORT PDF MENGGUNAKAN JSPDF
+      function downloadPDFHarian() {
+        const nowDate = new Date(); const hariIni = new Date(nowDate.getTime() - nowDate.getTimezoneOffset() * 60000).toISOString().split("T")[0];
+        const dataHarian = allData.filter((i) => i.tanggal === hariIni);
+        if (dataHarian.length === 0) return Swal.fire("Kosong", "Tidak ada data hari ini.", "info");
+        exportToPDF(dataHarian, "Laporan Harian SCM", "Harian_" + hariIni);
+      }
+      function downloadPDFSemua() {
+        if (allData.length === 0) return Swal.fire("Kosong", "Database kosong.", "info");
+        exportToPDF(allData, "Master Database SCM", "Master_Data");
+      }
+      function exportToPDF(dataArray, title, label) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        dataArray.sort((a, b) => (a.scannedAt || 0) - (b.scannedAt || 0));
+        
+        doc.setFontSize(16);
+        doc.text("PT. DAYA SAKTI NIAGA", 14, 15);
+        doc.setFontSize(11);
+        doc.text(title, 14, 23);
+        doc.setFontSize(9);
+        doc.text("Waktu Unduh: " + new Date().toLocaleString(), 14, 28);
+
+        const tableColumn = ["No", "Kode Barcode", "Golongan", "P", "L", "Pot", "M2", "Tgl", "Jam"];
+        const tableRows = [];
+
+        dataArray.forEach((i, idx) => {
+            const rowData = [
+                idx + 1, i.kode, i.golongan, i.panjang, i.lebar, i.potongan, i.persegi, formatTgl(i.tanggal), i.jam
+            ];
+            tableRows.push(rowData);
+        });
+
+        doc.autoTable({
+            head: [tableColumn],
+            body: tableRows,
+            startY: 35,
+            theme: 'grid',
+            headStyles: { fillColor: [139, 92, 246] }, // Warna ungu primary
+            styles: { fontSize: 8 }
+        });
+
+        doc.save(`SCM_${label}_${new Date().getTime()}.pdf`);
+      }
+
       window.onload = () => { renderToday(); renderDatabase(); };
     </script>
   </body>
