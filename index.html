@@ -22,14 +22,14 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
 
-    <!-- Libraries -->
-    <script type="text/javascript" src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
+    <script
+      type="text/javascript"
+      src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"
+    ></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
-    <!-- Library jsPDF untuk Export PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
       :root {
@@ -88,7 +88,10 @@
         flex-direction: column;
       }
 
-      button, a, input, select {
+      button,
+      a,
+      input,
+      select {
         touch-action: manipulation;
       }
 
@@ -120,7 +123,11 @@
 
       .engine-badge {
         font-size: 0.65rem;
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.05));
+        background: linear-gradient(
+          135deg,
+          rgba(16, 185, 129, 0.2),
+          rgba(16, 185, 129, 0.05)
+        );
         color: #34d399;
         padding: 6px 12px;
         border-radius: 20px;
@@ -195,8 +202,14 @@
       }
 
       @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
 
       .container {
@@ -266,7 +279,10 @@
 
       .targeting-box {
         position: absolute;
-        top: 15%; left: 15%; right: 15%; bottom: 15%;
+        top: 15%;
+        left: 15%;
+        right: 15%;
+        bottom: 15%;
         border-radius: 20px;
         display: none;
         pointer-events: none;
@@ -276,143 +292,302 @@
 
       .targeting-box::before,
       .targeting-box::after {
-        content: ""; position: absolute; width: 45px; height: 45px;
-        border-color: var(--accent); border-style: solid;
+        content: "";
+        position: absolute;
+        width: 45px;
+        height: 45px;
+        border-color: var(--accent);
+        border-style: solid;
         filter: drop-shadow(0 0 8px var(--accent));
       }
       .targeting-box::before {
-        top: -2px; left: -2px; border-width: 4px 0 0 4px; border-top-left-radius: 16px;
+        top: -2px;
+        left: -2px;
+        border-width: 4px 0 0 4px;
+        border-top-left-radius: 16px;
       }
       .targeting-box::after {
-        bottom: -2px; right: -2px; border-width: 0 4px 4px 0; border-bottom-right-radius: 16px;
+        bottom: -2px;
+        right: -2px;
+        border-width: 0 4px 4px 0;
+        border-bottom-right-radius: 16px;
       }
 
       .laser-overlay {
-        position: absolute; top: 50%; left: 15%; right: 15%; height: 3px;
-        background: linear-gradient(90deg, transparent, var(--secondary), transparent);
+        position: absolute;
+        top: 50%;
+        left: 15%;
+        right: 15%;
+        height: 3px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--secondary),
+          transparent
+        );
         box-shadow: 0 0 15px 3px rgba(59, 130, 246, 0.6);
-        display: none; z-index: 10;
+        display: none;
+        z-index: 10;
         animation: scanAnim 2s infinite ease-in-out;
       }
       @keyframes scanAnim {
-        0%, 100% { top: 15%; opacity: 0; }
-        10%, 90% { opacity: 1; }
-        50% { top: 85%; }
+        0%,
+        100% {
+          top: 15%;
+          opacity: 0;
+        }
+        10%,
+        90% {
+          opacity: 1;
+        }
+        50% {
+          top: 85%;
+        }
       }
 
       .scanner-placeholder {
-        color: var(--text-muted); font-size: 1rem; font-weight: 600;
-        text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px;
+        color: var(--text-muted);
+        font-size: 1rem;
+        font-weight: 600;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
       }
-      .scanner-placeholder i { font-size: 3.5rem; opacity: 0.5; }
+      .scanner-placeholder i {
+        font-size: 3.5rem;
+        opacity: 0.5;
+      }
 
       .floating-controls {
-        display: flex; gap: 12px; background: rgba(15, 23, 42, 0.7);
-        backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-        padding: 8px; border-radius: 100px; margin-top: -28px; position: relative;
-        z-index: 20; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-        border: 1px solid rgba(255, 255, 255, 0.1); justify-content: space-between;
-        width: 90%; margin-left: auto; margin-right: auto;
+        display: flex;
+        gap: 12px;
+        background: rgba(15, 23, 42, 0.7);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        padding: 8px;
+        border-radius: 100px;
+        margin-top: -28px;
+        position: relative;
+        z-index: 20;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        justify-content: space-between;
+        width: 90%;
+        margin-left: auto;
+        margin-right: auto;
       }
 
       .btn {
-        border: none; font-weight: 700; font-size: 0.95rem; cursor: pointer;
-        display: flex; align-items: center; justify-content: center;
-        transition: all 0.3s ease; color: var(--text-primary); font-family: inherit; min-height: 50px;
+        border: none;
+        font-weight: 700;
+        font-size: 0.95rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        color: var(--text-primary);
+        font-family: inherit;
+        min-height: 50px;
       }
-      .btn:active { transform: scale(0.95); }
+      .btn:active {
+        transform: scale(0.95);
+      }
 
       .btn-icon {
-        width: 50px; border-radius: 50%; background: var(--glass-bg);
-        border: 1px solid var(--glass-border); font-size: 1.2rem;
+        width: 50px;
+        border-radius: 50%;
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        font-size: 1.2rem;
       }
-      .btn-icon.active { background: var(--warning); color: #000; border-color: var(--warning); }
+      .btn-icon.active {
+        background: var(--warning);
+        color: #000;
+        border-color: var(--warning);
+      }
 
       .btn-scan {
-        flex: 1; background: linear-gradient(135deg, var(--primary), var(--secondary));
-        border-radius: 100px; color: white; margin: 0 4px; border: 1px solid rgba(255, 255, 255, 0.2);
+        flex: 1;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        border-radius: 100px;
+        color: white;
+        margin: 0 4px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
       }
-      .btn-scan.stop { background: linear-gradient(135deg, var(--danger), #be123c); }
+      .btn-scan.stop {
+        background: linear-gradient(135deg, var(--danger), #be123c);
+      }
 
       /* ============ INPUTS & FORMS ============ */
-      .input-group { margin-bottom: 18px; }
+      .input-group {
+        margin-bottom: 18px;
+      }
       .input-group label {
-        display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-secondary);
-        margin-bottom: 8px; text-transform: uppercase;
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: var(--text-secondary);
+        margin-bottom: 8px;
+        text-transform: uppercase;
       }
       .form-control {
-        width: 100%; padding: 16px; border: 1px solid var(--glass-border);
-        border-radius: var(--radius-md); outline: none; font-size: 16px;
-        background: rgba(0, 0, 0, 0.2); color: var(--text-primary); font-family: inherit;
+        width: 100%;
+        padding: 16px;
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-md);
+        outline: none;
+        font-size: 16px;
+        background: rgba(0, 0, 0, 0.2);
+        color: var(--text-primary);
+        font-family: inherit;
       }
-      .form-control:focus { border-color: var(--primary-light); background: rgba(0, 0, 0, 0.4); }
+      .form-control:focus {
+        border-color: var(--primary-light);
+        background: rgba(0, 0, 0, 0.4);
+      }
 
-      .manual-input-wrapper { display: flex; gap: 10px; }
-      .manual-input-wrapper input { flex: 1; }
+      .manual-input-wrapper {
+        display: flex;
+        gap: 10px;
+      }
+      .manual-input-wrapper input {
+        flex: 1;
+      }
       .manual-input-wrapper .btn-add {
-        background: rgba(255, 255, 255, 0.1); border: 1px solid var(--glass-border);
-        border-radius: var(--radius-md); padding: 0 20px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-md);
+        padding: 0 20px;
       }
 
-      .filter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+      .filter-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
 
       /* ============ TABLES ============ */
       .table-wrapper {
-        width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;
-        border-radius: var(--radius-md); background: rgba(0, 0, 0, 0.2);
-        max-height: 55vh; border: 1px solid var(--glass-border); margin-top: 16px;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: var(--radius-md);
+        background: rgba(0, 0, 0, 0.2);
+        max-height: 55vh;
+        border: 1px solid var(--glass-border);
+        margin-top: 16px;
       }
-      table { width: 100%; border-collapse: collapse; white-space: nowrap; }
-      th, td {
-        padding: 14px 16px; text-align: left; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.9rem;
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        white-space: nowrap;
+      }
+      th,
+      td {
+        padding: 14px 16px;
+        text-align: left;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        font-size: 0.9rem;
       }
       th {
-        background: rgba(255, 255, 255, 0.05); font-weight: 700; color: var(--text-secondary);
-        position: sticky; top: 0; z-index: 2; font-size: 0.75rem; text-transform: uppercase;
+        background: rgba(255, 255, 255, 0.05);
+        font-weight: 700;
+        color: var(--text-secondary);
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        font-size: 0.75rem;
+        text-transform: uppercase;
       }
 
       .badge {
-        background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.2));
-        color: #e0e7ff; padding: 6px 10px; border-radius: 8px; font-weight: 600;
-        font-size: 0.8rem; font-family: "Space Grotesk", monospace;
+        background: linear-gradient(
+          135deg,
+          rgba(59, 130, 246, 0.2),
+          rgba(139, 92, 246, 0.2)
+        );
+        color: #e0e7ff;
+        padding: 6px 10px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        font-family: "Space Grotesk", monospace;
       }
 
       .btn-del {
-        color: #fca5a5; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3);
-        width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+        color: #fca5a5;
+        background: rgba(239, 68, 68, 0.15);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
 
       /* ============ EXPORT BUTTONS ============ */
       .export-grid {
-        display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 24px;
       }
       .btn-export-big {
-        background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border);
-        color: var(--text-primary); width: 100%; padding: 18px 12px; border-radius: var(--radius-lg);
-        font-size: 0.9rem; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--glass-border);
+        color: var(--text-primary);
+        width: 100%;
+        padding: 18px 12px;
+        border-radius: var(--radius-lg);
+        font-size: 0.9rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        text-align: center;
       }
-      .btn-export-big i { font-size: 2rem; }
+      .btn-export-big i {
+        font-size: 2rem;
+      }
       .btn-export-big.excel {
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.05));
-        border-color: rgba(16, 185, 129, 0.3); color: #34d399;
+        background: linear-gradient(
+          135deg,
+          rgba(16, 185, 129, 0.2),
+          rgba(16, 185, 129, 0.05)
+        );
+        border-color: rgba(16, 185, 129, 0.3);
+        color: #34d399;
       }
       .btn-export-big.pdf {
-        background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.05));
-        border-color: rgba(239, 68, 68, 0.3); color: #fca5a5;
+        background: linear-gradient(
+          135deg,
+          rgba(239, 68, 68, 0.2),
+          rgba(239, 68, 68, 0.05)
+        );
+        border-color: rgba(239, 68, 68, 0.3);
+        color: #fca5a5;
       }
 
       /* SweetAlert2 Mobile Fixes */
       div:where(.swal2-container) div:where(.swal2-popup) {
-        background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px); color: var(--text-primary);
-        border-radius: var(--radius-lg); border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(15, 23, 42, 0.85);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        color: var(--text-primary);
+        border-radius: var(--radius-lg);
+        border: 1px solid rgba(255, 255, 255, 0.1);
       }
     </style>
   </head>
   <body>
     <div class="topbar">
       <div class="topbar-title">
-        <i class="fas fa-qrcode" style="margin-right: 8px"></i> PT. Daya Sakti Niaga
+        <i class="fas fa-qrcode" style="margin-right: 8px"></i> PT. Daya Sakti
+        Niaga
       </div>
       <span class="engine-badge" id="engineBadge">SCANNER</span>
     </div>
@@ -436,10 +611,18 @@
             </div>
 
             <div class="floating-controls">
-              <button class="btn btn-icon" id="btnTorch" onclick="toggleTorch()">
+              <button
+                class="btn btn-icon"
+                id="btnTorch"
+                onclick="toggleTorch()"
+              >
                 <i class="fas fa-bolt"></i>
               </button>
-              <button class="btn btn-scan" id="btnAction" onclick="toggleScan()">
+              <button
+                class="btn btn-scan"
+                id="btnAction"
+                onclick="toggleScan()"
+              >
                 <i class="fas fa-play" style="margin-right: 6px"></i> SCAN
               </button>
               <button class="btn btn-icon" onclick="switchCamera()">
@@ -451,8 +634,16 @@
           <div class="input-group" style="margin-top: 10px">
             <label>Input Manual (Darurat)</label>
             <div class="manual-input-wrapper">
-              <input type="text" id="manualData" class="form-control" placeholder="Ketik barcode..." inputmode="text" />
-              <button class="btn btn-add" onclick="inputManual()"><i class="fas fa-plus"></i></button>
+              <input
+                type="text"
+                id="manualData"
+                class="form-control"
+                placeholder="Ketik barcode..."
+                inputmode="text"
+              />
+              <button class="btn btn-add" onclick="inputManual()">
+                <i class="fas fa-plus"></i>
+              </button>
             </div>
           </div>
         </div>
@@ -493,17 +684,33 @@
           <div class="filter-grid">
             <div class="input-group">
               <label>Dari Tanggal</label>
-              <input type="date" class="form-control" id="start" onchange="renderDatabase()" />
+              <input
+                type="date"
+                class="form-control"
+                id="start"
+                onchange="renderDatabase()"
+              />
             </div>
             <div class="input-group">
               <label>Sampai Tanggal</label>
-              <input type="date" class="form-control" id="end" onchange="renderDatabase()" />
+              <input
+                type="date"
+                class="form-control"
+                id="end"
+                onchange="renderDatabase()"
+              />
             </div>
           </div>
 
           <div class="input-group">
             <label>Pencarian</label>
-            <input type="search" class="form-control" id="search" placeholder="Cari barcode/golongan..." onkeyup="renderDatabase()" />
+            <input
+              type="search"
+              class="form-control"
+              id="search"
+              placeholder="Cari barcode/golongan..."
+              onkeyup="renderDatabase()"
+            />
           </div>
 
           <div class="table-wrapper">
@@ -533,25 +740,60 @@
           <div class="card-header">
             <i class="fas fa-file-export"></i> Pusat Unduhan
           </div>
-          <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 24px;">
+          <p
+            style="
+              color: var(--text-secondary);
+              font-size: 0.9rem;
+              margin-bottom: 24px;
+            "
+          >
             Pilih format laporan yang ingin Anda unduh (Excel / PDF).
           </p>
 
-          <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 12px; text-transform: uppercase;">Export Khusus Hari Ini</label>
+          <label
+            style="
+              display: block;
+              font-size: 0.8rem;
+              font-weight: 700;
+              color: var(--text-secondary);
+              margin-bottom: 12px;
+              text-transform: uppercase;
+            "
+            >Export Khusus Hari Ini</label
+          >
           <div class="export-grid">
-            <button class="btn btn-export-big excel" onclick="downloadExcelHarian()">
+            <button
+              class="btn btn-export-big excel"
+              onclick="downloadExcelHarian()"
+            >
               <i class="fas fa-file-excel"></i>
               <div><strong>Excel Hari Ini</strong></div>
             </button>
-            <button class="btn btn-export-big pdf" onclick="downloadPDFHarian()">
+            <button
+              class="btn btn-export-big pdf"
+              onclick="downloadPDFHarian()"
+            >
               <i class="fas fa-file-pdf"></i>
               <div><strong>PDF Hari Ini</strong></div>
             </button>
           </div>
 
-          <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 12px; text-transform: uppercase;">Export Keseluruhan Database</label>
+          <label
+            style="
+              display: block;
+              font-size: 0.8rem;
+              font-weight: 700;
+              color: var(--text-secondary);
+              margin-bottom: 12px;
+              text-transform: uppercase;
+            "
+            >Export Keseluruhan Database</label
+          >
           <div class="export-grid">
-            <button class="btn btn-export-big excel" onclick="downloadExcelSemua()">
+            <button
+              class="btn btn-export-big excel"
+              onclick="downloadExcelSemua()"
+            >
               <i class="fas fa-archive"></i>
               <div><strong>Master Excel</strong></div>
             </button>
@@ -595,8 +837,12 @@
 
       const video = document.getElementById("videoElement");
       const Toast = Swal.mixin({
-        toast: true, position: "top-end", showConfirmButton: false, timer: 1500,
-        background: "rgba(15, 23, 42, 0.9)", color: "#fff",
+        toast: true,
+        position: "top-end",
+        showConfirmButton: false,
+        timer: 1500,
+        background: "rgba(15, 23, 42, 0.9)",
+        color: "#fff",
       });
 
       // 2. RESET OTOMATIS: Memantau perubahan hari (Jam 23:59 ke 00:00)
@@ -606,7 +852,10 @@
         if (currentDay !== lastCheckedDay) {
           lastCheckedDay = currentDay;
           renderToday(); // Otomatis mengosongkan tab "Hari Ini" tanpa menghapus Master
-          Toast.fire({ icon: 'info', title: 'Sesi hari ini telah ditutup (00:00)' });
+          Toast.fire({
+            icon: "info",
+            title: "Sesi hari ini telah ditutup (00:00)",
+          });
         }
       }, 60000); // Cek setiap 1 menit
 
@@ -618,8 +867,12 @@
         if (pageId !== "view-scan" && isScanning) {
           toggleScan();
         }
-        document.querySelectorAll(".view-page").forEach((page) => page.classList.remove("active"));
-        document.querySelectorAll(".nav-item").forEach((item) => item.classList.remove("active"));
+        document
+          .querySelectorAll(".view-page")
+          .forEach((page) => page.classList.remove("active"));
+        document
+          .querySelectorAll(".nav-item")
+          .forEach((item) => item.classList.remove("active"));
         document.getElementById(pageId).classList.add("active");
         navElement.classList.add("active");
 
@@ -628,7 +881,9 @@
       }
 
       // KOMPATIBILITAS IPHONE & ANDROID
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      const isIOS =
+        /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+        (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
       const hasNativeScanner = "BarcodeDetector" in window;
       let nativeDetector = null;
       let zxingReader = null;
@@ -636,10 +891,25 @@
       if (hasNativeScanner && !isIOS) {
         document.getElementById("engineBadge").innerText = "HW ACCEL";
         nativeDetector = new BarcodeDetector({
-          formats: ["code_128", "code_39", "code_93", "ean_13", "ean_8", "upc_a", "upc_e", "itf", "codabar", "qr_code", "data_matrix", "pdf417"],
+          formats: [
+            "code_128",
+            "code_39",
+            "code_93",
+            "ean_13",
+            "ean_8",
+            "upc_a",
+            "upc_e",
+            "itf",
+            "codabar",
+            "qr_code",
+            "data_matrix",
+            "pdf417",
+          ],
         });
       } else {
-        document.getElementById("engineBadge").innerText = isIOS ? "IOS PRO" : "SW MODE";
+        document.getElementById("engineBadge").innerText = isIOS
+          ? "IOS PRO"
+          : "SW MODE";
       }
 
       function getZXingHints() {
@@ -650,17 +920,25 @@
             [
               ZXing.DecodeHintType.POSSIBLE_FORMATS,
               [
-                ZXing.BarcodeFormat.CODE_128, ZXing.BarcodeFormat.CODE_39, ZXing.BarcodeFormat.EAN_13,
-                ZXing.BarcodeFormat.EAN_8, ZXing.BarcodeFormat.UPC_A, ZXing.BarcodeFormat.ITF,
-                ZXing.BarcodeFormat.QR_CODE, ZXing.BarcodeFormat.DATA_MATRIX,
+                ZXing.BarcodeFormat.CODE_128,
+                ZXing.BarcodeFormat.CODE_39,
+                ZXing.BarcodeFormat.EAN_13,
+                ZXing.BarcodeFormat.EAN_8,
+                ZXing.BarcodeFormat.UPC_A,
+                ZXing.BarcodeFormat.ITF,
+                ZXing.BarcodeFormat.QR_CODE,
+                ZXing.BarcodeFormat.DATA_MATRIX,
               ],
             ],
           ]);
-        } catch (e) { return undefined; }
+        } catch (e) {
+          return undefined;
+        }
       }
 
       function initAudio() {
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (!audioCtx)
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === "suspended") audioCtx.resume();
       }
 
@@ -669,26 +947,46 @@
         if (!raw) return null;
         if (raw.startsWith("86") && raw.length >= 24) {
           try {
-            const p_str = raw.slice(-4), w_str = raw.slice(-9, -4), l_str = raw.slice(-12, -9), prefix = raw.slice(2, -16);
+            const p_str = raw.slice(-4),
+              w_str = raw.slice(-9, -4),
+              l_str = raw.slice(-12, -9),
+              prefix = raw.slice(2, -16);
             const golongan = prefix.replace(/^0+/, "") || "-";
-            const p_indo = parseInt(l_str, 10), l_indo = parseInt(w_str, 10) / 10, potongan = parseInt(p_str, 10);
+            const p_indo = parseInt(l_str, 10),
+              l_indo = parseInt(w_str, 10) / 10,
+              potongan = parseInt(p_str, 10);
             const persegi = (p_indo * l_indo * potongan) / 10000;
             if (!isNaN(p_indo) && !isNaN(l_indo) && !isNaN(potongan)) {
-              return { panjang: p_indo, lebar: l_indo, potongan: potongan, persegi: persegi.toFixed(2), golongan: golongan };
+              return {
+                panjang: p_indo,
+                lebar: l_indo,
+                potongan: potongan,
+                persegi: persegi.toFixed(2),
+                golongan: golongan,
+              };
             }
           } catch (e) {}
         }
-        return { panjang: "-", lebar: "-", potongan: "-", persegi: "-", golongan: "-" };
+        return {
+          panjang: "-",
+          lebar: "-",
+          potongan: "-",
+          persegi: "-",
+          golongan: "-",
+        };
       }
 
       async function toggleTorch() {
         const btnTorch = document.getElementById("btnTorch");
-        if (!isScanning || !streamTrack) return Toast.fire({ icon: "warning", title: "Mulai scan dulu!" });
+        if (!isScanning || !streamTrack)
+          return Toast.fire({ icon: "warning", title: "Mulai scan dulu!" });
         try {
           const capabilities = streamTrack.getCapabilities();
           if (capabilities.torch) {
             isTorchOn = !isTorchOn;
-            await streamTrack.applyConstraints({ advanced: [{ torch: isTorchOn }] });
+            await streamTrack.applyConstraints({
+              advanced: [{ torch: isTorchOn }],
+            });
             btnTorch.classList.toggle("active", isTorchOn);
           } else {
             Toast.fire({ icon: "error", title: "Senter tidak didukung" });
@@ -709,33 +1007,66 @@
           isTorchOn = false;
           document.getElementById("btnTorch").classList.remove("active");
           cancelAnimationFrame(scanLoopFrame);
-          if (streamTrack) { streamTrack.stop(); streamTrack = null; }
-          if (video.srcObject) { video.srcObject.getTracks().forEach((t) => t.stop()); video.srcObject = null; }
-          if (zxingReader) { zxingReader.reset(); zxingReader = null; }
-          video.style.display = "none"; laser.style.display = "none"; targetBox.style.display = "none";
+          if (streamTrack) {
+            streamTrack.stop();
+            streamTrack = null;
+          }
+          if (video.srcObject) {
+            video.srcObject.getTracks().forEach((t) => t.stop());
+            video.srcObject = null;
+          }
+          if (zxingReader) {
+            zxingReader.reset();
+            zxingReader = null;
+          }
+          video.style.display = "none";
+          laser.style.display = "none";
+          targetBox.style.display = "none";
           placeholder.style.display = "flex";
-          btn.innerHTML = '<i class="fas fa-play" style="margin-right: 6px;"></i> SCAN';
+          btn.innerHTML =
+            '<i class="fas fa-play" style="margin-right: 6px;"></i> SCAN';
           btn.classList.remove("stop");
         } else {
           initAudio();
           try {
-            video.style.display = "block"; laser.style.display = "block"; targetBox.style.display = "block";
+            video.style.display = "block";
+            laser.style.display = "block";
+            targetBox.style.display = "block";
             placeholder.style.display = "none";
-            btn.innerHTML = '<i class="fas fa-stop" style="margin-right: 6px;"></i> STOP';
+            btn.innerHTML =
+              '<i class="fas fa-stop" style="margin-right: 6px;"></i> STOP';
             btn.classList.add("stop");
             isScanning = true;
-            
-            // 3. KAMERA DIKEMBALIKAN KE VERSI AWAL AGAR SANGAT RESPONSIF DI SEMUA HP/IPHONE
+
+            // 3. KAMERA DIKEMBALIKAN KE VERSI AMAN (SAFE FALLBACK)
+            // Meminta standar HD (16:9), jika ditolak HP akan otomatis mencari resolusi terbaik bawaan.
             let constraints = {
               video: {
                 facingMode: currentCam,
-                width: { ideal: 1080 },
-                height: { ideal: 1080 },
+                width: { ideal: 1280 },
+                height: { ideal: 720 },
               },
             };
-            if (!isIOS) constraints.video.advanced = [{ focusMode: "continuous" }];
-            
-            const stream = await navigator.mediaDevices.getUserMedia(constraints);
+
+            // Menghindari Crash / Blank Screen pada Oppo/Vivo/Xiaomi akibat "OverconstrainedError"
+            try {
+              const supportedConstraints =
+                navigator.mediaDevices.getSupportedConstraints();
+              if (!isIOS && supportedConstraints.focusMode) {
+                constraints.video.advanced = [{ focusMode: "continuous" }];
+              }
+            } catch (e) {}
+
+            let stream;
+            try {
+              stream = await navigator.mediaDevices.getUserMedia(constraints);
+            } catch (err) {
+              // Jika HP terlalu jadul/iPhone menolak format di atas, fallback ke default kamera tanpa batasan
+              stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: currentCam },
+              });
+            }
+
             video.srcObject = stream;
             streamTrack = stream.getVideoTracks()[0];
             await video.play();
@@ -745,7 +1076,11 @@
                 if (!isScanning) return;
                 try {
                   const barcodes = await nativeDetector.detect(video);
-                  if (barcodes.length > 0) processBarcodeDetected(barcodes[0].rawValue, barcodes[0].format.toUpperCase());
+                  if (barcodes.length > 0)
+                    processBarcodeDetected(
+                      barcodes[0].rawValue,
+                      barcodes[0].format.toUpperCase(),
+                    );
                 } catch (e) {}
                 scanLoopFrame = requestAnimationFrame(detectLoop);
               };
@@ -753,12 +1088,26 @@
             } else {
               zxingReader = new ZXing.BrowserMultiFormatReader(getZXingHints());
               zxingReader.timeBetweenDecodingAttempts = 0;
-              zxingReader.decodeFromStream(stream, "videoElement", (result, err) => {
-                if (result) processBarcodeDetected(result.getText(), result.getBarcodeFormat ? result.getBarcodeFormat().toString() : "UNKNOWN");
-              });
+              zxingReader.decodeFromStream(
+                stream,
+                "videoElement",
+                (result, err) => {
+                  if (result)
+                    processBarcodeDetected(
+                      result.getText(),
+                      result.getBarcodeFormat
+                        ? result.getBarcodeFormat().toString()
+                        : "UNKNOWN",
+                    );
+                },
+              );
             }
           } catch (err) {
-            Swal.fire("Error", "Kamera gagal dimuat. Izinkan akses kamera di pengaturan browser.", "error");
+            Swal.fire(
+              "Error",
+              "Kamera gagal dimuat. Pastikan izin kamera aktif pada browser.",
+              "error",
+            );
             toggleScan();
           }
         }
@@ -784,7 +1133,11 @@
           toggleScan();
           setTimeout(toggleScan, 300);
         } else {
-          Toast.fire({ icon: "info", title: currentCam === "environment" ? "Kamera Belakang" : "Kamera Depan" });
+          Toast.fire({
+            icon: "info",
+            title:
+              currentCam === "environment" ? "Kamera Belakang" : "Kamera Depan",
+          });
         }
       }
 
@@ -792,20 +1145,28 @@
         if (navigator.vibrate) navigator.vibrate([30]);
         if (audioCtx) {
           try {
-            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.type = "square"; osc.frequency.setValueAtTime(3500, audioCtx.currentTime);
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = "square";
+            osc.frequency.setValueAtTime(3500, audioCtx.currentTime);
             gain.gain.setValueAtTime(0, audioCtx.currentTime);
-            gain.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.005);
+            gain.gain.linearRampToValueAtTime(
+              0.5,
+              audioCtx.currentTime + 0.005,
+            );
             gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.04);
-            osc.start(audioCtx.currentTime); osc.stop(audioCtx.currentTime + 0.04);
+            osc.start(audioCtx.currentTime);
+            osc.stop(audioCtx.currentTime + 0.04);
           } catch (e) {}
         }
         const box = document.getElementById("targetBox");
         box.style.borderColor = "var(--success)";
         box.style.filter = "drop-shadow(0 0 15px var(--success))";
         setTimeout(() => {
-          box.style.borderColor = "var(--accent)"; box.style.filter = "drop-shadow(0 0 8px var(--accent))";
+          box.style.borderColor = "var(--accent)";
+          box.style.filter = "drop-shadow(0 0 8px var(--accent))";
         }, 150);
       }
 
@@ -813,20 +1174,25 @@
         if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
         if (audioCtx) {
           try {
-            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.type = "sawtooth"; osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = "sawtooth";
+            osc.frequency.setValueAtTime(300, audioCtx.currentTime);
             gain.gain.setValueAtTime(0, audioCtx.currentTime);
             gain.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.01);
             gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.15);
-            osc.start(audioCtx.currentTime); osc.stop(audioCtx.currentTime + 0.15);
+            osc.start(audioCtx.currentTime);
+            osc.stop(audioCtx.currentTime + 0.15);
           } catch (e) {}
         }
         const box = document.getElementById("targetBox");
         box.style.borderColor = "var(--danger)";
         box.style.filter = "drop-shadow(0 0 15px var(--danger))";
         setTimeout(() => {
-          box.style.borderColor = "var(--accent)"; box.style.filter = "drop-shadow(0 0 8px var(--accent))";
+          box.style.borderColor = "var(--accent)";
+          box.style.filter = "drop-shadow(0 0 8px var(--accent))";
         }, 200);
       }
 
@@ -845,14 +1211,21 @@
       function simpanData(kode, barcodeFormat) {
         const nowDate = new Date();
         const nowMs = Date.now();
-        const tglHariIni = new Date(nowDate.getTime() - nowDate.getTimezoneOffset() * 60000).toISOString().split("T")[0];
+        const tglHariIni = new Date(
+          nowDate.getTime() - nowDate.getTimezoneOffset() * 60000,
+        )
+          .toISOString()
+          .split("T")[0];
         const parsed = parsePayloadToFields(kode);
 
         const newData = {
           id: Date.now(),
           scannedAt: nowMs,
           kode: kode,
-          panjang: parsed?.panjang ?? "-", lebar: parsed?.lebar ?? "-", potongan: parsed?.potongan ?? "-", persegi: parsed?.persegi ?? "-",
+          panjang: parsed?.panjang ?? "-",
+          lebar: parsed?.lebar ?? "-",
+          potongan: parsed?.potongan ?? "-",
+          persegi: parsed?.persegi ?? "-",
           tanggal: tglHariIni,
           jam: nowDate.toTimeString().split(" ")[0],
           golongan: parsed?.golongan ?? "-",
@@ -862,7 +1235,7 @@
         allData.push(newData);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
         triggerFeedback();
-        Toast.fire({ icon: "success", title: `Tersimpan di Sesi Harian` });
+        Toast.fire({ icon: "success", title: `Data Tersimpan` });
       }
 
       function formatTgl(tgl) {
@@ -875,7 +1248,11 @@
       function renderToday() {
         const tbody = document.getElementById("tableToday");
         const nowDate = new Date();
-        const hariIni = new Date(nowDate.getTime() - nowDate.getTimezoneOffset() * 60000).toISOString().split("T")[0];
+        const hariIni = new Date(
+          nowDate.getTime() - nowDate.getTimezoneOffset() * 60000,
+        )
+          .toISOString()
+          .split("T")[0];
 
         let fData = allData.filter((i) => i.tanggal === hariIni);
         fData.sort((a, b) => (b.scannedAt || 0) - (a.scannedAt || 0));
@@ -909,7 +1286,12 @@
         let fData = allData.filter((i) => {
           if (start && i.tanggal < start) return false;
           if (end && i.tanggal > end) return false;
-          if (search && !i.kode.toLowerCase().includes(search) && !i.golongan.toLowerCase().includes(search)) return false;
+          if (
+            search &&
+            !i.kode.toLowerCase().includes(search) &&
+            !i.golongan.toLowerCase().includes(search)
+          )
+            return false;
           return true;
         });
 
@@ -951,10 +1333,12 @@
             localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
             scannedCodesSet.delete(kode);
             if (source === "today") {
-              renderToday(); renderDatabase();
+              renderToday();
+              renderDatabase();
             }
             if (source === "db") {
-              renderDatabase(); renderToday();
+              renderDatabase();
+              renderToday();
             }
           }
         });
@@ -963,14 +1347,20 @@
       // 4. EXPORT EXCEL
       function downloadExcelHarian() {
         const nowDate = new Date();
-        const hariIni = new Date(nowDate.getTime() - nowDate.getTimezoneOffset() * 60000).toISOString().split("T")[0];
+        const hariIni = new Date(
+          nowDate.getTime() - nowDate.getTimezoneOffset() * 60000,
+        )
+          .toISOString()
+          .split("T")[0];
         const dataHarian = allData.filter((i) => i.tanggal === hariIni);
-        if (dataHarian.length === 0) return Swal.fire("Kosong", "Tidak ada data hari ini.", "info");
+        if (dataHarian.length === 0)
+          return Swal.fire("Kosong", "Tidak ada data hari ini.", "info");
         exportToExcel(dataHarian, "Harian_" + hariIni);
       }
 
       function downloadExcelSemua() {
-        if (allData.length === 0) return Swal.fire("Kosong", "Database kosong.", "info");
+        if (allData.length === 0)
+          return Swal.fire("Kosong", "Database kosong.", "info");
         exportToExcel(allData, "Master_Data");
       }
 
@@ -979,13 +1369,13 @@
         const dt = dataArray.map((i, idx) => ({
           No: idx + 1,
           "Kode Barcode": i.kode,
-          "Panjang": i.panjang,
-          "Lebar": i.lebar,
+          Panjang: i.panjang,
+          Lebar: i.lebar,
           Potongan: i.potongan,
           "Persegi (m2)": i.persegi,
           Golongan: i.golongan,
           Tanggal: formatTgl(i.tanggal),
-          Jam: i.jam
+          Jam: i.jam,
         }));
         const ws = XLSX.utils.json_to_sheet(dt);
         const wb = XLSX.utils.book_new();
@@ -996,42 +1386,68 @@
       // 5. EXPORT PDF
       function downloadPDFHarian() {
         const nowDate = new Date();
-        const hariIni = new Date(nowDate.getTime() - nowDate.getTimezoneOffset() * 60000).toISOString().split("T")[0];
+        const hariIni = new Date(
+          nowDate.getTime() - nowDate.getTimezoneOffset() * 60000,
+        )
+          .toISOString()
+          .split("T")[0];
         const dataHarian = allData.filter((i) => i.tanggal === hariIni);
-        if (dataHarian.length === 0) return Swal.fire("Kosong", "Tidak ada data hari ini.", "info");
+        if (dataHarian.length === 0)
+          return Swal.fire("Kosong", "Tidak ada data hari ini.", "info");
         exportToPDF(dataHarian, "Harian_" + hariIni);
       }
 
       function downloadPDFSemua() {
-        if (allData.length === 0) return Swal.fire("Kosong", "Database kosong.", "info");
+        if (allData.length === 0)
+          return Swal.fire("Kosong", "Database kosong.", "info");
         exportToPDF(allData, "Master_Data");
       }
 
       function exportToPDF(dataArray, label) {
         const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('p', 'pt', 'a4');
+        const doc = new jsPDF("p", "pt", "a4");
 
         doc.setFontSize(14);
         doc.text(`Laporan Data Scan - PT. Daya Sakti Niaga`, 40, 40);
         doc.setFontSize(10);
         doc.setTextColor(100);
-        doc.text(`Tipe Laporan: ${label.replace(/_/g, ' ')}`, 40, 55);
+        doc.text(`Tipe Laporan: ${label.replace(/_/g, " ")}`, 40, 55);
 
-        const tableColumn = ["No", "Kode Barcode", "Golongan", "P", "L", "Pot", "M²", "Tanggal", "Jam"];
+        const tableColumn = [
+          "No",
+          "Kode Barcode",
+          "Golongan",
+          "P",
+          "L",
+          "Pot",
+          "M²",
+          "Tanggal",
+          "Jam",
+        ];
         const tableRows = [];
 
-        dataArray.sort((a, b) => (a.scannedAt || 0) - (b.scannedAt || 0)).forEach((i, idx) => {
-          tableRows.push([
-            idx + 1, i.kode, i.golongan, i.panjang, i.lebar, i.potongan, i.persegi, formatTgl(i.tanggal), i.jam
-          ]);
-        });
+        dataArray
+          .sort((a, b) => (a.scannedAt || 0) - (b.scannedAt || 0))
+          .forEach((i, idx) => {
+            tableRows.push([
+              idx + 1,
+              i.kode,
+              i.golongan,
+              i.panjang,
+              i.lebar,
+              i.potongan,
+              i.persegi,
+              formatTgl(i.tanggal),
+              i.jam,
+            ]);
+          });
 
         doc.autoTable({
           head: [tableColumn],
           body: tableRows,
           startY: 70,
           styles: { fontSize: 8 },
-          headStyles: { fillColor: [139, 92, 246] }
+          headStyles: { fillColor: [139, 92, 246] },
         });
 
         doc.save(`Export_SCM_${label}_${new Date().getTime()}.pdf`);
