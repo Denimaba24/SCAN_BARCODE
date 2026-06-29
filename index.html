@@ -22,11 +22,14 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
 
+    <!-- Libraries -->
     <script type="text/javascript" src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Library jsPDF untuk Export PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
       :root {
@@ -379,18 +382,16 @@
         width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
       }
 
-      /* ============ EXPORT BUTTONS BIG ============ */
+      /* ============ EXPORT BUTTONS ============ */
       .export-grid {
         display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px;
       }
-      
       .btn-export-big {
         background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border);
         color: var(--text-primary); width: 100%; padding: 18px 12px; border-radius: var(--radius-lg);
         font-size: 0.9rem; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center;
       }
       .btn-export-big i { font-size: 2rem; }
-      
       .btn-export-big.excel {
         background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.05));
         border-color: rgba(16, 185, 129, 0.3); color: #34d399;
@@ -579,6 +580,7 @@
     </nav>
 
     <script>
+      // 1. DATA PERSISTENT: Tetap ada saat browser di close (Menggunakan LocalStorage)
       const STORAGE_KEY = "SCMBarcodeMasterData";
       let allData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
       let scannedCodesSet = new Set(allData.map((item) => item.kode));
@@ -597,12 +599,19 @@
         background: "rgba(15, 23, 42, 0.9)", color: "#fff",
       });
 
-      // Fitur Reset Hari Ini (Otomatis setiap perangkat mengecek kalender)
-      // Jika pengguna meminimize HP dan kembali besok, tabel akan otomatis menyesuaikan ke hari yang baru
-      document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "visible") {
-          renderToday();
+      // 2. RESET OTOMATIS: Memantau perubahan hari (Jam 23:59 ke 00:00)
+      let lastCheckedDay = new Date().getDate();
+      setInterval(() => {
+        const currentDay = new Date().getDate();
+        if (currentDay !== lastCheckedDay) {
+          lastCheckedDay = currentDay;
+          renderToday(); // Otomatis mengosongkan tab "Hari Ini" tanpa menghapus Master
+          Toast.fire({ icon: 'info', title: 'Sesi hari ini telah ditutup (00:00)' });
         }
+      }, 60000); // Cek setiap 1 menit
+
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") renderToday();
       });
 
       function switchPage(pageId, navElement) {
@@ -618,6 +627,7 @@
         if (pageId === "view-database") renderDatabase();
       }
 
+      // KOMPATIBILITAS IPHONE & ANDROID
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
       const hasNativeScanner = "BarcodeDetector" in window;
       let nativeDetector = null;
@@ -646,9 +656,7 @@
               ],
             ],
           ]);
-        } catch (e) {
-          return undefined;
-        }
+        } catch (e) { return undefined; }
       }
 
       function initAudio() {
@@ -717,15 +725,14 @@
             btn.classList.add("stop");
             isScanning = true;
             
-            // Konfigurasi agar Kamera selalu fokus & responsif membaca Barcode
+            // 3. KAMERA DIKEMBALIKAN KE VERSI AWAL AGAR SANGAT RESPONSIF DI SEMUA HP/IPHONE
             let constraints = {
               video: {
                 facingMode: currentCam,
-                width: { ideal: 1920 }, // Resolusi Full HD
-                height: { ideal: 1080 }
-              }
+                width: { ideal: 1080 },
+                height: { ideal: 1080 },
+              },
             };
-            // Fokus otomatis berkelanjutan (Android Only)
             if (!isIOS) constraints.video.advanced = [{ focusMode: "continuous" }];
             
             const stream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -838,7 +845,6 @@
       function simpanData(kode, barcodeFormat) {
         const nowDate = new Date();
         const nowMs = Date.now();
-        // Wajib mengamankan TimeZone sesuai zona waktu perangkat HP tersebut (Misal WIB/WITA)
         const tglHariIni = new Date(nowDate.getTime() - nowDate.getTimezoneOffset() * 60000).toISOString().split("T")[0];
         const parsed = parsePayloadToFields(kode);
 
@@ -871,14 +877,12 @@
         const nowDate = new Date();
         const hariIni = new Date(nowDate.getTime() - nowDate.getTimezoneOffset() * 60000).toISOString().split("T")[0];
 
-        // LOGIKA RESET OTOMATIS: Tab ini hanya memfilter data berdasarkan 'hariIni'
-        // Pada jam 23:59 pindah ke 00:00, tanggal berganti. Data lama otomatis hilang dari tab ini, tapi tetap ada di allData
         let fData = allData.filter((i) => i.tanggal === hariIni);
         fData.sort((a, b) => (b.scannedAt || 0) - (a.scannedAt || 0));
         tbody.innerHTML = "";
 
         if (fData.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 40px; color: var(--text-muted);">Belum ada data di-scan pada hari ini (${formatTgl(hariIni)})</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 40px; color: var(--text-muted);">Belum ada data di-scan pada hari ini</td></tr>`;
           return;
         }
 
@@ -956,7 +960,7 @@
         });
       }
 
-      // EXCEL EXPORT
+      // 4. EXPORT EXCEL
       function downloadExcelHarian() {
         const nowDate = new Date();
         const hariIni = new Date(nowDate.getTime() - nowDate.getTimezoneOffset() * 60000).toISOString().split("T")[0];
@@ -975,14 +979,13 @@
         const dt = dataArray.map((i, idx) => ({
           No: idx + 1,
           "Kode Barcode": i.kode,
-          "Panjang (Panjang)": i.panjang,
-          "Lebar (Lebar)": i.lebar,
+          "Panjang": i.panjang,
+          "Lebar": i.lebar,
           Potongan: i.potongan,
           "Persegi (m2)": i.persegi,
           Golongan: i.golongan,
           Tanggal: formatTgl(i.tanggal),
-          Jam: i.jam,
-          "Format Scan": i.format || "",
+          Jam: i.jam
         }));
         const ws = XLSX.utils.json_to_sheet(dt);
         const wb = XLSX.utils.book_new();
@@ -990,7 +993,7 @@
         XLSX.writeFile(wb, `Export_SCM_${label}_${new Date().getTime()}.xlsx`);
       }
 
-      // PDF EXPORT
+      // 5. EXPORT PDF
       function downloadPDFHarian() {
         const nowDate = new Date();
         const hariIni = new Date(nowDate.getTime() - nowDate.getTimezoneOffset() * 60000).toISOString().split("T")[0];
@@ -1014,7 +1017,7 @@
         doc.setTextColor(100);
         doc.text(`Tipe Laporan: ${label.replace(/_/g, ' ')}`, 40, 55);
 
-        const tableColumn = ["No", "Kode Barcode", "Golongan", "Panjang", "Lebar", "Potongan", "M²", "Tanggal", "Jam"];
+        const tableColumn = ["No", "Kode Barcode", "Golongan", "P", "L", "Pot", "M²", "Tanggal", "Jam"];
         const tableRows = [];
 
         dataArray.sort((a, b) => (a.scannedAt || 0) - (b.scannedAt || 0)).forEach((i, idx) => {
