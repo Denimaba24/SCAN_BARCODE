@@ -190,9 +190,11 @@
           transform: translateY(0);
         }
       }
+
       .container {
         padding: 20px 16px;
-        padding-bottom: calc(100px + env(safe-area-inset-bottom));
+        /* Padding bawah ditingkatkan ke 150px agar tombol Zona Berbahaya tidak tertutup nav */
+        padding-bottom: calc(150px + env(safe-area-inset-bottom));
         max-width: 800px;
         margin: 0 auto;
         width: 100%;
@@ -785,6 +787,8 @@
             <i class="fas fa-triangle-exclamation"></i>
             <div><strong>Reset Total Memori Aplikasi</strong></div>
           </button>
+
+          <div style="height: 30px"></div>
         </div>
       </div>
     </div>
@@ -994,7 +998,6 @@
         const targetBox = document.getElementById("targetBox");
 
         if (isScanning) {
-          // === PROSES STOP SCANNING ===
           isScanning = false;
           isTorchOn = false;
           document.getElementById("btnTorch").classList.remove("active");
@@ -1021,7 +1024,6 @@
             '<i class="fas fa-play" style="margin-right: 6px;"></i> SCAN';
           btn.classList.remove("stop");
         } else {
-          // === PROSES MULAI SCANNING ===
           initAudio();
           try {
             video.style.display = "block";
@@ -1033,7 +1035,6 @@
             btn.classList.add("stop");
             isScanning = true;
 
-            // Meminta resolusi HD yang didukung semua chipset
             let constraints = {
               video: {
                 facingMode: { ideal: currentCam },
@@ -1046,7 +1047,6 @@
             try {
               stream = await navigator.mediaDevices.getUserMedia(constraints);
             } catch (e) {
-              // Fallback terakhir jika gagal
               stream = await navigator.mediaDevices.getUserMedia({
                 video: { facingMode: "environment" },
               });
@@ -1059,15 +1059,10 @@
             video.srcObject = stream;
             streamTrack = stream.getVideoTracks()[0];
 
-            // ================================================================
-            // FITUR BARU: SUNTIKAN AUTO-ZOOM & CONTINUOUS FOCUS UNTUK ANDROID
-            // Memaksa kamera agak zoom agar user menjauhkan HP dan fokus dapat
-            // ================================================================
             try {
               const capabilities = streamTrack.getCapabilities();
               let advancedConstraints = [];
 
-              // 1. Paksa Autofocus jika HP mendukung
               if (
                 capabilities.focusMode &&
                 capabilities.focusMode.includes("continuous")
@@ -1075,16 +1070,13 @@
                 advancedConstraints.push({ focusMode: "continuous" });
               }
 
-              // 2. Paksa Zoom 1.7x - 2.0x (Sangat krusial untuk ketepatan baca Barcode 1D)
               if (capabilities.zoom) {
-                // Ambil nilai tengah atau setidaknya 1.7x zoom
                 const minZoom = capabilities.zoom.min || 1;
                 const maxZoom = capabilities.zoom.max || 2;
                 const targetZoom = Math.min(maxZoom, Math.max(minZoom, 1.7));
                 advancedConstraints.push({ zoom: targetZoom });
               }
 
-              // Terapkan constraint jika ada
               if (advancedConstraints.length > 0) {
                 await streamTrack.applyConstraints({
                   advanced: advancedConstraints,
@@ -1096,7 +1088,6 @@
                 err,
               );
             }
-            // ================================================================
 
             await new Promise((resolve) => {
               video.onloadedmetadata = () => resolve();
@@ -1104,7 +1095,6 @@
             await video.play();
 
             if (nativeDetector) {
-              // ENGINE 1: HARDWARE ACCEL (Chrome Android Baru)
               const detectLoop = async () => {
                 if (!isScanning) return;
                 try {
@@ -1120,14 +1110,12 @@
                 setTimeout(() => {
                   if (isScanning)
                     scanLoopFrame = requestAnimationFrame(detectLoop);
-                }, 50); // Kecepatan responsif
+                }, 50);
               };
               scanLoopFrame = requestAnimationFrame(detectLoop);
             } else {
-              // ENGINE 2: SOFTWARE MODE (ZXing)
               zxingReader = new ZXing.BrowserMultiFormatReader(getZXingHints());
 
-              // Waktu jeda dipercepat sedikit menjadi 80ms agar lebih responsif menangkap pergerakan cepat
               zxingReader.timeBetweenDecodingAttempts = 80;
 
               zxingReader.decodeFromStream(
