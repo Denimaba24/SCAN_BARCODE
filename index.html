@@ -894,15 +894,17 @@
       function getZXingHints() {
         try {
           return new Map([
-            // Memaksa mesin untuk membaca lebih teliti pada gambar yang kurang fokus
             [ZXing.DecodeHintType.TRY_HARDER, true],
+            [ZXing.DecodeHintType.ASSUME_GS1, true],
             [
               ZXing.DecodeHintType.POSSIBLE_FORMATS,
               [
-                // Fokuskan HANYA pada format barcode industri & standar
                 ZXing.BarcodeFormat.CODE_128,
                 ZXing.BarcodeFormat.CODE_39,
                 ZXing.BarcodeFormat.EAN_13,
+                ZXing.BarcodeFormat.EAN_8,
+                ZXing.BarcodeFormat.UPC_A,
+                ZXing.BarcodeFormat.ITF,
                 ZXing.BarcodeFormat.QR_CODE,
                 ZXing.BarcodeFormat.DATA_MATRIX,
               ],
@@ -989,6 +991,9 @@
         }
       }
 
+      // =========================================================================
+      // FUNGSI TOGGLE SCAN YANG SUDAH DIOPTIMASI
+      // =========================================================================
       async function toggleScan() {
         const btn = document.getElementById("btnAction");
         const placeholder = document.getElementById("placeholderMsg");
@@ -996,6 +1001,7 @@
         const targetBox = document.getElementById("targetBox");
 
         if (isScanning) {
+          // === PROSES STOP SCANNING ===
           isScanning = false;
           isTorchOn = false;
           document.getElementById("btnTorch").classList.remove("active");
@@ -1022,6 +1028,7 @@
             '<i class="fas fa-play" style="margin-right: 6px;"></i> SCAN';
           btn.classList.remove("stop");
         } else {
+          // === PROSES MULAI SCANNING ===
           initAudio();
           try {
             video.style.display = "block";
@@ -1033,99 +1040,96 @@
             btn.classList.add("stop");
             isScanning = true;
 
-            // OPTIMASI: Tambahkan frameRate tinggi untuk menangkap barcode yang bergerak
+            // OPTIMASI RESOLUSI: Menggunakan format landscape (1280x720) dengan min aman
+            // Mencegah error pada HP entry-level yang tidak mendukung rasio 1:1 kotak
             let constraints = {
               video: {
-                facingMode: currentCam,
-                width: { ideal: 1280 },
-                height: { ideal: 720 },
-                frameRate: { ideal: 30, max: 60 },
+                facingMode: { ideal: currentCam },
+                width: { ideal: 1280, min: 640 },
+                height: { ideal: 720, min: 480 },
               },
             };
 
             let stream;
-
             try {
+              // Coba request continuous focus (untuk HP yang support)
               let advConstraints = JSON.parse(JSON.stringify(constraints));
-              if (!isIOS && advConstraints.video) {
-                // Paksa continuous auto-focus jika didukung Android
+              if (!isIOS)
                 advConstraints.video.advanced = [{ focusMode: "continuous" }];
-              }
               stream =
                 await navigator.mediaDevices.getUserMedia(advConstraints);
-            } catch (e1) {
-              try {
-                stream = await navigator.mediaDevices.getUserMedia({
-                  video: {
-                    facingMode: currentCam,
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 },
-                  },
-                });
-              } catch (e2) {
-                stream = await navigator.mediaDevices.getUserMedia({
-                  video: true,
-                });
-              }
+            } catch (e) {
+              // Fallback aman jika browser bawaan pabrik menolak advanced constraints
+              stream = await navigator.mediaDevices.getUserMedia(constraints);
             }
 
+            // Pastikan video tidak auto-pause di browser lawas
+            video.setAttribute("autoplay", "");
+            video.setAttribute("muted", "");
+            video.setAttribute("playsinline", "");
+
             video.srcObject = stream;
-            video.setAttribute("playsinline", true); // Paksaan untuk iOS
             streamTrack = stream.getVideoTracks()[0];
 
-            video.onloadedmetadata = async () => {
-              await video.play();
+            // Tunggu metadata selesai dimuat agar play() tidak error
+            await new Promise((resolve) => {
+              video.onloadedmetadata = () => {
+                resolve();
+              };
+            });
+            await video.play();
 
-              if (nativeDetector) {
-                const detectLoop = async () => {
-                  if (!isScanning) return;
-                  try {
-                    const barcodes = await nativeDetector.detect(video);
-                    if (barcodes.length > 0) {
-                      // Filter akurasi: pastikan data tidak kosong
-                      if (barcodes[0].rawValue.trim() !== "") {
-                        processBarcodeDetected(
-                          barcodes[0].rawValue,
-                          barcodes[0].format.toUpperCase(),
-                        );
-                      }
-                    }
-                  } catch (e) {}
-                  scanLoopFrame = requestAnimationFrame(detectLoop);
-                };
-                scanLoopFrame = requestAnimationFrame(detectLoop);
-              } else {
-                zxingReader = new ZXing.BrowserMultiFormatReader(
-                  getZXingHints(),
-                );
+            if (nativeDetector) {
+              // ENGINE 1: HARDWARE ACCEL
+              const detectLoop = async () => {
+                if (!isScanning) return;
+                try {
+                  const barcodes = await nativeDetector.detect(video);
+                  if (barcodes.length > 0) {
+                    processBarcodeDetected(
+                      barcodes[0].rawValue,
+                      barcodes[0].format.toUpperCase(),
+                    );
+                  }
+                } catch (e) {}
 
-                // OPTIMASI: Turunkan jeda dari 250ms ke 50ms agar jauh lebih responsif/kilat
-                zxingReader.timeBetweenDecodingAttempts = 50;
+                // Jeda frame agar UI tidak lag
+                setTimeout(() => {
+                  if (isScanning)
+                    scanLoopFrame = requestAnimationFrame(detectLoop);
+                }, 50);
+              };
+              scanLoopFrame = requestAnimationFrame(detectLoop);
+            } else {
+              // ENGINE 2: SOFTWARE MODE (ZXing)
+              zxingReader = new ZXing.BrowserMultiFormatReader(getZXingHints());
 
-                zxingReader.decodeFromStream(
-                  stream,
-                  "videoElement",
-                  (result, err) => {
-                    // Filter akurasi
-                    if (result && result.getText().trim() !== "") {
-                      processBarcodeDetected(
-                        result.getText(),
-                        result.getBarcodeFormat
-                          ? result.getBarcodeFormat().toString()
-                          : "UNKNOWN",
-                      );
-                    }
-                  },
-                );
-              }
-            };
+              // OPTIMASI CPU: Jeda 150ms agar HP Advan/seri lawas tidak overheat dan hang
+              zxingReader.timeBetweenDecodingAttempts = 150;
+
+              zxingReader.decodeFromStream(
+                stream,
+                "videoElement",
+                (result, err) => {
+                  if (result) {
+                    processBarcodeDetected(
+                      result.getText(),
+                      result.getBarcodeFormat
+                        ? result.getBarcodeFormat().toString()
+                        : "UNKNOWN",
+                    );
+                  }
+                },
+              );
+            }
           } catch (err) {
+            console.error("Camera Init Error:", err);
             Swal.fire(
-              "Kamera Gagal",
-              "Pastikan Anda telah memberikan izin kamera pada browser dan menggunakan koneksi HTTPS.",
+              "Kamera Gagal Akses",
+              "Pastikan izin kamera sudah diaktifkan di browser dan buka aplikasi ini menggunakan koneksi aman (HTTPS).",
               "error",
             );
-            toggleScan();
+            if (isScanning) toggleScan();
           }
         }
       }
