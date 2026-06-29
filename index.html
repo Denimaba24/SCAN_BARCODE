@@ -1002,6 +1002,7 @@
           isTorchOn = false;
           document.getElementById("btnTorch").classList.remove("active");
           cancelAnimationFrame(scanLoopFrame);
+
           if (streamTrack) {
             streamTrack.stop();
             streamTrack = null;
@@ -1014,6 +1015,7 @@
             zxingReader.reset();
             zxingReader = null;
           }
+
           video.style.display = "none";
           laser.style.display = "none";
           targetBox.style.display = "none";
@@ -1033,66 +1035,90 @@
             btn.classList.add("stop");
             isScanning = true;
 
+            // Gunakan rasio standar HD (16:9), jangan 1:1 agar diterima iOS
             let constraints = {
               video: {
                 facingMode: currentCam,
-                width: { ideal: 1080 },
-                height: { ideal: 1080 },
+                width: { ideal: 1280 },
+                height: { ideal: 720 },
               },
             };
 
             let stream;
+
+            // Multi-level Fallback untuk kompatibilitas maksimal
             try {
               let advConstraints = JSON.parse(JSON.stringify(constraints));
-              if (!isIOS)
+              if (!isIOS && advConstraints.video) {
                 advConstraints.video.advanced = [{ focusMode: "continuous" }];
+              }
               stream =
                 await navigator.mediaDevices.getUserMedia(advConstraints);
-            } catch (e) {
-              stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: currentCam },
-              });
+            } catch (e1) {
+              try {
+                // Fallback 1: Jika constraints resolusi ditolak
+                stream = await navigator.mediaDevices.getUserMedia({
+                  video: { facingMode: currentCam },
+                });
+              } catch (e2) {
+                // Fallback 2: Ambil kamera apa saja yang diizinkan device
+                stream = await navigator.mediaDevices.getUserMedia({
+                  video: true,
+                });
+              }
             }
 
             video.srcObject = stream;
+            video.setAttribute("playsinline", true); // Paksaan untuk iOS
             streamTrack = stream.getVideoTracks()[0];
-            await video.play();
 
-            if (nativeDetector) {
-              const detectLoop = async () => {
-                if (!isScanning) return;
-                try {
-                  const barcodes = await nativeDetector.detect(video);
-                  if (barcodes.length > 0)
-                    processBarcodeDetected(
-                      barcodes[0].rawValue,
-                      barcodes[0].format.toUpperCase(),
-                    );
-                } catch (e) {}
+            // Pastikan metadata video termuat dulu sebelum ZXing mulai
+            video.onloadedmetadata = async () => {
+              await video.play();
+
+              if (nativeDetector) {
+                const detectLoop = async () => {
+                  if (!isScanning) return;
+                  try {
+                    const barcodes = await nativeDetector.detect(video);
+                    if (barcodes.length > 0) {
+                      processBarcodeDetected(
+                        barcodes[0].rawValue,
+                        barcodes[0].format.toUpperCase(),
+                      );
+                    }
+                  } catch (e) {}
+                  scanLoopFrame = requestAnimationFrame(detectLoop);
+                };
                 scanLoopFrame = requestAnimationFrame(detectLoop);
-              };
-              scanLoopFrame = requestAnimationFrame(detectLoop);
-            } else {
-              zxingReader = new ZXing.BrowserMultiFormatReader(getZXingHints());
-              zxingReader.timeBetweenDecodingAttempts = 0;
-              zxingReader.decodeFromStream(
-                stream,
-                "videoElement",
-                (result, err) => {
-                  if (result)
-                    processBarcodeDetected(
-                      result.getText(),
-                      result.getBarcodeFormat
-                        ? result.getBarcodeFormat().toString()
-                        : "UNKNOWN",
-                    );
-                },
-              );
-            }
+              } else {
+                zxingReader = new ZXing.BrowserMultiFormatReader(
+                  getZXingHints(),
+                );
+
+                // Tambahkan jeda decoding untuk meringankan kerja CPU iPhone
+                zxingReader.timeBetweenDecodingAttempts = 250;
+
+                zxingReader.decodeFromStream(
+                  stream,
+                  "videoElement",
+                  (result, err) => {
+                    if (result) {
+                      processBarcodeDetected(
+                        result.getText(),
+                        result.getBarcodeFormat
+                          ? result.getBarcodeFormat().toString()
+                          : "UNKNOWN",
+                      );
+                    }
+                  },
+                );
+              }
+            };
           } catch (err) {
             Swal.fire(
-              "Error",
-              "Kamera gagal dimuat. Pastikan izin aktif dan link menggunakan HTTPS.",
+              "Kamera Gagal",
+              "Pastikan Anda telah memberikan izin kamera pada browser dan menggunakan koneksi HTTPS.",
               "error",
             );
             toggleScan();
