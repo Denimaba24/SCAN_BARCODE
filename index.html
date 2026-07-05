@@ -268,9 +268,9 @@
         border-radius: var(--radius-md);
         overflow: hidden;
         background-color: #000;
-        /* Diubah menjadi rasio potret 3:4 agar tangkapan kamera lebih luas & natural */
-        aspect-ratio: 3 / 4;
-        max-height: 65vh;
+        /* Diubah menjadi rasio kamera standar (4:3) agar pandangan natural */
+        aspect-ratio: 4 / 3;
+        max-height: 60vh;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -280,20 +280,22 @@
       #videoElement {
         width: 100%;
         height: 100%;
-        object-fit: cover;
+        /* Rahasia utama: "contain" mencegah browser melakukan cropping zoom paksa */
+        object-fit: contain;
         display: none;
       }
       .targeting-box {
         position: absolute;
-        top: 20%;
-        left: 10%;
-        right: 10%;
-        bottom: 20%;
+        /* Kotak dilebarkan ke samping karena Barcode 2 dan 3 sangat panjang */
+        top: 25%;
+        left: 5%;
+        right: 5%;
+        bottom: 25%;
         border-radius: 20px;
         display: none;
         pointer-events: none;
         z-index: 5;
-        box-shadow: 0 0 0 4000px rgba(0, 0, 0, 0.6); /* Sedikit digelapkan luarnya */
+        box-shadow: 0 0 0 4000px rgba(0, 0, 0, 0.6);
       }
       .targeting-box::before,
       .targeting-box::after {
@@ -320,8 +322,8 @@
       .laser-overlay {
         position: absolute;
         top: 50%;
-        left: 10%;
-        right: 10%;
+        left: 5%;
+        right: 5%;
         height: 3px;
         background: linear-gradient(
           90deg,
@@ -332,12 +334,12 @@
         box-shadow: 0 0 15px 3px rgba(59, 130, 246, 0.6);
         display: none;
         z-index: 10;
-        animation: scanAnim 2.5s infinite ease-in-out;
+        animation: scanAnim 2s infinite ease-in-out;
       }
       @keyframes scanAnim {
         0%,
         100% {
-          top: 20%;
+          top: 25%;
           opacity: 0;
         }
         10%,
@@ -345,7 +347,7 @@
           opacity: 1;
         }
         50% {
-          top: 80%;
+          top: 75%;
         }
       }
       .scanner-placeholder {
@@ -460,11 +462,6 @@
         border-radius: var(--radius-md);
         padding: 0 20px;
       }
-      .filter-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
-      }
 
       .table-wrapper {
         width: 100%;
@@ -474,6 +471,7 @@
         background: rgba(0, 0, 0, 0.2);
         max-height: 55vh;
         border: 1px solid var(--glass-border);
+        margin-top: 16px;
       }
       table {
         width: 100%;
@@ -578,6 +576,12 @@
         color: #fca5a5;
         margin-top: 10px;
       }
+
+      .filter-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
       div:where(.swal2-container) div:where(.swal2-popup) {
         background: rgba(15, 23, 42, 0.85);
         backdrop-filter: blur(20px);
@@ -601,7 +605,7 @@
       <div id="view-scan" class="view-page active">
         <div class="card">
           <div class="card-header">
-            <i class="fas fa-camera-viewfinder"></i> Pindai Barcode
+            <i class="fas fa-camera-viewfinder"></i> Pindai Barcode (Jarak 10cm)
           </div>
           <div class="scanner-wrapper">
             <div class="scanner-container" id="scannerBox">
@@ -770,8 +774,8 @@
               margin-bottom: 24px;
             "
           >
-            Sistem secara otomatis akan memisahkan Barcode 1, 2, dan 3 ke dalam
-            Sheet berbeda (Excel).
+            Sistem otomatis memisahkan data ke dalam sheet/lembar berbeda (Excel
+            & PDF).
           </p>
           <label
             style="
@@ -809,7 +813,7 @@
               margin-bottom: 12px;
               text-transform: uppercase;
             "
-            >Export Keseluruhan Database</label
+            >Export Master Database</label
           >
           <div class="export-grid">
             <button
@@ -998,13 +1002,13 @@
       }
 
       // ==========================================
-      // LOGIKA PEMISAHAN 3 BARCODE DENGAN AKURAT
+      // AKURASI TINGGI PEMISAHAN 3 BARCODE
       // ==========================================
       function parsePayloadToFields(text) {
         const raw = (text || "").trim();
         if (!raw) return null;
 
-        // 1. BARCODE TIPE 1: Diawali "86" & Panjang di atas 24 digit
+        // --- BARCODE 1 --- (Diawali 86, panjang minimal 24)
         if (raw.startsWith("86") && raw.length >= 24) {
           try {
             const p_str = raw.slice(-4);
@@ -1035,7 +1039,7 @@
           } catch (e) {}
         }
 
-        // 2. BARCODE TIPE 2: Murni angka dengan panjang tepat 20 Digit
+        // --- BARCODE 2 --- (Panjang tepat 20 Digit murni angka)
         if (raw.length === 20 && /^\d+$/.test(raw)) {
           try {
             const golongan = raw.slice(0, 7).replace(/^0+/, "");
@@ -1056,7 +1060,9 @@
           } catch (e) {}
         }
 
-        // 3. BARCODE TIPE 3: Murni angka dengan panjang tepat 28 digit (atau default fallback)
+        // --- BARCODE 3 --- (Panjang tepat 28 Digit murni angka, seperti gambar)
+        // Catatan: Barcode 3 strukturnya digabung (tidak ada spasi pemisah standar)
+        // Maka data asli dipertahankan penuh dalam kolom golongan
         if (raw.length === 28 && /^\d+$/.test(raw)) {
           return {
             jenisBarcode: "Barcode 3",
@@ -1068,6 +1074,7 @@
           };
         }
 
+        // Fallback default jika scan menyimpang
         return {
           jenisBarcode: "Barcode 3",
           panjang: "-",
@@ -1141,12 +1148,13 @@
             btn.classList.add("stop");
             isScanning = true;
 
-            // Meminta Resolusi Sangat Tinggi (FHD 1080p) agar tidak perlu di-zoom namun tetap tajam.
+            // RESOLUSI HD (1280x720): Sangat cepat diproses, tajam untuk jarak 10cm.
+            // Tidak membuat HP ngelag atau patah-patah saat mendeteksi.
             let constraints = {
               video: {
                 facingMode: { ideal: currentCam },
-                width: { ideal: 1920, min: 1280 },
-                height: { ideal: 1080, min: 720 },
+                width: { ideal: 1280 },
+                height: { ideal: 720 },
               },
             };
 
@@ -1164,24 +1172,6 @@
             video.setAttribute("playsinline", "");
             video.srcObject = stream;
             streamTrack = stream.getVideoTracks()[0];
-
-            try {
-              const capabilities = streamTrack.getCapabilities();
-              let advancedConstraints = [];
-              // Mengunci auto-fokus yang berkelanjutan
-              if (
-                capabilities.focusMode &&
-                capabilities.focusMode.includes("continuous")
-              ) {
-                advancedConstraints.push({ focusMode: "continuous" });
-              }
-              // INFO: Skrip 'zoom' dihapus total, lensa akan berada murni di posisi default bawaan perangkat.
-              if (advancedConstraints.length > 0) {
-                await streamTrack.applyConstraints({
-                  advanced: advancedConstraints,
-                });
-              }
-            } catch (err) {}
 
             await new Promise((resolve) => {
               video.onloadedmetadata = () => resolve();
@@ -1202,12 +1192,12 @@
                 setTimeout(() => {
                   if (isScanning)
                     scanLoopFrame = requestAnimationFrame(detectLoop);
-                }, 40); // Responsivitas ditingkatkan
+                }, 20); // Sangat cepat (20ms)
               };
               scanLoopFrame = requestAnimationFrame(detectLoop);
             } else {
               zxingReader = new ZXing.BrowserMultiFormatReader(getZXingHints());
-              zxingReader.timeBetweenDecodingAttempts = 50; // Waktu jeda dipersingkat agar lebih cepat mendeteksi
+              zxingReader.timeBetweenDecodingAttempts = 20; // Sangat cepat (20ms)
               zxingReader.decodeFromStream(
                 stream,
                 "videoElement",
