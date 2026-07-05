@@ -206,6 +206,7 @@
         padding: 24px;
         box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
         border: 1px solid var(--glass-border);
+        margin-bottom: 24px;
       }
       .card-header {
         font-weight: 700;
@@ -233,7 +234,6 @@
         border-radius: var(--radius-md);
         overflow: hidden;
         background-color: #000;
-        /* Menggunakan rasio standar lensa kamera 4:3 (menghindari pemotongan digital/zoom) */
         aspect-ratio: 3 / 4;
         max-height: 60vh;
         display: flex;
@@ -245,12 +245,10 @@
       #videoElement {
         width: 100%;
         height: 100%;
-        /* Object Fit CONTAIN memastikan seluruh tangkapan kamera masuk frame tanpa di zoom/crop */
         object-fit: contain;
         display: none;
       }
 
-      /* Kotak targeting dilebarkan untuk barcode 2 dan 3 yang panjang */
       .targeting-box {
         position: absolute;
         top: 35%;
@@ -436,9 +434,24 @@
         -webkit-overflow-scrolling: touch;
         border-radius: var(--radius-md);
         background: rgba(0, 0, 0, 0.2);
-        max-height: 45vh;
+        max-height: 350px;
+        overflow-y: auto;
         border: 1px solid var(--glass-border);
       }
+      /* Custom Scrollbar for tables */
+      .table-wrapper::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      .table-wrapper::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 10px;
+      }
+      .table-wrapper::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+      }
+
       table {
         width: 100%;
         border-collapse: collapse;
@@ -452,7 +465,7 @@
         font-size: 0.9rem;
       }
       th {
-        background: rgba(255, 255, 255, 0.05);
+        background: rgba(15, 23, 42, 0.95);
         font-weight: 700;
         color: var(--text-secondary);
         position: sticky;
@@ -460,6 +473,7 @@
         z-index: 2;
         font-size: 0.75rem;
         text-transform: uppercase;
+        backdrop-filter: blur(10px);
       }
       .badge {
         background: linear-gradient(
@@ -557,8 +571,24 @@
         border: 1px solid rgba(255, 255, 255, 0.1);
       }
 
-      .section-gap {
-        margin-top: 24px;
+      /* Warna Card Header Khusus */
+      .hdr-b1 {
+        color: #a78bfa !important;
+      }
+      .hdr-b1 i {
+        background: rgba(167, 139, 250, 0.2);
+      }
+      .hdr-b2 {
+        color: #60a5fa !important;
+      }
+      .hdr-b2 i {
+        background: rgba(96, 165, 250, 0.2);
+      }
+      .hdr-b3 {
+        color: #f472b6 !important;
+      }
+      .hdr-b3 i {
+        background: rgba(244, 114, 182, 0.2);
       }
     </style>
   </head>
@@ -575,8 +605,7 @@
       <div id="view-scan" class="view-page active">
         <div class="card">
           <div class="card-header">
-            <i class="fas fa-camera-viewfinder"></i> Pindai Barcode (Jarak
-            Normal)
+            <i class="fas fa-camera-viewfinder"></i> Pindai Barcode (1D Only)
           </div>
           <div class="scanner-wrapper">
             <div class="scanner-container" id="scannerBox">
@@ -627,7 +656,7 @@
 
       <div id="view-session" class="view-page">
         <div class="card">
-          <div class="card-header" style="color: #a78bfa">
+          <div class="card-header hdr-b1">
             <i class="fas fa-list-ul"></i> Data Scan - Barcode 1
           </div>
           <div class="table-wrapper">
@@ -649,8 +678,8 @@
             </table>
           </div>
         </div>
-        <div class="card section-gap">
-          <div class="card-header" style="color: #60a5fa">
+        <div class="card">
+          <div class="card-header hdr-b2">
             <i class="fas fa-list-ul"></i> Data Scan - Barcode 2
           </div>
           <div class="table-wrapper">
@@ -672,8 +701,8 @@
             </table>
           </div>
         </div>
-        <div class="card section-gap">
-          <div class="card-header" style="color: #f472b6">
+        <div class="card">
+          <div class="card-header hdr-b3">
             <i class="fas fa-list-ul"></i> Data Scan - Barcode 3
           </div>
           <div class="table-wrapper">
@@ -700,7 +729,7 @@
       <div id="view-database" class="view-page">
         <div class="card">
           <div class="card-header">
-            <i class="fas fa-database"></i> Master Filter Database
+            <i class="fas fa-filter"></i> Filter Database
           </div>
           <div class="filter-grid">
             <div class="input-group">
@@ -723,19 +752,20 @@
             </div>
           </div>
           <div class="input-group">
-            <label>Pencarian</label
+            <label>Pencarian Umum</label
             ><input
               type="search"
               class="form-control"
               id="search"
-              placeholder="Cari barcode/golongan..."
+              placeholder="Ketik pencarian..."
               onkeyup="renderDatabase()"
             />
           </div>
         </div>
-        <div class="card section-gap">
-          <div class="card-header" style="color: #a78bfa">
-            <i class="fas fa-archive"></i> Database Barcode 1
+
+        <div class="card">
+          <div class="card-header hdr-b1">
+            <i class="fas fa-archive"></i> Database - Barcode 1
           </div>
           <div class="table-wrapper">
             <table>
@@ -757,9 +787,9 @@
             </table>
           </div>
         </div>
-        <div class="card section-gap">
-          <div class="card-header" style="color: #60a5fa">
-            <i class="fas fa-archive"></i> Database Barcode 2
+        <div class="card">
+          <div class="card-header hdr-b2">
+            <i class="fas fa-archive"></i> Database - Barcode 2
           </div>
           <div class="table-wrapper">
             <table>
@@ -781,9 +811,9 @@
             </table>
           </div>
         </div>
-        <div class="card section-gap">
-          <div class="card-header" style="color: #f472b6">
-            <i class="fas fa-archive"></i> Database Barcode 3
+        <div class="card">
+          <div class="card-header hdr-b3">
+            <i class="fas fa-archive"></i> Database - Barcode 3
           </div>
           <div class="table-wrapper">
             <table>
@@ -810,7 +840,7 @@
       <div id="view-export" class="view-page">
         <div class="card">
           <div class="card-header">
-            <i class="fas fa-file-export"></i> Pusat Unduhan
+            <i class="fas fa-file-export"></i> Pusat Unduhan Laporan
           </div>
           <p
             style="
@@ -820,7 +850,7 @@
             "
           >
             Sistem akan memisahkan data Barcode 1, 2, dan 3 ke dalam
-            Sheet/Lembar yang berbeda secara otomatis (Khusus Excel).
+            Sheet/Lembar yang berbeda secara otomatis.
           </p>
           <label
             style="
@@ -914,6 +944,7 @@
     <script>
       const STORAGE_KEY = "SCMBarcodeMasterData";
       let allData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      // Set ini digunakan untuk MENCEGAH SCAN GANDA
       let scannedCodesSet = new Set(allData.map((item) => item.kode));
 
       let isScanning = false;
@@ -929,7 +960,7 @@
         toast: true,
         position: "top-end",
         showConfirmButton: false,
-        timer: 1500,
+        timer: 2000,
         background: "rgba(15, 23, 42, 0.9)",
         color: "#fff",
       });
@@ -976,7 +1007,7 @@
       if (hasNativeScanner && !isIOS) {
         document.getElementById("engineBadge").innerText = "HW ACCEL";
         nativeDetector = new BarcodeDetector({
-          // BLOKIR QR CODE, fokus murni ke 1D Barcode
+          // SANGAT PENTING: qr_code DIBLOKIR agar tidak membaca kotak QR pada Barcode 2
           formats: [
             "code_128",
             "code_39",
@@ -1009,7 +1040,7 @@
                 ZXing.BarcodeFormat.EAN_8,
                 ZXing.BarcodeFormat.UPC_A,
                 ZXing.BarcodeFormat.ITF,
-                // QR_CODE, DATA_MATRIX, PDF417 DIBLOKIR AGAR FOKUS KE 1D
+                // QR_CODE, DATA_MATRIX, PDF417 TIDAK DIMASUKKAN
               ],
             ],
           ]);
@@ -1025,13 +1056,14 @@
       }
 
       // ==========================================
-      // AKURASI TINGGI PEMISAHAN 3 BARCODE
+      // LOGIKA PEMBACAAN DAN PEMISAHAN DATA BARCODE
       // ==========================================
       function parsePayloadToFields(text) {
         const raw = (text || "").trim();
         if (!raw) return null;
 
-        // --- BARCODE 1 --- (Diawali 86, panjang minimal 24)
+        // --- TIPE BARCODE 1 ---
+        // Ciri: Diawali "86" dan panjang minimal 24 karakter
         if (raw.startsWith("86") && raw.length >= 24) {
           try {
             const p_str = raw.slice(-4);
@@ -1039,16 +1071,20 @@
             const l_str = raw.slice(-12, -9);
             const ext_str = raw.slice(-16, -12);
             const prefix = raw.slice(2, -16);
+
             let golongan = prefix.replace(/^0+/, "");
             if (!golongan) golongan = "-";
+
             const p_indo = parseInt(l_str, 10);
             const l_indo = parseInt(w_str, 10) / 10;
             const potongan = parseInt(p_str, 10);
             const persegi = (p_indo * l_indo * potongan) / 10000;
+
             const extNum = parseInt(ext_str, 10);
             const golonganDisplay = !isNaN(extNum)
               ? `${golongan} (${extNum.toString().padStart(3, "0")})`
               : golongan;
+
             if (!isNaN(p_indo) && !isNaN(l_indo) && !isNaN(potongan)) {
               return {
                 jenisBarcode: "Barcode 1",
@@ -1062,15 +1098,16 @@
           } catch (e) {}
         }
 
-        // --- BARCODE 2 --- (Panjang tepat 20 Digit angka bersih)
-        // Gambar 20 Digit: 00185532300120240002 -> Panjang 230, Lebar 12, Pot 24. Math = (230*12*24)/10000 = 6.62
+        // --- TIPE BARCODE 2 ---
+        // Ciri: Berisi angka bersih dengan total persis 20 digit
         if (raw.length === 20 && /^\d+$/.test(raw)) {
           try {
-            const golongan = raw.slice(0, 7).replace(/^0+/, "");
-            const p_indo = parseInt(raw.slice(7, 10), 10);
-            const l_indo = parseInt(raw.slice(10, 13), 10);
-            const potongan = parseInt(raw.slice(13, 16), 10);
+            const golongan = raw.slice(0, 7).replace(/^0+/, ""); // Mengambil 7 digit awal sebagai golongan
+            const p_indo = parseInt(raw.slice(7, 10), 10); // Digit 8-10 (Panjang)
+            const l_indo = parseInt(raw.slice(10, 13), 10); // Digit 11-13 (Lebar)
+            const potongan = parseInt(raw.slice(13, 16), 10); // Digit 14-16 (Potongan)
             const persegi = (p_indo * l_indo * potongan) / 10000;
+
             if (!isNaN(p_indo) && !isNaN(l_indo) && !isNaN(potongan)) {
               return {
                 jenisBarcode: "Barcode 2",
@@ -1084,7 +1121,9 @@
           } catch (e) {}
         }
 
-        // --- BARCODE 3 --- (Umumnya panjangnya 28 Digit seperti digambar)
+        // --- TIPE BARCODE 3 ---
+        // Ciri: Barcode yang panjangnya 28 digit (atau default selain 1 & 2)
+        // Karena kode ini tidak memiliki partisi dimensi yang baku seperti barcode 1 & 2, kita simpan secara utuh.
         if (raw.length === 28 && /^\d+$/.test(raw)) {
           return {
             jenisBarcode: "Barcode 3",
@@ -1096,7 +1135,7 @@
           };
         }
 
-        // --- FALLBACK (Kondisi Gagal)
+        // --- JIKA TIDAK DIKENALI ---
         return {
           jenisBarcode: "Barcode 3",
           panjang: "-",
@@ -1170,7 +1209,7 @@
             btn.classList.add("stop");
             isScanning = true;
 
-            // MENGHAPUS PAKSAAN RESOLUSI: Agar browser memanggil lensa utama tanpa di-zoom secara digital.
+            // Kamera Default Tanpa Pemaksaan (Agar tidak ZOOM di jarak dekat)
             let constraints = { video: { facingMode: { ideal: currentCam } } };
 
             let stream;
@@ -1255,15 +1294,26 @@
       }
 
       function processBarcodeDetected(code, format) {
+        // SISTEM CEK BARCODE GANDA (DUPLIKAT)
         if (scannedCodesSet.has(code)) {
           const now = Date.now();
-          if (now - lastErrorTime > 2000) {
+          if (now - lastErrorTime > 1500) {
+            // Memberi jeda notif agar tidak spam
             triggerErrorFeedback();
-            Toast.fire({ icon: "error", title: "Barcode sudah ada!" });
+            Swal.fire({
+              title: "DITOLAK!",
+              text: "Data barcode ini sudah pernah di-scan.",
+              icon: "error",
+              background: "rgba(15, 23, 42, 0.95)",
+              color: "#fff",
+              confirmButtonColor: "var(--danger)",
+            });
             lastErrorTime = now;
           }
           return;
         }
+
+        // Lolos Cek: Daftarkan dan Simpan
         scannedCodesSet.add(code);
         simpanData(code, format);
       }
@@ -1340,10 +1390,17 @@
       function inputManual() {
         const val = document.getElementById("manualData").value.trim();
         if (!val) return Toast.fire({ icon: "error", title: "Kode kosong!" });
+
+        // Cek Ganda Untuk Input Manual
         if (scannedCodesSet.has(val)) {
           triggerErrorFeedback();
-          return Toast.fire({ icon: "error", title: "Barcode sudah ada!" });
+          return Swal.fire(
+            "Ditolak!",
+            "Barcode ini sudah ada di sistem.",
+            "error",
+          );
         }
+
         scannedCodesSet.add(val);
         simpanData(val, "MANUAL");
         document.getElementById("manualData").value = "";
@@ -1378,9 +1435,12 @@
         localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
         triggerFeedback();
 
-        Toast.fire({ icon: "success", title: `Disimpan ke ${newData.jenis}` });
+        Toast.fire({
+          icon: "success",
+          title: `Berhasil! Masuk ke ${newData.jenis}`,
+        });
 
-        // Render Ulang secara real-time
+        // Auto Render Layar Jika Sedang Terbuka
         if (
           document.getElementById("view-session").classList.contains("active")
         )
@@ -1398,22 +1458,24 @@
         return tgl;
       }
 
-      // Fungsi Untuk Menggambar ke HTML Tabel 1, 2, dan 3
-      function renderTabelKeHtml(filterData, tableId) {
-        const tbody = document.getElementById(tableId);
+      // ==== FUNGSI PENGGAMBAR TABEL UI ====
+      function createTableRows(dataArray, tableIdStr) {
+        const tbody = document.getElementById(tableIdStr);
         tbody.innerHTML = "";
-        if (filterData.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 30px; color: var(--text-muted);">Belum ada data scan</td></tr>`;
+        if (dataArray.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding: 40px; color: var(--text-muted);">Belum ada data di daftar ini</td></tr>`;
           return;
         }
-        filterData.forEach((i, idx) => {
+        dataArray.forEach((i, idx) => {
           const tr = document.createElement("tr");
-          // Jika Database page ada kolom tgl
-          if (tableId.includes("Db")) {
+          // Format Database Page (ada Kolom Tgl)
+          if (tableIdStr.includes("Db")) {
             tr.innerHTML = `<td>${idx + 1}</td><td><span class="badge">${i.kode}</span></td><td><b>${i.golongan}</b></td>
-              <td>${i.panjang}</td><td>${i.lebar}</td><td>${i.potongan}</td><td>${i.persegi}</td><td>${formatTgl(i.tanggal)}</td><td>${i.jam.substring(0, 5)}</td>
+              <td>${i.panjang}</td><td>${i.lebar}</td><td>${i.potongan}</td><td>${i.persegi}</td>
+              <td>${formatTgl(i.tanggal)}</td><td>${i.jam.substring(0, 5)}</td>
               <td><button class="btn-del" onclick="hapus(${i.id}, 'db')"><i class="fas fa-trash"></i></button></td>`;
           } else {
+            // Format Hari Ini
             tr.innerHTML = `<td>${idx + 1}</td><td><span class="badge">${i.kode}</span></td><td><b>${i.golongan}</b></td>
               <td>${i.panjang}</td><td>${i.lebar}</td><td>${i.potongan}</td><td>${i.persegi}</td><td>${i.jam.substring(0, 5)}</td>
               <td><button class="btn-del" onclick="hapus(${i.id}, 'today')"><i class="fas fa-trash"></i></button></td>`;
@@ -1430,19 +1492,20 @@
           .toISOString()
           .split("T")[0];
 
-        let fData1 = allData
+        // Pisahkan Data ke 3 Tabel
+        let b1 = allData
           .filter((i) => i.tanggal === hariIni && i.jenis === "Barcode 1")
           .sort((a, b) => b.scannedAt - a.scannedAt);
-        let fData2 = allData
+        let b2 = allData
           .filter((i) => i.tanggal === hariIni && i.jenis === "Barcode 2")
           .sort((a, b) => b.scannedAt - a.scannedAt);
-        let fData3 = allData
+        let b3 = allData
           .filter((i) => i.tanggal === hariIni && i.jenis === "Barcode 3")
           .sort((a, b) => b.scannedAt - a.scannedAt);
 
-        renderTabelKeHtml(fData1, "tableToday1");
-        renderTabelKeHtml(fData2, "tableToday2");
-        renderTabelKeHtml(fData3, "tableToday3");
+        createTableRows(b1, "tableToday1");
+        createTableRows(b2, "tableToday2");
+        createTableRows(b3, "tableToday3");
       }
 
       function renderDatabase() {
@@ -1450,7 +1513,7 @@
         const end = document.getElementById("end").value;
         const search = document.getElementById("search").value.toLowerCase();
 
-        let baseData = allData.filter((i) => {
+        let filtered = allData.filter((i) => {
           if (start && i.tanggal < start) return false;
           if (end && i.tanggal > end) return false;
           if (
@@ -1462,19 +1525,20 @@
           return true;
         });
 
-        let fData1 = baseData
+        // Pisahkan Data ke 3 Tabel Database
+        let db1 = filtered
           .filter((i) => i.jenis === "Barcode 1")
           .sort((a, b) => b.scannedAt - a.scannedAt);
-        let fData2 = baseData
+        let db2 = filtered
           .filter((i) => i.jenis === "Barcode 2")
           .sort((a, b) => b.scannedAt - a.scannedAt);
-        let fData3 = baseData
+        let db3 = filtered
           .filter((i) => i.jenis === "Barcode 3")
           .sort((a, b) => b.scannedAt - a.scannedAt);
 
-        renderTabelKeHtml(fData1, "tableDb1");
-        renderTabelKeHtml(fData2, "tableDb2");
-        renderTabelKeHtml(fData3, "tableDb3");
+        createTableRows(db1, "tableDb1");
+        createTableRows(db2, "tableDb2");
+        createTableRows(db3, "tableDb3");
       }
 
       function hapus(id, source) {
@@ -1482,7 +1546,7 @@
         if (!itemTarget) return;
         Swal.fire({
           title: "Hapus Data?",
-          text: "Data akan dihapus permanen.",
+          text: "Data akan dihapus permanen dari daftar ini.",
           icon: "warning",
           showCancelButton: true,
           confirmButtonColor: "var(--danger)",
@@ -1493,7 +1557,7 @@
           if (res.isConfirmed) {
             allData = allData.filter((i) => i.id !== id);
             localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
-            scannedCodesSet.delete(itemTarget.kode);
+            scannedCodesSet.delete(itemTarget.kode); // Bebaskan dari set agar bisa di scan ulang jika butuh
             if (source === "today") {
               renderToday();
               renderDatabase();
@@ -1528,6 +1592,7 @@
         });
       }
 
+      // ==== FUNGSI EXPORT OTOMATIS MEMISAHKAN 3 SHEET ====
       function downloadExcelHarian() {
         const nowDate = new Date();
         const hariIni = new Date(
@@ -1551,11 +1616,9 @@
         const wb = XLSX.utils.book_new();
         const types = ["Barcode 1", "Barcode 2", "Barcode 3"];
         types.forEach((type) => {
-          const typeData = dataArray.filter(
-            (i) => (i.jenis || "Barcode 3") === type,
-          );
+          const typeData = dataArray.filter((i) => i.jenis === type);
           if (typeData.length > 0) {
-            typeData.sort((a, b) => (a.scannedAt || 0) - (b.scannedAt || 0));
+            typeData.sort((a, b) => a.scannedAt - b.scannedAt);
             const dt = typeData.map((i, idx) => ({
               No: idx + 1,
               "Kode Barcode": i.kode,
@@ -1568,7 +1631,7 @@
               Jam: i.jam,
             }));
             const ws = XLSX.utils.json_to_sheet(dt);
-            XLSX.utils.book_append_sheet(wb, ws, type);
+            XLSX.utils.book_append_sheet(wb, ws, type); // Nama Sheet Sesuai Jenis Barcode
           }
         });
         XLSX.writeFile(wb, `Export_SCM_${label}_${new Date().getTime()}.xlsx`);
@@ -1619,7 +1682,7 @@
           .forEach((i, idx) => {
             tableRows.push([
               idx + 1,
-              i.jenis || "Barcode 3",
+              i.jenis,
               i.kode,
               i.golongan,
               i.panjang,
