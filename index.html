@@ -193,7 +193,6 @@
 
       .container {
         padding: 20px 16px;
-        /* Padding bawah ditingkatkan ke 150px agar tombol Zona Berbahaya tidak tertutup nav */
         padding-bottom: calc(150px + env(safe-area-inset-bottom));
         max-width: 800px;
         margin: 0 auto;
@@ -212,7 +211,7 @@
       }
       .card-header {
         font-weight: 700;
-        margin-bottom: 24px;
+        margin-bottom: 20px;
         font-size: 1.15rem;
         display: flex;
         align-items: center;
@@ -224,6 +223,39 @@
         background: rgba(139, 92, 246, 0.2);
         padding: 8px;
         border-radius: 8px;
+      }
+
+      /* TABS STYLE */
+      .type-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 16px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+      }
+      .type-tabs::-webkit-scrollbar {
+        display: none;
+      }
+      .tab-btn {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--glass-border);
+        color: var(--text-secondary);
+        padding: 10px 18px;
+        border-radius: 100px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: all 0.3s;
+      }
+      .tab-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+      .tab-btn.active {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+        border-color: transparent;
+        box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
       }
 
       .scanner-wrapper {
@@ -441,7 +473,6 @@
         background: rgba(0, 0, 0, 0.2);
         max-height: 55vh;
         border: 1px solid var(--glass-border);
-        margin-top: 16px;
       }
       table {
         width: 100%;
@@ -623,6 +654,19 @@
           <div class="card-header">
             <i class="fas fa-clipboard-list"></i> Data Scan Hari Ini
           </div>
+
+          <div class="type-tabs">
+            <button class="tab-btn active" onclick="setTabToday('Barcode 1')">
+              Barcode 1
+            </button>
+            <button class="tab-btn" onclick="setTabToday('Barcode 2')">
+              Barcode 2
+            </button>
+            <button class="tab-btn" onclick="setTabToday('Barcode 3')">
+              Barcode 3
+            </button>
+          </div>
+
           <div class="table-wrapper">
             <table>
               <thead>
@@ -649,10 +693,26 @@
           <div class="card-header">
             <i class="fas fa-database"></i> Master Database
           </div>
+
+          <div class="type-tabs" style="margin-bottom: 20px">
+            <button class="tab-btn active" onclick="setTabDb('Barcode 1')">
+              Barcode 1
+            </button>
+            <button class="tab-btn" onclick="setTabDb('Barcode 2')">
+              Barcode 2
+            </button>
+            <button class="tab-btn" onclick="setTabDb('Barcode 3')">
+              Barcode 3
+            </button>
+            <button class="tab-btn" onclick="setTabDb('Semua')">
+              Semua Tipe
+            </button>
+          </div>
+
           <div class="filter-grid">
             <div class="input-group">
-              <label>Dari Tanggal</label
-              ><input
+              <label>Dari Tanggal</label>
+              <input
                 type="date"
                 class="form-control"
                 id="start"
@@ -660,8 +720,8 @@
               />
             </div>
             <div class="input-group">
-              <label>Sampai Tanggal</label
-              ><input
+              <label>Sampai Tanggal</label>
+              <input
                 type="date"
                 class="form-control"
                 id="end"
@@ -670,8 +730,8 @@
             </div>
           </div>
           <div class="input-group">
-            <label>Pencarian</label
-            ><input
+            <label>Pencarian</label>
+            <input
               type="search"
               class="form-control"
               id="search"
@@ -713,7 +773,8 @@
               margin-bottom: 24px;
             "
           >
-            Pilih format laporan yang ingin Anda unduh (Excel / PDF).
+            Sistem secara otomatis akan memisahkan Barcode 1, 2, dan 3 ke dalam
+            Sheet berbeda (untuk Excel) dan mengurutkannya (untuk PDF).
           </p>
 
           <label
@@ -725,8 +786,9 @@
               margin-bottom: 12px;
               text-transform: uppercase;
             "
-            >Export Khusus Hari Ini</label
           >
+            Export Khusus Hari Ini
+          </label>
           <div class="export-grid">
             <button
               class="btn btn-export-big excel"
@@ -753,8 +815,9 @@
               margin-bottom: 12px;
               text-transform: uppercase;
             "
-            >Export Keseluruhan Database</label
           >
+            Export Keseluruhan Database
+          </label>
           <div class="export-grid">
             <button
               class="btn btn-export-big blue"
@@ -787,7 +850,6 @@
             <i class="fas fa-triangle-exclamation"></i>
             <div><strong>Reset Total Memori Aplikasi</strong></div>
           </button>
-
           <div style="height: 30px"></div>
         </div>
       </div>
@@ -821,6 +883,10 @@
       let scanLoopFrame = null;
       let audioCtx = null;
 
+      // Filter Tabs State
+      let activeTabToday = "Barcode 1";
+      let activeTabDb = "Barcode 1";
+
       const video = document.getElementById("videoElement");
       const Toast = Swal.mixin({
         toast: true,
@@ -830,6 +896,23 @@
         background: "rgba(15, 23, 42, 0.9)",
         color: "#fff",
       });
+
+      // ---- TAB MANAGEMENT LOGIC ----
+      function setTabToday(type) {
+        activeTabToday = type;
+        const tabs = document.querySelectorAll("#view-session .tab-btn");
+        tabs.forEach((t) => t.classList.remove("active"));
+        event.target.classList.add("active");
+        renderToday();
+      }
+
+      function setTabDb(type) {
+        activeTabDb = type;
+        const tabs = document.querySelectorAll("#view-database .tab-btn");
+        tabs.forEach((t) => t.classList.remove("active"));
+        event.target.classList.add("active");
+        renderDatabase();
+      }
 
       let lastCheckedDay = new Date().getDate();
       setInterval(() => {
@@ -925,10 +1008,14 @@
         if (audioCtx.state === "suspended") audioCtx.resume();
       }
 
+      // ==========================================
+      // INI ADALAH LOGIKA PARSER UTAMA (BARCODE 1, 2, 3)
+      // ==========================================
       function parsePayloadToFields(text) {
         const raw = (text || "").trim();
         if (!raw) return null;
 
+        // TYPE 1: Awalan 86 dan panjang >= 24 (Sistem Lama)
         if (raw.startsWith("86") && raw.length >= 24) {
           try {
             const p_str = raw.slice(-4);
@@ -944,7 +1031,6 @@
             const l_indo = parseInt(w_str, 10) / 10;
             const potongan = parseInt(p_str, 10);
             const persegi = (p_indo * l_indo * potongan) / 10000;
-
             const extNum = parseInt(ext_str, 10);
             const golonganDisplay = !isNaN(extNum)
               ? `${golongan} (${extNum.toString().padStart(3, "0")})`
@@ -952,6 +1038,7 @@
 
             if (!isNaN(p_indo) && !isNaN(l_indo) && !isNaN(potongan)) {
               return {
+                jenisBarcode: "Barcode 1",
                 panjang: p_indo,
                 lebar: l_indo,
                 potongan: potongan,
@@ -962,7 +1049,45 @@
           } catch (e) {}
         }
 
+        // TYPE 2: Berdasarkan Gambar Barcode 2 (20 Digit angka bersih)
+        // Contoh: 00185532300120240002 -> Gol: 0018553, Panjang: 230, Lebar: 12, Pot: 24
+        if (raw.length === 20) {
+          try {
+            const golongan = raw.slice(0, 7).replace(/^0+/, "");
+            const p_indo = parseInt(raw.slice(7, 10), 10); // 230
+            const l_indo = parseInt(raw.slice(10, 13), 10); // 12
+            const potongan = parseInt(raw.slice(13, 16), 10); // 24
+            const persegi = (p_indo * l_indo * potongan) / 10000;
+
+            if (!isNaN(p_indo) && !isNaN(l_indo) && !isNaN(potongan)) {
+              return {
+                jenisBarcode: "Barcode 2",
+                panjang: p_indo,
+                lebar: l_indo,
+                potongan: potongan,
+                persegi: persegi.toFixed(2),
+                golongan: golongan || raw.slice(0, 7),
+              };
+            }
+          } catch (e) {}
+        }
+
+        // TYPE 3: Berdasarkan Gambar Barcode 3 (28 Digit angka bersih)
+        // Jika pattern posisi presisi tidak dapat ditentukan murni, simpan sebagai Barcode 3 raw (User friendly)
+        if (raw.length === 28) {
+          return {
+            jenisBarcode: "Barcode 3",
+            panjang: "-",
+            lebar: "-",
+            potongan: "-",
+            persegi: "-",
+            golongan: raw,
+          };
+        }
+
+        // Jika tidak masuk ke kondisi apapun (Fallback/Lainnya)
         return {
+          jenisBarcode: "Lainnya",
           panjang: "-",
           lebar: "-",
           potongan: "-",
@@ -1002,7 +1127,6 @@
           isTorchOn = false;
           document.getElementById("btnTorch").classList.remove("active");
           cancelAnimationFrame(scanLoopFrame);
-
           if (streamTrack) {
             streamTrack.stop();
             streamTrack = null;
@@ -1042,7 +1166,6 @@
                 height: { ideal: 720, min: 480 },
               },
             };
-
             let stream;
             try {
               stream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -1055,39 +1178,29 @@
             video.setAttribute("autoplay", "");
             video.setAttribute("muted", "");
             video.setAttribute("playsinline", "");
-
             video.srcObject = stream;
             streamTrack = stream.getVideoTracks()[0];
 
             try {
               const capabilities = streamTrack.getCapabilities();
               let advancedConstraints = [];
-
               if (
                 capabilities.focusMode &&
                 capabilities.focusMode.includes("continuous")
-              ) {
+              )
                 advancedConstraints.push({ focusMode: "continuous" });
-              }
-
               if (capabilities.zoom) {
-                const minZoom = capabilities.zoom.min || 1;
-                const maxZoom = capabilities.zoom.max || 2;
-                const targetZoom = Math.min(maxZoom, Math.max(minZoom, 1.7));
+                const targetZoom = Math.min(
+                  capabilities.zoom.max || 2,
+                  Math.max(capabilities.zoom.min || 1, 1.7),
+                );
                 advancedConstraints.push({ zoom: targetZoom });
               }
-
-              if (advancedConstraints.length > 0) {
+              if (advancedConstraints.length > 0)
                 await streamTrack.applyConstraints({
                   advanced: advancedConstraints,
                 });
-              }
-            } catch (err) {
-              console.log(
-                "Perangkat tidak mendukung kontrol zoom/fokus manual",
-                err,
-              );
-            }
+            } catch (err) {}
 
             await new Promise((resolve) => {
               video.onloadedmetadata = () => resolve();
@@ -1099,14 +1212,12 @@
                 if (!isScanning) return;
                 try {
                   const barcodes = await nativeDetector.detect(video);
-                  if (barcodes.length > 0) {
+                  if (barcodes.length > 0)
                     processBarcodeDetected(
                       barcodes[0].rawValue,
                       barcodes[0].format.toUpperCase(),
                     );
-                  }
                 } catch (e) {}
-
                 setTimeout(() => {
                   if (isScanning)
                     scanLoopFrame = requestAnimationFrame(detectLoop);
@@ -1115,26 +1226,22 @@
               scanLoopFrame = requestAnimationFrame(detectLoop);
             } else {
               zxingReader = new ZXing.BrowserMultiFormatReader(getZXingHints());
-
               zxingReader.timeBetweenDecodingAttempts = 80;
-
               zxingReader.decodeFromStream(
                 stream,
                 "videoElement",
                 (result, err) => {
-                  if (result) {
+                  if (result)
                     processBarcodeDetected(
                       result.getText(),
                       result.getBarcodeFormat
                         ? result.getBarcodeFormat().toString()
                         : "UNKNOWN",
                     );
-                  }
                 },
               );
             }
           } catch (err) {
-            console.error("Camera Init Error:", err);
             Swal.fire(
               "Kamera Gagal",
               "Izin kamera belum diberikan atau browser tidak mendukung fitur ini.",
@@ -1155,7 +1262,6 @@
           }
           return;
         }
-
         scannedCodesSet.add(code);
         simpanData(code, format);
       }
@@ -1255,6 +1361,7 @@
           id: Date.now(),
           scannedAt: nowMs,
           kode: kode,
+          jenis: parsed?.jenisBarcode ?? "Lainnya", // Simpan status tipe (Barcode 1, 2, atau 3)
           panjang: parsed?.panjang ?? "-",
           lebar: parsed?.lebar ?? "-",
           potongan: parsed?.potongan ?? "-",
@@ -1268,7 +1375,18 @@
         allData.push(newData);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
         triggerFeedback();
-        Toast.fire({ icon: "success", title: `Tersimpan di Sesi Harian` });
+
+        Toast.fire({
+          icon: "success",
+          title: `Masuk di Daftar ${newData.jenis}`,
+        });
+
+        // Pindah ke tab otomatis jika tab saat ini sedang aktif
+        if (
+          document.getElementById("view-session").classList.contains("active")
+        ) {
+          setTabToday(newData.jenis);
+        }
       }
 
       function formatTgl(tgl) {
@@ -1287,12 +1405,15 @@
           .toISOString()
           .split("T")[0];
 
-        let fData = allData.filter((i) => i.tanggal === hariIni);
+        // Filter hari ini dan berdasarkan jenis tab yang sedang aktif
+        let fData = allData.filter(
+          (i) => i.tanggal === hariIni && i.jenis === activeTabToday,
+        );
         fData.sort((a, b) => (b.scannedAt || 0) - (a.scannedAt || 0));
         tbody.innerHTML = "";
 
         if (fData.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 40px; color: var(--text-muted);">Belum ada data di-scan pada hari ini</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 40px; color: var(--text-muted);">Belum ada data <b>${activeTabToday}</b> hari ini</td></tr>`;
           return;
         }
 
@@ -1312,8 +1433,12 @@
         const search = document.getElementById("search").value.toLowerCase();
 
         let fData = allData.filter((i) => {
+          // Filter Jenis
+          if (activeTabDb !== "Semua" && i.jenis !== activeTabDb) return false;
+          // Filter Tanggal
           if (start && i.tanggal < start) return false;
           if (end && i.tanggal > end) return false;
+          // Filter Search
           if (
             search &&
             !i.kode.toLowerCase().includes(search) &&
@@ -1327,7 +1452,7 @@
         tbody.innerHTML = "";
 
         if (fData.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding: 40px; color: var(--text-muted);">Database kosong atau data tidak ditemukan</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding: 40px; color: var(--text-muted);">Database kosong / data tidak ditemukan</td></tr>`;
           return;
         }
 
@@ -1393,6 +1518,7 @@
         });
       }
 
+      // ==== FUNGSI MULTI-SHEET EXPORT EXCEL ====
       function downloadExcelHarian() {
         const nowDate = new Date();
         const hariIni = new Date(
@@ -1413,24 +1539,35 @@
       }
 
       function exportToExcel(dataArray, label) {
-        dataArray.sort((a, b) => (a.scannedAt || 0) - (b.scannedAt || 0));
-        const dt = dataArray.map((i, idx) => ({
-          No: idx + 1,
-          "Kode Barcode": i.kode,
-          Panjang: i.panjang,
-          Lebar: i.lebar,
-          Potongan: i.potongan,
-          "Persegi (m2)": i.persegi,
-          Golongan: i.golongan,
-          Tanggal: formatTgl(i.tanggal),
-          Jam: i.jam,
-        }));
-        const ws = XLSX.utils.json_to_sheet(dt);
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Database");
+        const types = ["Barcode 1", "Barcode 2", "Barcode 3", "Lainnya"];
+
+        // Buat sheet per kategori Barcode
+        types.forEach((type) => {
+          const typeData = dataArray.filter(
+            (i) => (i.jenis || "Lainnya") === type,
+          );
+          if (typeData.length > 0) {
+            typeData.sort((a, b) => (a.scannedAt || 0) - (b.scannedAt || 0));
+            const dt = typeData.map((i, idx) => ({
+              No: idx + 1,
+              "Kode Barcode": i.kode,
+              Golongan: i.golongan,
+              Panjang: i.panjang,
+              Lebar: i.lebar,
+              Potongan: i.potongan,
+              "Persegi (m2)": i.persegi,
+              Tanggal: formatTgl(i.tanggal),
+              Jam: i.jam,
+            }));
+            const ws = XLSX.utils.json_to_sheet(dt);
+            XLSX.utils.book_append_sheet(wb, ws, type);
+          }
+        });
         XLSX.writeFile(wb, `Export_SCM_${label}_${new Date().getTime()}.xlsx`);
       }
 
+      // ==== FUNGSI EXPORT PDF (Dengan Tambahan Kolom Jenis) ====
       function downloadPDFHarian() {
         const nowDate = new Date();
         const hariIni = new Date(
@@ -1461,21 +1598,22 @@
 
         const tableColumn = [
           "No",
-          "Kode Barcode",
+          "Jenis",
+          "Kode",
           "Gol",
-          "Panjang",
-          "Lebar",
+          "P",
+          "L",
           "Pot",
           "M2",
           "Tanggal",
-          "Jam",
         ];
         const tableRows = [];
         dataArray
-          .sort((a, b) => (a.scannedAt || 0) - (b.scannedAt || 0))
+          .sort((a, b) => (a.jenis || "").localeCompare(b.jenis || "")) // Urutkan berdasarkan jenis
           .forEach((i, idx) => {
             tableRows.push([
               idx + 1,
+              i.jenis || "-",
               i.kode,
               i.golongan,
               i.panjang,
@@ -1483,7 +1621,6 @@
               i.potongan,
               i.persegi,
               formatTgl(i.tanggal),
-              i.jam,
             ]);
           });
 
