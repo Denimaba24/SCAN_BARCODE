@@ -58,6 +58,8 @@
       html {
         -webkit-text-size-adjust: 100%;
       }
+
+      /* Mengizinkan Scroll Bebas ke Bawah */
       html,
       body {
         width: 100%;
@@ -549,6 +551,7 @@
         background: rgba(244, 114, 182, 0.2);
       }
 
+      /* Animasi Pull to Refresh */
       .pull-indicator {
         text-align: center;
         color: var(--text-secondary);
@@ -581,7 +584,8 @@
       <div id="view-scan" class="view-page active">
         <div class="card">
           <div class="card-header">
-            <i class="fas fa-camera-viewfinder"></i> Pindai Barcode
+            <i class="fas fa-camera-viewfinder"></i> Pindai Barcode (Tarik Layar
+            = Refresh)
           </div>
           <div class="scanner-wrapper">
             <div class="scanner-container" id="scannerBox">
@@ -1014,11 +1018,21 @@
       let nativeDetector = null;
       let zxingReader = null;
 
-      // MENAMBAHKAN MULTI-FORMAT INDUSTRIAL AGAR MEMBACA KILAT & AUTO-FOKUS SENSITIF
+      // KUNCIAN FORMAT DILEBARKAN UNTUK MEMBACA SEGALA JENIS BARCODE 1D INDUSTRI
       if (hasNativeScanner && !isIOS) {
         document.getElementById("engineBadge").innerText = "HW ACCEL";
         nativeDetector = new BarcodeDetector({
-          formats: ["code_128", "code_39", "itf"],
+          formats: [
+            "code_128",
+            "code_39",
+            "code_93",
+            "ean_13",
+            "ean_8",
+            "upc_a",
+            "upc_e",
+            "itf",
+            "codabar",
+          ],
         });
       } else {
         document.getElementById("engineBadge").innerText = isIOS
@@ -1030,13 +1044,14 @@
         try {
           return new Map([
             [ZXing.DecodeHintType.TRY_HARDER, true],
-            [ZXing.DecodeHintType.ASSUME_GS1, true],
             [
               ZXing.DecodeHintType.POSSIBLE_FORMATS,
               [
                 ZXing.BarcodeFormat.CODE_128,
                 ZXing.BarcodeFormat.CODE_39,
                 ZXing.BarcodeFormat.ITF,
+                ZXing.BarcodeFormat.EAN_13,
+                ZXing.BarcodeFormat.UPC_A,
               ],
             ],
           ]);
@@ -1052,78 +1067,35 @@
       }
 
       // ==========================================
-      // DATABASE INTERNAL PEMETAAN DATA MATRIKS BARCODE 1, 2, 3
-      // ==========================================
-      const DATABASE_LOKAL = {
-        "1593103505404312800401050003": {
-          jenisBarcode: "Barcode 2",
-          panjang: 305,
-          lebar: 14,
-          potongan: 24,
-          persegi: "10.25",
-          golongan: "10(3)",
-        },
-        "11111916000503202881401070011": {
-          jenisBarcode: "Barcode 3",
-          panjang: 280,
-          lebar: 15,
-          potongan: 24,
-          persegi: "10.08",
-          golongan: "FFP(11)",
-        },
-        "1111808100304302201401090009": {
-          jenisBarcode: "Barcode 3",
-          panjang: 300,
-          lebar: 13,
-          potongan: 24,
-          persegi: "9.36",
-          golongan: "FFP",
-        },
-      };
-
-      // ==========================================
-      // PARSER DENGAN FILTER VALIDASI VALID 100%
+      // LOGIKA DINAMIS EKSTRAKSI DATA BARCODE
+      // Sistem membaca MURNI apa yang ada di dalam Barcode
       // ==========================================
       function parsePayloadToFields(text) {
         const raw = (text || "").trim();
         if (!raw) return null;
 
-        // 1. UJI COCOK BARCODE 1 (Awal 86, total panjang wajib valid >= 24)
-        const regexB1 = /^860+([A-Z0-9]+)(\d{4})(\d{3})(\d{5})(\d{4})$/;
-        const matchB1 = raw.match(regexB1);
+        // 1. MENGURAI BARCODE 1 DENGAN SANGAT RESPONSIF
+        // Mengekstrak 16 digit terakhir untuk mendapatkan Panjang, Lebar, dan Potongan
+        if (raw.startsWith("86") && raw.length >= 24) {
+          try {
+            const p_str = raw.slice(-4);
+            const w_str = raw.slice(-9, -4);
+            const l_str = raw.slice(-12, -9);
+            const ext_str = raw.slice(-16, -12);
+            const prefix = raw.slice(2, -16);
 
-        if (
-          matchB1 ||
-          raw.startsWith("86") ||
-          raw.includes("31782A") ||
-          raw.includes("21270A")
-        ) {
-          if (raw.includes("31782A"))
-            return {
-              jenisBarcode: "Barcode 1",
-              panjang: 325,
-              lebar: 16.5,
-              potongan: 24,
-              persegi: "12.87",
-              golongan: "31782A (129)",
-            };
-          if (raw.includes("21270A"))
-            return {
-              jenisBarcode: "Barcode 1",
-              panjang: 265,
-              lebar: 22.5,
-              potongan: 24,
-              persegi: "14.31",
-              golongan: "21270A (085)",
-            };
+            let golongan = prefix.replace(/^0+/, "") || "-";
 
-          if (matchB1) {
-            const gol_str = matchB1[1].replace(/^0+/, "") || "-";
-            const ext_str = matchB1[2];
-            const p_indo = parseInt(matchB1[3], 10);
-            const l_indo = parseInt(matchB1[4], 10) / 10;
-            const potongan = parseInt(matchB1[5], 10);
+            const p_indo = parseInt(l_str, 10);
+            const l_indo = parseInt(w_str, 10) / 10;
+            const potongan = parseInt(p_str, 10);
             const persegi = (p_indo * l_indo * potongan) / 10000;
+            const extNum = parseInt(ext_str, 10);
+
+            const golonganDisplay = !isNaN(extNum)
+              ? `${golongan} (${extNum.toString().padStart(3, "0")})`
+              : golongan;
+
             if (!isNaN(p_indo) && !isNaN(l_indo) && !isNaN(potongan)) {
               return {
                 jenisBarcode: "Barcode 1",
@@ -1131,56 +1103,59 @@
                 lebar: l_indo,
                 potongan: potongan,
                 persegi: persegi.toFixed(2),
-                golongan: `${gol_str} (${parseInt(ext_str, 10)})`,
+                golongan: golonganDisplay,
+              };
+            }
+          } catch (e) {}
+        }
+
+        // 2. MENGURAI BARCODE 2 & 3 SECARA DINAMIS
+        // Mengekstrak data berdasakan struktur 20 digit atau mengamankan kode serial 28/29 digit
+        if (/^\d+$/.test(raw)) {
+          // Jika formatnya 20 Digit (Seperti contoh Barcode 2 lama: 00185532300120240002)
+          if (raw.length === 20) {
+            const gol_str = raw.slice(0, 7).replace(/^0+/, "");
+            const p_indo = parseInt(raw.slice(7, 10), 10);
+            const l_indo = parseInt(raw.slice(10, 13), 10);
+            const potongan = parseInt(raw.slice(13, 16), 10);
+            const persegi = (p_indo * l_indo * potongan) / 10000;
+            if (!isNaN(p_indo) && !isNaN(l_indo) && !isNaN(potongan)) {
+              return {
+                jenisBarcode: "Barcode 2",
+                panjang: p_indo,
+                lebar: l_indo,
+                potongan: potongan,
+                persegi: persegi.toFixed(2),
+                golongan: gol_str || "018553",
               };
             }
           }
-        }
 
-        // 2. TEMBAK DATA DATABASE LOKAL BARCODE 2 & 3 (Sesuai Label Fisik Baru Anda)
-        if (DATABASE_LOKAL[raw]) {
-          return DATABASE_LOKAL[raw];
-        }
-
-        // 3. DETEKSI IDENTIFIKASI DINAMIS GOLONGAN BARCODE 2 & 3
-        if (raw.length === 20 && /^\d+$/.test(raw)) {
-          const gol_str = raw.slice(0, 7).replace(/^0+/, "");
-          const p_indo = parseInt(raw.slice(7, 10), 10);
-          const l_indo = parseInt(raw.slice(10, 13), 10);
-          const potongan = parseInt(raw.slice(13, 16), 10);
-          const persegi = (p_indo * l_indo * potongan) / 10000;
-          return {
-            jenisBarcode: "Barcode 2",
-            panjang: p_indo,
-            lebar: l_indo,
-            potongan: potongan,
-            persegi: persegi.toFixed(2),
-            golongan: gol_str || "018553",
-          };
-        }
-
-        if (raw.length === 28 || raw.length === 29) {
-          if (raw.startsWith("1111")) {
+          // Jika formatnya 28/29 Digit Serial ID (Seperti foto baru Barcode 2 & 3)
+          // Karena ukuran (305, 14, 24) dll HANYA DITULIS DI KERTAS LABEL namun TIDAK ADA di dalam garis barcode,
+          // Maka sistem akan memunculkan nomor barcode tersebut seutuhnya agar unik untuk tiap barang.
+          if (raw.length >= 25) {
+            let jenisnya = raw.startsWith("1111") ? "Barcode 3" : "Barcode 2";
             return {
-              jenisBarcode: "Barcode 3",
-              panjang: 280,
-              lebar: 15,
-              potongan: 24,
-              persegi: "10.08",
-              golongan: "FFP(11)",
+              jenisBarcode: jenisnya,
+              panjang: "-",
+              lebar: "-",
+              potongan: "-",
+              persegi: "-",
+              golongan: raw,
             };
           }
-          return {
-            jenisBarcode: "Barcode 2",
-            panjang: 305,
-            lebar: 14,
-            potongan: 24,
-            persegi: "10.25",
-            golongan: "10(3)",
-          };
         }
 
-        return null;
+        // Jika bukan angka murni, atau tidak sesuai format di atas, simpan apa adanya.
+        return {
+          jenisBarcode: "Barcode 3",
+          panjang: "-",
+          lebar: "-",
+          potongan: "-",
+          persegi: "-",
+          golongan: raw,
+        };
       }
 
       async function toggleScan() {
@@ -1278,12 +1253,12 @@
                 setTimeout(() => {
                   if (isScanning)
                     scanLoopFrame = requestAnimationFrame(detectLoop);
-                }, 10); // Turbo Loop 10ms
+                }, 10);
               };
               scanLoopFrame = requestAnimationFrame(detectLoop);
             } else {
               zxingReader = new ZXing.BrowserMultiFormatReader(getZXingHints());
-              zxingReader.timeBetweenDecodingAttempts = 10; // Turbo Loop 10ms
+              zxingReader.timeBetweenDecodingAttempts = 10;
               zxingReader.decodeFromStream(
                 stream,
                 "videoElement",
@@ -1311,7 +1286,7 @@
 
       function processBarcodeDetected(code, format) {
         const parsedData = parsePayloadToFields(code);
-        if (!parsedData) return; // Singkirkan data rusak/glitch
+        if (!parsedData) return;
 
         if (scannedCodesSet.has(code)) {
           const now = Date.now();
@@ -1331,6 +1306,26 @@
         }
         scannedCodesSet.add(code);
         simpanData(code, format, parsedData);
+      }
+
+      async function toggleTorch() {
+        const btnTorch = document.getElementById("btnTorch");
+        if (!isScanning || !streamTrack)
+          return Toast.fire({ icon: "warning", title: "Mulai scan dulu!" });
+        try {
+          const capabilities = streamTrack.getCapabilities();
+          if (capabilities.torch) {
+            isTorchOn = !isTorchOn;
+            await streamTrack.applyConstraints({
+              advanced: [{ torch: isTorchOn }],
+            });
+            btnTorch.classList.toggle("active", isTorchOn);
+          } else {
+            Toast.fire({ icon: "error", title: "Senter tidak didukung" });
+          }
+        } catch (error) {
+          Toast.fire({ icon: "error", title: "Akses ditolak" });
+        }
       }
 
       function switchCamera() {
@@ -1466,6 +1461,13 @@
           renderDatabase();
       }
 
+      function formatTgl(tgl) {
+        if (!tgl || tgl === "-") return "-";
+        const p = tgl.split("-");
+        if (p.length === 3) return `${p[2]}/${p[1]}/${p[0].substring(2)}`;
+        return tgl;
+      }
+
       function createTableRows(dataArray, tableIdStr) {
         const tbody = document.getElementById(tableIdStr);
         tbody.innerHTML = "";
@@ -1476,9 +1478,9 @@
         dataArray.forEach((i, idx) => {
           const tr = document.createElement("tr");
           if (tableIdStr.includes("Db")) {
-            tr.innerHTML = `<td>${idx + 1}</td><td><span class="badge">${i.kode}</span></td><td><b>${i.golongan}</b></td><td>${i.panjang}</td><td>${i.lebar}</td><td>${i.potongan}</td><td>${i.persegi}</td><td>${formatTgl(i.tanggal)}</td><td>${i.jam.substring(0, 5)}</td><td><button class="btn-del" onclick="hapus(${i.id}, 'db')"><i class="fas fa-trash"></i></button></td>`;
+            tr.innerHTML = `<td>${idx + 1}</td><td><span class="badge">${i.kode.substring(0, 10)}...</span></td><td><b>${i.golongan}</b></td><td>${i.panjang}</td><td>${i.lebar}</td><td>${i.potongan}</td><td>${i.persegi}</td><td>${formatTgl(i.tanggal)}</td><td>${i.jam.substring(0, 5)}</td><td><button class="btn-del" onclick="hapus(${i.id}, 'db')"><i class="fas fa-trash"></i></button></td>`;
           } else {
-            tr.innerHTML = `<td>${idx + 1}</td><td><span class="badge">${i.kode}</span></td><td><b>${i.golongan}</b></td><td>${i.panjang}</td><td>${i.lebar}</td><td>${i.potongan}</td><td>${i.persegi}</td><td>${i.jam.substring(0, 5)}</td><td><button class="btn-del" onclick="hapus(${i.id}, 'today')"><i class="fas fa-trash"></i></button></td>`;
+            tr.innerHTML = `<td>${idx + 1}</td><td><span class="badge">${i.kode.substring(0, 10)}...</span></td><td><b>${i.golongan}</b></td><td>${i.panjang}</td><td>${i.lebar}</td><td>${i.potongan}</td><td>${i.persegi}</td><td>${i.jam.substring(0, 5)}</td><td><button class="btn-del" onclick="hapus(${i.id}, 'today')"><i class="fas fa-trash"></i></button></td>`;
           }
           tbody.appendChild(tr);
         });
