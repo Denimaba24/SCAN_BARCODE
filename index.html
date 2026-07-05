@@ -59,12 +59,12 @@
       html {
         -webkit-text-size-adjust: 100%;
       }
+      /* Fitur Scrolling dibebaskan di sini */
       html,
       body {
         width: 100%;
         max-width: 100vw;
         overflow-x: hidden;
-        overscroll-behavior-y: none;
         background:
           radial-gradient(circle at 15% 50%, #1e1b4b, transparent 50%),
           radial-gradient(circle at 85% 30%, #312e81, transparent 50%),
@@ -434,24 +434,9 @@
         -webkit-overflow-scrolling: touch;
         border-radius: var(--radius-md);
         background: rgba(0, 0, 0, 0.2);
-        max-height: 350px;
-        overflow-y: auto;
         border: 1px solid var(--glass-border);
+        /* Hapus max-height agar tabel bebas memanjang ke bawah dan layar bisa digulir sempurna */
       }
-      /* Custom Scrollbar for tables */
-      .table-wrapper::-webkit-scrollbar {
-        width: 6px;
-        height: 6px;
-      }
-      .table-wrapper::-webkit-scrollbar-track {
-        background: rgba(0, 0, 0, 0.1);
-        border-radius: 10px;
-      }
-      .table-wrapper::-webkit-scrollbar-thumb {
-        background: rgba(255, 255, 255, 0.2);
-        border-radius: 10px;
-      }
-
       table {
         width: 100%;
         border-collapse: collapse;
@@ -571,7 +556,6 @@
         border: 1px solid rgba(255, 255, 255, 0.1);
       }
 
-      /* Warna Card Header Khusus */
       .hdr-b1 {
         color: #a78bfa !important;
       }
@@ -590,6 +574,20 @@
       .hdr-b3 i {
         background: rgba(244, 114, 182, 0.2);
       }
+
+      /* Animasi Pull to Refresh */
+      .pull-indicator {
+        text-align: center;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        padding: 10px;
+        opacity: 0;
+        transition: opacity 0.3s;
+        position: absolute;
+        top: 60px;
+        width: 100%;
+        z-index: 90;
+      }
     </style>
   </head>
   <body>
@@ -601,11 +599,16 @@
       <span class="engine-badge" id="engineBadge">SCANNER</span>
     </div>
 
+    <div class="pull-indicator" id="pullIndicator">
+      <i class="fas fa-arrow-down"></i> Lepas untuk memuat ulang...
+    </div>
+
     <div class="container">
       <div id="view-scan" class="view-page active">
         <div class="card">
           <div class="card-header">
-            <i class="fas fa-camera-viewfinder"></i> Pindai Barcode (1D Only)
+            <i class="fas fa-camera-viewfinder"></i> Pindai Barcode (Tarik ke
+            Bawah = Refresh)
           </div>
           <div class="scanner-wrapper">
             <div class="scanner-container" id="scannerBox">
@@ -849,8 +852,8 @@
               margin-bottom: 24px;
             "
           >
-            Sistem akan memisahkan data Barcode 1, 2, dan 3 ke dalam
-            Sheet/Lembar yang berbeda secara otomatis.
+            Data secara otomatis dipisah dalam sheet (Excel) atau diurutkan
+            berdasarkan jenis (PDF).
           </p>
           <label
             style="
@@ -965,6 +968,61 @@
         color: "#fff",
       });
 
+      // ---- FITUR PULL TO REFRESH (Tarik Layar Kebawah) ----
+      let touchStartY = 0;
+      const pullIndicator = document.getElementById("pullIndicator");
+
+      window.addEventListener(
+        "touchstart",
+        function (e) {
+          if (
+            document.getElementById("view-scan").classList.contains("active") &&
+            window.scrollY === 0
+          ) {
+            touchStartY = e.touches[0].clientY;
+          } else {
+            touchStartY = 0;
+          }
+        },
+        { passive: true },
+      );
+
+      window.addEventListener(
+        "touchmove",
+        function (e) {
+          if (
+            touchStartY > 0 &&
+            document.getElementById("view-scan").classList.contains("active")
+          ) {
+            let y = e.touches[0].clientY;
+            if (y - touchStartY > 80) {
+              pullIndicator.style.opacity = "1";
+            }
+            if (y - touchStartY > 160) {
+              touchStartY = 0; // Reset
+              pullIndicator.style.opacity = "0";
+              Swal.fire({
+                title: "Menyegarkan Kamera...",
+                timer: 1000,
+                background: "rgba(15, 23, 42, 0.95)",
+                color: "#fff",
+                didOpen: () => {
+                  Swal.showLoading();
+                },
+              }).then(() => {
+                location.reload();
+              });
+            }
+          }
+        },
+        { passive: true },
+      );
+
+      window.addEventListener("touchend", function () {
+        pullIndicator.style.opacity = "0";
+      });
+      // -----------------------------------------------------
+
       let lastCheckedDay = new Date().getDate();
       setInterval(() => {
         const currentDay = new Date().getDate();
@@ -1007,7 +1065,7 @@
       if (hasNativeScanner && !isIOS) {
         document.getElementById("engineBadge").innerText = "HW ACCEL";
         nativeDetector = new BarcodeDetector({
-          // SANGAT PENTING: qr_code DIBLOKIR agar tidak membaca kotak QR pada Barcode 2
+          // PEMBLOKIRAN TOTAL QR CODE: Fokus mutlak ke 1D Barcode!
           formats: [
             "code_128",
             "code_39",
@@ -1040,7 +1098,7 @@
                 ZXing.BarcodeFormat.EAN_8,
                 ZXing.BarcodeFormat.UPC_A,
                 ZXing.BarcodeFormat.ITF,
-                // QR_CODE, DATA_MATRIX, PDF417 TIDAK DIMASUKKAN
+                // QR Code dan 2D dihilangkan agar tidak salah baca
               ],
             ],
           ]);
@@ -1056,15 +1114,16 @@
       }
 
       // ==========================================
-      // LOGIKA PEMBACAAN DAN PEMISAHAN DATA BARCODE
+      // VALIDASI KETAT PEMISAHAN DATA BARCODE
       // ==========================================
       function parsePayloadToFields(text) {
         const raw = (text || "").trim();
         if (!raw) return null;
 
-        // --- TIPE BARCODE 1 ---
-        // Ciri: Diawali "86" dan panjang minimal 24 karakter
-        if (raw.startsWith("86") && raw.length >= 24) {
+        // --- BARCODE 1 (ATURAN KETAT) ---
+        // WAJIB dimulai dengan "86" DAN Panjang Karakter WAJIB 34 DIGIT.
+        // Jika hanya terbaca setengah (seperti masalah sebelumnya), sistem akan MENOLAKNYA.
+        if (raw.startsWith("86") && raw.length === 34) {
           try {
             const p_str = raw.slice(-4);
             const w_str = raw.slice(-9, -4);
@@ -1098,14 +1157,14 @@
           } catch (e) {}
         }
 
-        // --- TIPE BARCODE 2 ---
-        // Ciri: Berisi angka bersih dengan total persis 20 digit
+        // --- BARCODE 2 (ATURAN KETAT) ---
+        // WAJIB berupa angka murni dan WAJIB 20 DIGIT persis.
         if (raw.length === 20 && /^\d+$/.test(raw)) {
           try {
-            const golongan = raw.slice(0, 7).replace(/^0+/, ""); // Mengambil 7 digit awal sebagai golongan
-            const p_indo = parseInt(raw.slice(7, 10), 10); // Digit 8-10 (Panjang)
-            const l_indo = parseInt(raw.slice(10, 13), 10); // Digit 11-13 (Lebar)
-            const potongan = parseInt(raw.slice(13, 16), 10); // Digit 14-16 (Potongan)
+            const golongan = raw.slice(0, 7).replace(/^0+/, "");
+            const p_indo = parseInt(raw.slice(7, 10), 10);
+            const l_indo = parseInt(raw.slice(10, 13), 10);
+            const potongan = parseInt(raw.slice(13, 16), 10);
             const persegi = (p_indo * l_indo * potongan) / 10000;
 
             if (!isNaN(p_indo) && !isNaN(l_indo) && !isNaN(potongan)) {
@@ -1121,9 +1180,8 @@
           } catch (e) {}
         }
 
-        // --- TIPE BARCODE 3 ---
-        // Ciri: Barcode yang panjangnya 28 digit (atau default selain 1 & 2)
-        // Karena kode ini tidak memiliki partisi dimensi yang baku seperti barcode 1 & 2, kita simpan secara utuh.
+        // --- BARCODE 3 (ATURAN KETAT) ---
+        // WAJIB berupa angka murni dan WAJIB 28 DIGIT persis.
         if (raw.length === 28 && /^\d+$/.test(raw)) {
           return {
             jenisBarcode: "Barcode 3",
@@ -1135,15 +1193,9 @@
           };
         }
 
-        // --- JIKA TIDAK DIKENALI ---
-        return {
-          jenisBarcode: "Barcode 3",
-          panjang: "-",
-          lebar: "-",
-          potongan: "-",
-          persegi: "-",
-          golongan: raw,
-        };
+        // JIKA SCAN TIDAK MASUK KETIGA SYARAT DI ATAS -> SISTEM MENOLAK (RETURN NULL)
+        // Ini memastikan scan tidak ngawur menangkap teks asal.
+        return null;
       }
 
       async function toggleTorch() {
@@ -1209,8 +1261,13 @@
             btn.classList.add("stop");
             isScanning = true;
 
-            // Kamera Default Tanpa Pemaksaan (Agar tidak ZOOM di jarak dekat)
-            let constraints = { video: { facingMode: { ideal: currentCam } } };
+            let constraints = {
+              video: {
+                facingMode: { ideal: currentCam },
+                width: { ideal: 1280 },
+                height: { ideal: 720 },
+              },
+            };
 
             let stream;
             try {
@@ -1262,12 +1319,12 @@
                 setTimeout(() => {
                   if (isScanning)
                     scanLoopFrame = requestAnimationFrame(detectLoop);
-                }, 20);
+                }, 15);
               };
               scanLoopFrame = requestAnimationFrame(detectLoop);
             } else {
               zxingReader = new ZXing.BrowserMultiFormatReader(getZXingHints());
-              zxingReader.timeBetweenDecodingAttempts = 20;
+              zxingReader.timeBetweenDecodingAttempts = 15;
               zxingReader.decodeFromStream(
                 stream,
                 "videoElement",
@@ -1294,28 +1351,35 @@
       }
 
       function processBarcodeDetected(code, format) {
-        // SISTEM CEK BARCODE GANDA (DUPLIKAT)
+        // Uji kelayakan struktur kode menggunakan parser
+        const parsedData = parsePayloadToFields(code);
+
+        // JIKA KODE TIDAK LULUS SYARAT BARCODE 1, 2, atau 3 -> ABAIKAN TOTAL
+        if (!parsedData) return;
+
+        // JIKA KODE LULUS, CEK APAKAH SUDAH PERNAH DI-SCAN (DUPLIKAT/GANDA)
         if (scannedCodesSet.has(code)) {
           const now = Date.now();
-          if (now - lastErrorTime > 1500) {
+          if (now - lastErrorTime > 2000) {
             // Memberi jeda notif agar tidak spam
             triggerErrorFeedback();
             Swal.fire({
-              title: "DITOLAK!",
-              text: "Data barcode ini sudah pernah di-scan.",
+              title: "BARCODE DITOLAK!",
+              text: "Data ini sudah tersimpan di sistem sebelumnya.",
               icon: "error",
               background: "rgba(15, 23, 42, 0.95)",
               color: "#fff",
               confirmButtonColor: "var(--danger)",
+              timer: 3000,
             });
             lastErrorTime = now;
           }
           return;
         }
 
-        // Lolos Cek: Daftarkan dan Simpan
+        // Jika lolos kedua syarat di atas, simpan data!
         scannedCodesSet.add(code);
-        simpanData(code, format);
+        simpanData(code, format, parsedData);
       }
 
       function switchCamera() {
@@ -1391,7 +1455,16 @@
         const val = document.getElementById("manualData").value.trim();
         if (!val) return Toast.fire({ icon: "error", title: "Kode kosong!" });
 
-        // Cek Ganda Untuk Input Manual
+        const parsedData = parsePayloadToFields(val);
+        if (!parsedData) {
+          triggerErrorFeedback();
+          return Swal.fire({
+            title: "Format Salah!",
+            text: "Ketik sesuai format panjang Barcode 1 (34 Digit), Barcode 2 (20 Digit), atau Barcode 3 (28 Digit).",
+            icon: "warning",
+          });
+        }
+
         if (scannedCodesSet.has(val)) {
           triggerErrorFeedback();
           return Swal.fire(
@@ -1402,11 +1475,11 @@
         }
 
         scannedCodesSet.add(val);
-        simpanData(val, "MANUAL");
+        simpanData(val, "MANUAL", parsedData);
         document.getElementById("manualData").value = "";
       }
 
-      function simpanData(kode, barcodeFormat) {
+      function simpanData(kode, barcodeFormat, parsedData) {
         const nowDate = new Date();
         const nowMs = Date.now();
         const tglHariIni = new Date(
@@ -1414,20 +1487,19 @@
         )
           .toISOString()
           .split("T")[0];
-        const parsed = parsePayloadToFields(kode);
 
         const newData = {
           id: Date.now(),
           scannedAt: nowMs,
           kode: kode,
-          jenis: parsed?.jenisBarcode ?? "Barcode 3",
-          panjang: parsed?.panjang ?? "-",
-          lebar: parsed?.lebar ?? "-",
-          potongan: parsed?.potongan ?? "-",
-          persegi: parsed?.persegi ?? "-",
+          jenis: parsedData.jenisBarcode,
+          panjang: parsedData.panjang,
+          lebar: parsedData.lebar,
+          potongan: parsedData.potongan,
+          persegi: parsedData.persegi,
           tanggal: tglHariIni,
           jam: nowDate.toTimeString().split(" ")[0],
-          golongan: parsed?.golongan ?? "-",
+          golongan: parsedData.golongan,
           format: barcodeFormat,
         };
 
@@ -1437,7 +1509,7 @@
 
         Toast.fire({
           icon: "success",
-          title: `Berhasil! Masuk ke ${newData.jenis}`,
+          title: `Akurat! Masuk ke ${newData.jenis}`,
         });
 
         // Auto Render Layar Jika Sedang Terbuka
@@ -1492,7 +1564,7 @@
           .toISOString()
           .split("T")[0];
 
-        // Pisahkan Data ke 3 Tabel
+        // Memisah dan Memfilter Data Harian
         let b1 = allData
           .filter((i) => i.tanggal === hariIni && i.jenis === "Barcode 1")
           .sort((a, b) => b.scannedAt - a.scannedAt);
@@ -1525,7 +1597,7 @@
           return true;
         });
 
-        // Pisahkan Data ke 3 Tabel Database
+        // Memisah dan Memfilter Database
         let db1 = filtered
           .filter((i) => i.jenis === "Barcode 1")
           .sort((a, b) => b.scannedAt - a.scannedAt);
@@ -1557,7 +1629,7 @@
           if (res.isConfirmed) {
             allData = allData.filter((i) => i.id !== id);
             localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
-            scannedCodesSet.delete(itemTarget.kode); // Bebaskan dari set agar bisa di scan ulang jika butuh
+            scannedCodesSet.delete(itemTarget.kode); // Bebaskan data jika terhapus, agar bisa di-scan ulang.
             if (source === "today") {
               renderToday();
               renderDatabase();
@@ -1592,7 +1664,7 @@
         });
       }
 
-      // ==== FUNGSI EXPORT OTOMATIS MEMISAHKAN 3 SHEET ====
+      // ==== FUNGSI EXPORT OTOMATIS (MEMISAHKAN 3 SHEET) ====
       function downloadExcelHarian() {
         const nowDate = new Date();
         const hariIni = new Date(
@@ -1631,7 +1703,7 @@
               Jam: i.jam,
             }));
             const ws = XLSX.utils.json_to_sheet(dt);
-            XLSX.utils.book_append_sheet(wb, ws, type); // Nama Sheet Sesuai Jenis Barcode
+            XLSX.utils.book_append_sheet(wb, ws, type); // Nama Sheet Berdasarkan Tipe Barcode
           }
         });
         XLSX.writeFile(wb, `Export_SCM_${label}_${new Date().getTime()}.xlsx`);
