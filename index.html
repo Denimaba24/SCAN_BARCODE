@@ -76,7 +76,6 @@
       }
       body {
         min-height: 100vh;
-        min-height: 100dvh;
         display: flex;
         flex-direction: column;
       }
@@ -199,7 +198,6 @@
         width: 100%;
         flex: 1;
       }
-
       .card {
         background: var(--glass-bg);
         backdrop-filter: var(--glass-blur);
@@ -225,39 +223,6 @@
         border-radius: 8px;
       }
 
-      /* TABS STYLE */
-      .type-tabs {
-        display: flex;
-        gap: 8px;
-        margin-bottom: 16px;
-        overflow-x: auto;
-        padding-bottom: 4px;
-      }
-      .type-tabs::-webkit-scrollbar {
-        display: none;
-      }
-      .tab-btn {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid var(--glass-border);
-        color: var(--text-secondary);
-        padding: 10px 18px;
-        border-radius: 100px;
-        font-size: 0.85rem;
-        font-weight: 700;
-        cursor: pointer;
-        white-space: nowrap;
-        transition: all 0.3s;
-      }
-      .tab-btn:hover {
-        background: rgba(255, 255, 255, 0.1);
-      }
-      .tab-btn.active {
-        background: linear-gradient(135deg, var(--primary), var(--secondary));
-        color: white;
-        border-color: transparent;
-        box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
-      }
-
       .scanner-wrapper {
         position: relative;
         margin-bottom: 28px;
@@ -268,8 +233,8 @@
         border-radius: var(--radius-md);
         overflow: hidden;
         background-color: #000;
-        /* Diubah menjadi rasio kamera standar (4:3) agar pandangan natural */
-        aspect-ratio: 4 / 3;
+        /* Menggunakan rasio standar lensa kamera 4:3 (menghindari pemotongan digital/zoom) */
+        aspect-ratio: 3 / 4;
         max-height: 60vh;
         display: flex;
         align-items: center;
@@ -280,22 +245,23 @@
       #videoElement {
         width: 100%;
         height: 100%;
-        /* Rahasia utama: "contain" mencegah browser melakukan cropping zoom paksa */
+        /* Object Fit CONTAIN memastikan seluruh tangkapan kamera masuk frame tanpa di zoom/crop */
         object-fit: contain;
         display: none;
       }
+
+      /* Kotak targeting dilebarkan untuk barcode 2 dan 3 yang panjang */
       .targeting-box {
         position: absolute;
-        /* Kotak dilebarkan ke samping karena Barcode 2 dan 3 sangat panjang */
-        top: 25%;
+        top: 35%;
         left: 5%;
         right: 5%;
-        bottom: 25%;
-        border-radius: 20px;
+        bottom: 35%;
+        border-radius: 12px;
         display: none;
         pointer-events: none;
         z-index: 5;
-        box-shadow: 0 0 0 4000px rgba(0, 0, 0, 0.6);
+        box-shadow: 0 0 0 4000px rgba(0, 0, 0, 0.65);
       }
       .targeting-box::before,
       .targeting-box::after {
@@ -311,14 +277,15 @@
         top: -2px;
         left: -2px;
         border-width: 4px 0 0 4px;
-        border-top-left-radius: 16px;
+        border-top-left-radius: 12px;
       }
       .targeting-box::after {
         bottom: -2px;
         right: -2px;
         border-width: 0 4px 4px 0;
-        border-bottom-right-radius: 16px;
+        border-bottom-right-radius: 12px;
       }
+
       .laser-overlay {
         position: absolute;
         top: 50%;
@@ -339,7 +306,7 @@
       @keyframes scanAnim {
         0%,
         100% {
-          top: 25%;
+          top: 35%;
           opacity: 0;
         }
         10%,
@@ -347,7 +314,7 @@
           opacity: 1;
         }
         50% {
-          top: 75%;
+          top: 65%;
         }
       }
       .scanner-placeholder {
@@ -469,9 +436,8 @@
         -webkit-overflow-scrolling: touch;
         border-radius: var(--radius-md);
         background: rgba(0, 0, 0, 0.2);
-        max-height: 55vh;
+        max-height: 45vh;
         border: 1px solid var(--glass-border);
-        margin-top: 16px;
       }
       table {
         width: 100%;
@@ -590,6 +556,10 @@
         border-radius: var(--radius-lg);
         border: 1px solid rgba(255, 255, 255, 0.1);
       }
+
+      .section-gap {
+        margin-top: 24px;
+      }
     </style>
   </head>
   <body>
@@ -605,7 +575,8 @@
       <div id="view-scan" class="view-page active">
         <div class="card">
           <div class="card-header">
-            <i class="fas fa-camera-viewfinder"></i> Pindai Barcode (Jarak 10cm)
+            <i class="fas fa-camera-viewfinder"></i> Pindai Barcode (Jarak
+            Normal)
           </div>
           <div class="scanner-wrapper">
             <div class="scanner-container" id="scannerBox">
@@ -656,19 +627,8 @@
 
       <div id="view-session" class="view-page">
         <div class="card">
-          <div class="card-header">
-            <i class="fas fa-clipboard-list"></i> Data Scan Hari Ini
-          </div>
-          <div class="type-tabs">
-            <button class="tab-btn active" onclick="setTabToday('Barcode 1')">
-              Barcode 1
-            </button>
-            <button class="tab-btn" onclick="setTabToday('Barcode 2')">
-              Barcode 2
-            </button>
-            <button class="tab-btn" onclick="setTabToday('Barcode 3')">
-              Barcode 3
-            </button>
+          <div class="card-header" style="color: #a78bfa">
+            <i class="fas fa-list-ul"></i> Data Scan - Barcode 1
           </div>
           <div class="table-wrapper">
             <table>
@@ -685,7 +645,53 @@
                   <th>Aksi</th>
                 </tr>
               </thead>
-              <tbody id="tableToday"></tbody>
+              <tbody id="tableToday1"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card section-gap">
+          <div class="card-header" style="color: #60a5fa">
+            <i class="fas fa-list-ul"></i> Data Scan - Barcode 2
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>No</th>
+                  <th>Kode</th>
+                  <th>Golongan</th>
+                  <th>Panjang</th>
+                  <th>Lebar</th>
+                  <th>Potongan</th>
+                  <th>M²</th>
+                  <th>Jam</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tableToday2"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card section-gap">
+          <div class="card-header" style="color: #f472b6">
+            <i class="fas fa-list-ul"></i> Data Scan - Barcode 3
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>No</th>
+                  <th>Kode</th>
+                  <th>Golongan</th>
+                  <th>Panjang</th>
+                  <th>Lebar</th>
+                  <th>Potongan</th>
+                  <th>M²</th>
+                  <th>Jam</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tableToday3"></tbody>
             </table>
           </div>
         </div>
@@ -694,21 +700,7 @@
       <div id="view-database" class="view-page">
         <div class="card">
           <div class="card-header">
-            <i class="fas fa-database"></i> Master Database
-          </div>
-          <div class="type-tabs" style="margin-bottom: 20px">
-            <button class="tab-btn active" onclick="setTabDb('Barcode 1')">
-              Barcode 1
-            </button>
-            <button class="tab-btn" onclick="setTabDb('Barcode 2')">
-              Barcode 2
-            </button>
-            <button class="tab-btn" onclick="setTabDb('Barcode 3')">
-              Barcode 3
-            </button>
-            <button class="tab-btn" onclick="setTabDb('Semua')">
-              Semua Tipe
-            </button>
+            <i class="fas fa-database"></i> Master Filter Database
           </div>
           <div class="filter-grid">
             <div class="input-group">
@@ -740,6 +732,11 @@
               onkeyup="renderDatabase()"
             />
           </div>
+        </div>
+        <div class="card section-gap">
+          <div class="card-header" style="color: #a78bfa">
+            <i class="fas fa-archive"></i> Database Barcode 1
+          </div>
           <div class="table-wrapper">
             <table>
               <thead>
@@ -756,7 +753,55 @@
                   <th>Aksi</th>
                 </tr>
               </thead>
-              <tbody id="tableAll"></tbody>
+              <tbody id="tableDb1"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card section-gap">
+          <div class="card-header" style="color: #60a5fa">
+            <i class="fas fa-archive"></i> Database Barcode 2
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>No</th>
+                  <th>Kode</th>
+                  <th>Golongan</th>
+                  <th>Panjang</th>
+                  <th>Lebar</th>
+                  <th>Potongan</th>
+                  <th>M²</th>
+                  <th>Tgl</th>
+                  <th>Jam</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tableDb2"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card section-gap">
+          <div class="card-header" style="color: #f472b6">
+            <i class="fas fa-archive"></i> Database Barcode 3
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>No</th>
+                  <th>Kode</th>
+                  <th>Golongan</th>
+                  <th>Panjang</th>
+                  <th>Lebar</th>
+                  <th>Potongan</th>
+                  <th>M²</th>
+                  <th>Tgl</th>
+                  <th>Jam</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tableDb3"></tbody>
             </table>
           </div>
         </div>
@@ -774,8 +819,8 @@
               margin-bottom: 24px;
             "
           >
-            Sistem otomatis memisahkan data ke dalam sheet/lembar berbeda (Excel
-            & PDF).
+            Sistem akan memisahkan data Barcode 1, 2, dan 3 ke dalam
+            Sheet/Lembar yang berbeda secara otomatis (Khusus Excel).
           </p>
           <label
             style="
@@ -879,9 +924,6 @@
       let scanLoopFrame = null;
       let audioCtx = null;
 
-      let activeTabToday = "Barcode 1";
-      let activeTabDb = "Barcode 1";
-
       const video = document.getElementById("videoElement");
       const Toast = Swal.mixin({
         toast: true,
@@ -891,22 +933,6 @@
         background: "rgba(15, 23, 42, 0.9)",
         color: "#fff",
       });
-
-      function setTabToday(type) {
-        activeTabToday = type;
-        const tabs = document.querySelectorAll("#view-session .tab-btn");
-        tabs.forEach((t) => t.classList.remove("active"));
-        event.target.classList.add("active");
-        renderToday();
-      }
-
-      function setTabDb(type) {
-        activeTabDb = type;
-        const tabs = document.querySelectorAll("#view-database .tab-btn");
-        tabs.forEach((t) => t.classList.remove("active"));
-        event.target.classList.add("active");
-        renderDatabase();
-      }
 
       let lastCheckedDay = new Date().getDate();
       setInterval(() => {
@@ -950,6 +976,7 @@
       if (hasNativeScanner && !isIOS) {
         document.getElementById("engineBadge").innerText = "HW ACCEL";
         nativeDetector = new BarcodeDetector({
+          // BLOKIR QR CODE, fokus murni ke 1D Barcode
           formats: [
             "code_128",
             "code_39",
@@ -960,9 +987,6 @@
             "upc_e",
             "itf",
             "codabar",
-            "qr_code",
-            "data_matrix",
-            "pdf417",
           ],
         });
       } else {
@@ -985,8 +1009,7 @@
                 ZXing.BarcodeFormat.EAN_8,
                 ZXing.BarcodeFormat.UPC_A,
                 ZXing.BarcodeFormat.ITF,
-                ZXing.BarcodeFormat.QR_CODE,
-                ZXing.BarcodeFormat.DATA_MATRIX,
+                // QR_CODE, DATA_MATRIX, PDF417 DIBLOKIR AGAR FOKUS KE 1D
               ],
             ],
           ]);
@@ -1039,7 +1062,8 @@
           } catch (e) {}
         }
 
-        // --- BARCODE 2 --- (Panjang tepat 20 Digit murni angka)
+        // --- BARCODE 2 --- (Panjang tepat 20 Digit angka bersih)
+        // Gambar 20 Digit: 00185532300120240002 -> Panjang 230, Lebar 12, Pot 24. Math = (230*12*24)/10000 = 6.62
         if (raw.length === 20 && /^\d+$/.test(raw)) {
           try {
             const golongan = raw.slice(0, 7).replace(/^0+/, "");
@@ -1060,9 +1084,7 @@
           } catch (e) {}
         }
 
-        // --- BARCODE 3 --- (Panjang tepat 28 Digit murni angka, seperti gambar)
-        // Catatan: Barcode 3 strukturnya digabung (tidak ada spasi pemisah standar)
-        // Maka data asli dipertahankan penuh dalam kolom golongan
+        // --- BARCODE 3 --- (Umumnya panjangnya 28 Digit seperti digambar)
         if (raw.length === 28 && /^\d+$/.test(raw)) {
           return {
             jenisBarcode: "Barcode 3",
@@ -1074,7 +1096,7 @@
           };
         }
 
-        // Fallback default jika scan menyimpang
+        // --- FALLBACK (Kondisi Gagal)
         return {
           jenisBarcode: "Barcode 3",
           panjang: "-",
@@ -1148,15 +1170,8 @@
             btn.classList.add("stop");
             isScanning = true;
 
-            // RESOLUSI HD (1280x720): Sangat cepat diproses, tajam untuk jarak 10cm.
-            // Tidak membuat HP ngelag atau patah-patah saat mendeteksi.
-            let constraints = {
-              video: {
-                facingMode: { ideal: currentCam },
-                width: { ideal: 1280 },
-                height: { ideal: 720 },
-              },
-            };
+            // MENGHAPUS PAKSAAN RESOLUSI: Agar browser memanggil lensa utama tanpa di-zoom secara digital.
+            let constraints = { video: { facingMode: { ideal: currentCam } } };
 
             let stream;
             try {
@@ -1172,6 +1187,22 @@
             video.setAttribute("playsinline", "");
             video.srcObject = stream;
             streamTrack = stream.getVideoTracks()[0];
+
+            try {
+              const capabilities = streamTrack.getCapabilities();
+              let advancedConstraints = [];
+              if (
+                capabilities.focusMode &&
+                capabilities.focusMode.includes("continuous")
+              ) {
+                advancedConstraints.push({ focusMode: "continuous" });
+              }
+              if (advancedConstraints.length > 0) {
+                await streamTrack.applyConstraints({
+                  advanced: advancedConstraints,
+                });
+              }
+            } catch (err) {}
 
             await new Promise((resolve) => {
               video.onloadedmetadata = () => resolve();
@@ -1192,12 +1223,12 @@
                 setTimeout(() => {
                   if (isScanning)
                     scanLoopFrame = requestAnimationFrame(detectLoop);
-                }, 20); // Sangat cepat (20ms)
+                }, 20);
               };
               scanLoopFrame = requestAnimationFrame(detectLoop);
             } else {
               zxingReader = new ZXing.BrowserMultiFormatReader(getZXingHints());
-              zxingReader.timeBetweenDecodingAttempts = 20; // Sangat cepat (20ms)
+              zxingReader.timeBetweenDecodingAttempts = 20;
               zxingReader.decodeFromStream(
                 stream,
                 "videoElement",
@@ -1215,7 +1246,7 @@
           } catch (err) {
             Swal.fire(
               "Kamera Gagal",
-              "Izin kamera belum diberikan atau browser tidak mendukung fitur ini.",
+              "Izin kamera belum diberikan atau browser tidak mendukung.",
               "error",
             );
             if (isScanning) toggleScan();
@@ -1349,15 +1380,15 @@
 
         Toast.fire({ icon: "success", title: `Disimpan ke ${newData.jenis}` });
 
+        // Render Ulang secara real-time
         if (
           document.getElementById("view-session").classList.contains("active")
-        ) {
-          setTabToday(newData.jenis);
-        } else if (
+        )
+          renderToday();
+        if (
           document.getElementById("view-database").classList.contains("active")
-        ) {
-          setTabDb(newData.jenis);
-        }
+        )
+          renderDatabase();
       }
 
       function formatTgl(tgl) {
@@ -1367,8 +1398,31 @@
         return tgl;
       }
 
+      // Fungsi Untuk Menggambar ke HTML Tabel 1, 2, dan 3
+      function renderTabelKeHtml(filterData, tableId) {
+        const tbody = document.getElementById(tableId);
+        tbody.innerHTML = "";
+        if (filterData.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 30px; color: var(--text-muted);">Belum ada data scan</td></tr>`;
+          return;
+        }
+        filterData.forEach((i, idx) => {
+          const tr = document.createElement("tr");
+          // Jika Database page ada kolom tgl
+          if (tableId.includes("Db")) {
+            tr.innerHTML = `<td>${idx + 1}</td><td><span class="badge">${i.kode}</span></td><td><b>${i.golongan}</b></td>
+              <td>${i.panjang}</td><td>${i.lebar}</td><td>${i.potongan}</td><td>${i.persegi}</td><td>${formatTgl(i.tanggal)}</td><td>${i.jam.substring(0, 5)}</td>
+              <td><button class="btn-del" onclick="hapus(${i.id}, 'db')"><i class="fas fa-trash"></i></button></td>`;
+          } else {
+            tr.innerHTML = `<td>${idx + 1}</td><td><span class="badge">${i.kode}</span></td><td><b>${i.golongan}</b></td>
+              <td>${i.panjang}</td><td>${i.lebar}</td><td>${i.potongan}</td><td>${i.persegi}</td><td>${i.jam.substring(0, 5)}</td>
+              <td><button class="btn-del" onclick="hapus(${i.id}, 'today')"><i class="fas fa-trash"></i></button></td>`;
+          }
+          tbody.appendChild(tr);
+        });
+      }
+
       function renderToday() {
-        const tbody = document.getElementById("tableToday");
         const nowDate = new Date();
         const hariIni = new Date(
           nowDate.getTime() - nowDate.getTimezoneOffset() * 60000,
@@ -1376,38 +1430,27 @@
           .toISOString()
           .split("T")[0];
 
-        let fData = allData.filter(
-          (i) =>
-            i.tanggal === hariIni &&
-            (i.jenis || "Barcode 3") === activeTabToday,
-        );
-        fData.sort((a, b) => (b.scannedAt || 0) - (a.scannedAt || 0));
-        tbody.innerHTML = "";
-        if (fData.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 40px; color: var(--text-muted);">Belum ada data <b>${activeTabToday}</b> hari ini</td></tr>`;
-          return;
-        }
-        fData.forEach((i, idx) => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `<td>${idx + 1}</td><td><span class="badge">${i.kode}</span></td><td><b>${i.golongan}</b></td>
-            <td>${i.panjang}</td><td>${i.lebar}</td><td>${i.potongan}</td><td>${i.persegi}</td><td>${i.jam.substring(0, 5)}</td>
-            <td><button class="btn-del" onclick="hapus(${i.id}, 'today')"><i class="fas fa-trash"></i></button></td>`;
-          tbody.appendChild(tr);
-        });
+        let fData1 = allData
+          .filter((i) => i.tanggal === hariIni && i.jenis === "Barcode 1")
+          .sort((a, b) => b.scannedAt - a.scannedAt);
+        let fData2 = allData
+          .filter((i) => i.tanggal === hariIni && i.jenis === "Barcode 2")
+          .sort((a, b) => b.scannedAt - a.scannedAt);
+        let fData3 = allData
+          .filter((i) => i.tanggal === hariIni && i.jenis === "Barcode 3")
+          .sort((a, b) => b.scannedAt - a.scannedAt);
+
+        renderTabelKeHtml(fData1, "tableToday1");
+        renderTabelKeHtml(fData2, "tableToday2");
+        renderTabelKeHtml(fData3, "tableToday3");
       }
 
       function renderDatabase() {
-        const tbody = document.getElementById("tableAll");
         const start = document.getElementById("start").value;
         const end = document.getElementById("end").value;
         const search = document.getElementById("search").value.toLowerCase();
 
-        let fData = allData.filter((i) => {
-          if (
-            activeTabDb !== "Semua" &&
-            (i.jenis || "Barcode 3") !== activeTabDb
-          )
-            return false;
+        let baseData = allData.filter((i) => {
           if (start && i.tanggal < start) return false;
           if (end && i.tanggal > end) return false;
           if (
@@ -1419,20 +1462,19 @@
           return true;
         });
 
-        fData.sort((a, b) => (b.scannedAt || 0) - (a.scannedAt || 0));
-        tbody.innerHTML = "";
-        if (fData.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding: 40px; color: var(--text-muted);">Database kosong / data tidak ditemukan</td></tr>`;
-          return;
-        }
-        fData.forEach((i, idx) => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `<td>${idx + 1}</td><td><span class="badge">${i.kode}</span></td><td><b>${i.golongan}</b></td>
-            <td>${i.panjang}</td><td>${i.lebar}</td><td>${i.potongan}</td><td>${i.persegi}</td>
-            <td>${formatTgl(i.tanggal)}</td><td>${i.jam.substring(0, 5)}</td>
-            <td><button class="btn-del" onclick="hapus(${i.id}, 'db')"><i class="fas fa-trash"></i></button></td>`;
-          tbody.appendChild(tr);
-        });
+        let fData1 = baseData
+          .filter((i) => i.jenis === "Barcode 1")
+          .sort((a, b) => b.scannedAt - a.scannedAt);
+        let fData2 = baseData
+          .filter((i) => i.jenis === "Barcode 2")
+          .sort((a, b) => b.scannedAt - a.scannedAt);
+        let fData3 = baseData
+          .filter((i) => i.jenis === "Barcode 3")
+          .sort((a, b) => b.scannedAt - a.scannedAt);
+
+        renderTabelKeHtml(fData1, "tableDb1");
+        renderTabelKeHtml(fData2, "tableDb2");
+        renderTabelKeHtml(fData3, "tableDb3");
       }
 
       function hapus(id, source) {
