@@ -774,7 +774,7 @@
             "
           >
             Sistem secara otomatis akan memisahkan Barcode 1, 2, dan 3 ke dalam
-            Sheet berbeda (untuk Excel) dan mengurutkannya (untuk PDF).
+            Sheet berbeda (untuk Excel).
           </p>
 
           <label
@@ -1009,13 +1009,14 @@
       }
 
       // ==========================================
-      // INI ADALAH LOGIKA PARSER UTAMA (BARCODE 1, 2, 3)
+      // LOGIKA PARSER (MEMBEDAKAN BARCODE 1, 2, 3)
       // ==========================================
       function parsePayloadToFields(text) {
         const raw = (text || "").trim();
         if (!raw) return null;
 
-        // TYPE 1: Awalan 86 dan panjang >= 24 (Sistem Lama)
+        // --- BARCODE 1 ---
+        // Deteksi: Awalan 86 dan panjang minimal 24
         if (raw.startsWith("86") && raw.length >= 24) {
           try {
             const p_str = raw.slice(-4);
@@ -1049,14 +1050,14 @@
           } catch (e) {}
         }
 
-        // TYPE 2: Berdasarkan Gambar Barcode 2 (20 Digit angka bersih)
-        // Contoh: 00185532300120240002 -> Gol: 0018553, Panjang: 230, Lebar: 12, Pot: 24
-        if (raw.length === 20) {
+        // --- BARCODE 2 ---
+        // Deteksi: Hanya angka dan panjang tepat 20 digit (Contoh: 00185532300120240002)
+        if (raw.length === 20 && /^\d+$/.test(raw)) {
           try {
             const golongan = raw.slice(0, 7).replace(/^0+/, "");
-            const p_indo = parseInt(raw.slice(7, 10), 10); // 230
-            const l_indo = parseInt(raw.slice(10, 13), 10); // 12
-            const potongan = parseInt(raw.slice(13, 16), 10); // 24
+            const p_indo = parseInt(raw.slice(7, 10), 10);
+            const l_indo = parseInt(raw.slice(10, 13), 10);
+            const potongan = parseInt(raw.slice(13, 16), 10);
             const persegi = (p_indo * l_indo * potongan) / 10000;
 
             if (!isNaN(p_indo) && !isNaN(l_indo) && !isNaN(potongan)) {
@@ -1072,22 +1073,11 @@
           } catch (e) {}
         }
 
-        // TYPE 3: Berdasarkan Gambar Barcode 3 (28 Digit angka bersih)
-        // Jika pattern posisi presisi tidak dapat ditentukan murni, simpan sebagai Barcode 3 raw (User friendly)
-        if (raw.length === 28) {
-          return {
-            jenisBarcode: "Barcode 3",
-            panjang: "-",
-            lebar: "-",
-            potongan: "-",
-            persegi: "-",
-            golongan: raw,
-          };
-        }
-
-        // Jika tidak masuk ke kondisi apapun (Fallback/Lainnya)
+        // --- BARCODE 3 (DEFAULT/FALLBACK) ---
+        // Jika tidak masuk ke kondisi Barcode 1 maupun 2, sistem otomatis memasukannya ke Barcode 3.
+        // Data angka utuhnya disimpan di kolom Golongan agar tidak ada data yang hilang.
         return {
-          jenisBarcode: "Lainnya",
+          jenisBarcode: "Barcode 3",
           panjang: "-",
           lebar: "-",
           potongan: "-",
@@ -1181,25 +1171,22 @@
             video.srcObject = stream;
             streamTrack = stream.getVideoTracks()[0];
 
+            // PENGATURAN KAMERA YANG DIKEMBALIKAN (TANPA ZOOM)
             try {
               const capabilities = streamTrack.getCapabilities();
               let advancedConstraints = [];
               if (
                 capabilities.focusMode &&
                 capabilities.focusMode.includes("continuous")
-              )
+              ) {
                 advancedConstraints.push({ focusMode: "continuous" });
-              if (capabilities.zoom) {
-                const targetZoom = Math.min(
-                  capabilities.zoom.max || 2,
-                  Math.max(capabilities.zoom.min || 1, 1.7),
-                );
-                advancedConstraints.push({ zoom: targetZoom });
               }
-              if (advancedConstraints.length > 0)
+              // Blok Zoom sengaja dihapus agar tidak nge-blur / terlalu dekat
+              if (advancedConstraints.length > 0) {
                 await streamTrack.applyConstraints({
                   advanced: advancedConstraints,
                 });
+              }
             } catch (err) {}
 
             await new Promise((resolve) => {
@@ -1361,7 +1348,7 @@
           id: Date.now(),
           scannedAt: nowMs,
           kode: kode,
-          jenis: parsed?.jenisBarcode ?? "Lainnya", // Simpan status tipe (Barcode 1, 2, atau 3)
+          jenis: parsed?.jenisBarcode ?? "Barcode 3",
           panjang: parsed?.panjang ?? "-",
           lebar: parsed?.lebar ?? "-",
           potongan: parsed?.potongan ?? "-",
@@ -1381,11 +1368,15 @@
           title: `Masuk di Daftar ${newData.jenis}`,
         });
 
-        // Pindah ke tab otomatis jika tab saat ini sedang aktif
+        // Pindah ke tab otomatis
         if (
           document.getElementById("view-session").classList.contains("active")
         ) {
           setTabToday(newData.jenis);
+        } else if (
+          document.getElementById("view-database").classList.contains("active")
+        ) {
+          setTabDb(newData.jenis);
         }
       }
 
@@ -1405,9 +1396,10 @@
           .toISOString()
           .split("T")[0];
 
-        // Filter hari ini dan berdasarkan jenis tab yang sedang aktif
         let fData = allData.filter(
-          (i) => i.tanggal === hariIni && i.jenis === activeTabToday,
+          (i) =>
+            i.tanggal === hariIni &&
+            (i.jenis || "Barcode 3") === activeTabToday,
         );
         fData.sort((a, b) => (b.scannedAt || 0) - (a.scannedAt || 0));
         tbody.innerHTML = "";
@@ -1433,12 +1425,13 @@
         const search = document.getElementById("search").value.toLowerCase();
 
         let fData = allData.filter((i) => {
-          // Filter Jenis
-          if (activeTabDb !== "Semua" && i.jenis !== activeTabDb) return false;
-          // Filter Tanggal
+          if (
+            activeTabDb !== "Semua" &&
+            (i.jenis || "Barcode 3") !== activeTabDb
+          )
+            return false;
           if (start && i.tanggal < start) return false;
           if (end && i.tanggal > end) return false;
-          // Filter Search
           if (
             search &&
             !i.kode.toLowerCase().includes(search) &&
@@ -1540,12 +1533,11 @@
 
       function exportToExcel(dataArray, label) {
         const wb = XLSX.utils.book_new();
-        const types = ["Barcode 1", "Barcode 2", "Barcode 3", "Lainnya"];
+        const types = ["Barcode 1", "Barcode 2", "Barcode 3"];
 
-        // Buat sheet per kategori Barcode
         types.forEach((type) => {
           const typeData = dataArray.filter(
-            (i) => (i.jenis || "Lainnya") === type,
+            (i) => (i.jenis || "Barcode 3") === type,
           );
           if (typeData.length > 0) {
             typeData.sort((a, b) => (a.scannedAt || 0) - (b.scannedAt || 0));
@@ -1567,7 +1559,7 @@
         XLSX.writeFile(wb, `Export_SCM_${label}_${new Date().getTime()}.xlsx`);
       }
 
-      // ==== FUNGSI EXPORT PDF (Dengan Tambahan Kolom Jenis) ====
+      // ==== FUNGSI EXPORT PDF ====
       function downloadPDFHarian() {
         const nowDate = new Date();
         const hariIni = new Date(
@@ -1609,11 +1601,11 @@
         ];
         const tableRows = [];
         dataArray
-          .sort((a, b) => (a.jenis || "").localeCompare(b.jenis || "")) // Urutkan berdasarkan jenis
+          .sort((a, b) => (a.jenis || "").localeCompare(b.jenis || ""))
           .forEach((i, idx) => {
             tableRows.push([
               idx + 1,
-              i.jenis || "-",
+              i.jenis || "Barcode 3",
               i.kode,
               i.golongan,
               i.panjang,
