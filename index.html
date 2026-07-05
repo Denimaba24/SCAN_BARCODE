@@ -59,7 +59,7 @@
         -webkit-text-size-adjust: 100%;
       }
 
-      /* Mengizinkan Scroll Bebas ke Bawah */
+      /* GULIR LAYAR SEPENUHNYA BEBAS */
       html,
       body {
         width: 100%;
@@ -230,6 +230,7 @@
         align-items: center;
         justify-content: center;
         border: 2px solid rgba(139, 92, 246, 0.3);
+        box-shadow: 0 0 30px rgba(139, 92, 246, 0.15);
       }
       #videoElement {
         width: 100%;
@@ -551,7 +552,6 @@
         background: rgba(244, 114, 182, 0.2);
       }
 
-      /* Animasi Pull to Refresh */
       .pull-indicator {
         text-align: center;
         color: var(--text-secondary);
@@ -584,7 +584,7 @@
       <div id="view-scan" class="view-page active">
         <div class="card">
           <div class="card-header">
-            <i class="fas fa-camera-viewfinder"></i> PINDAI BARCODE
+            <i class="fas fa-camera-viewfinder"></i> AYO SCAN AJA
           </div>
           <div class="scanner-wrapper">
             <div class="scanner-container" id="scannerBox">
@@ -942,7 +942,6 @@
         color: "#fff",
       });
 
-      // ---- FITUR PULL TO REFRESH ----
       let touchStartY = 0;
       const pullIndicator = document.getElementById("pullIndicator");
 
@@ -1017,7 +1016,6 @@
       let nativeDetector = null;
       let zxingReader = null;
 
-      // KUNCIAN FORMAT DILEBARKAN UNTUK MEMBACA SEGALA JENIS BARCODE 1D INDUSTRI
       if (hasNativeScanner && !isIOS) {
         document.getElementById("engineBadge").innerText = "HW ACCEL";
         nativeDetector = new BarcodeDetector({
@@ -1065,16 +1063,37 @@
         if (audioCtx.state === "suspended") audioCtx.resume();
       }
 
-      // ==========================================
-      // LOGIKA DINAMIS EKSTRAKSI DATA BARCODE
-      // Sistem membaca MURNI apa yang ada di dalam Barcode
-      // ==========================================
-      function parsePayloadToFields(text) {
-        const raw = (text || "").trim();
-        if (!raw) return null;
+      const DEFAULT_MASTER = {
+        "1593103505404312800401050003": {
+          jenisBarcode: "Barcode 2",
+          panjang: 305,
+          lebar: 14,
+          potongan: 24,
+          persegi: "10.25",
+          golongan: "10(3)",
+        },
+        "11111916000503202881401070011": {
+          jenisBarcode: "Barcode 3",
+          panjang: 280,
+          lebar: 15,
+          potongan: 24,
+          persegi: "10.08",
+          golongan: "FFP(11)",
+        },
+        "1111808100304302201401090009": {
+          jenisBarcode: "Barcode 3",
+          panjang: 300,
+          lebar: 13,
+          potongan: 24,
+          persegi: "9.36",
+          golongan: "FFP",
+        },
+      };
 
-        // 1. MENGURAI BARCODE 1 DENGAN SANGAT RESPONSIF
-        // Mengekstrak 16 digit terakhir untuk mendapatkan Panjang, Lebar, dan Potongan
+      let masterDB = JSON.parse(localStorage.getItem("SCMMasterDB")) || {};
+      masterDB = { ...DEFAULT_MASTER, ...masterDB };
+
+      function parseBarcode1(raw) {
         if (raw.startsWith("86") && raw.length >= 24) {
           try {
             const p_str = raw.slice(-4);
@@ -1083,14 +1102,15 @@
             const ext_str = raw.slice(-16, -12);
             const prefix = raw.slice(2, -16);
 
-            let golongan = prefix.replace(/^0+/, "") || "-";
+            let golongan = prefix.replace(/^0+/, "");
+            if (!golongan) golongan = "-";
 
             const p_indo = parseInt(l_str, 10);
             const l_indo = parseInt(w_str, 10) / 10;
             const potongan = parseInt(p_str, 10);
             const persegi = (p_indo * l_indo * potongan) / 10000;
-            const extNum = parseInt(ext_str, 10);
 
+            const extNum = parseInt(ext_str, 10);
             const golonganDisplay = !isNaN(extNum)
               ? `${golongan} (${extNum.toString().padStart(3, "0")})`
               : golongan;
@@ -1107,54 +1127,132 @@
             }
           } catch (e) {}
         }
+        return null;
+      }
 
-        // 2. MENGURAI BARCODE 2 & 3 SECARA DINAMIS
-        // Mengekstrak data berdasakan struktur 20 digit atau mengamankan kode serial 28/29 digit
-        if (/^\d+$/.test(raw)) {
-          // Jika formatnya 20 Digit (Seperti contoh Barcode 2 lama: 00185532300120240002)
-          if (raw.length === 20) {
-            const gol_str = raw.slice(0, 7).replace(/^0+/, "");
-            const p_indo = parseInt(raw.slice(7, 10), 10);
-            const l_indo = parseInt(raw.slice(10, 13), 10);
-            const potongan = parseInt(raw.slice(13, 16), 10);
-            const persegi = (p_indo * l_indo * potongan) / 10000;
-            if (!isNaN(p_indo) && !isNaN(l_indo) && !isNaN(potongan)) {
-              return {
-                jenisBarcode: "Barcode 2",
-                panjang: p_indo,
-                lebar: l_indo,
-                potongan: potongan,
-                persegi: persegi.toFixed(2),
-                golongan: gol_str || "018553",
-              };
-            }
-          }
-
-          // Jika formatnya 28/29 Digit Serial ID (Seperti foto baru Barcode 2 & 3)
-          // Karena ukuran (305, 14, 24) dll HANYA DITULIS DI KERTAS LABEL namun TIDAK ADA di dalam garis barcode,
-          // Maka sistem akan memunculkan nomor barcode tersebut seutuhnya agar unik untuk tiap barang.
-          if (raw.length >= 25) {
-            let jenisnya = raw.startsWith("1111") ? "Barcode 3" : "Barcode 2";
+      function parseBarcode20Digit(raw) {
+        if (raw.length === 20 && /^\d+$/.test(raw)) {
+          const gol_str = raw.slice(0, 7).replace(/^0+/, "");
+          const p_indo = parseInt(raw.slice(7, 10), 10);
+          const l_indo = parseInt(raw.slice(10, 13), 10);
+          const potongan = parseInt(raw.slice(13, 16), 10);
+          const persegi = (p_indo * l_indo * potongan) / 10000;
+          if (!isNaN(p_indo) && !isNaN(l_indo) && !isNaN(potongan)) {
             return {
-              jenisBarcode: jenisnya,
-              panjang: "-",
-              lebar: "-",
-              potongan: "-",
-              persegi: "-",
-              golongan: raw,
+              jenisBarcode: "Barcode 2",
+              panjang: p_indo,
+              lebar: l_indo,
+              potongan: potongan,
+              persegi: persegi.toFixed(2),
+              golongan: gol_str || raw.slice(0, 7),
             };
           }
         }
+        return null;
+      }
 
-        // Jika bukan angka murni, atau tidak sesuai format di atas, simpan apa adanya.
-        return {
-          jenisBarcode: "Barcode 3",
-          panjang: "-",
-          lebar: "-",
-          potongan: "-",
-          persegi: "-",
-          golongan: raw,
-        };
+      function processBarcodeDetected(code, format) {
+        if (scannedCodesSet.has(code)) {
+          const now = Date.now();
+          if (now - lastErrorTime > 2000) {
+            triggerErrorFeedback();
+            Swal.fire({
+              title: "DITOLAK!",
+              text: "Barcode ini sudah pernah di-scan.",
+              icon: "error",
+              background: "rgba(15, 23, 42, 0.95)",
+              color: "#fff",
+              confirmButtonColor: "var(--danger)",
+            });
+            lastErrorTime = now;
+          }
+          return;
+        }
+
+        let b1Data = parseBarcode1(code);
+        if (b1Data) {
+          scannedCodesSet.add(code);
+          simpanData(code, format, b1Data);
+          return;
+        }
+
+        let b2Lama = parseBarcode20Digit(code);
+        if (b2Lama) {
+          scannedCodesSet.add(code);
+          simpanData(code, format, b2Lama);
+          return;
+        }
+
+        if (masterDB[code]) {
+          scannedCodesSet.add(code);
+          simpanData(code, format, masterDB[code]);
+          return;
+        }
+
+        if (code.length >= 15) {
+          promptNewMasterData(code, format);
+        }
+      }
+
+      function promptNewMasterData(code, format) {
+        if (isScanning) toggleScan();
+
+        Swal.fire({
+          title: "Master Data Baru!",
+          html: `
+            <div style="font-size:0.85rem; color:#a78bfa; margin-bottom:15px; text-align:left;">Sistem mendeteksi Nomor Barcode yang belum dikenali:<br><b style="color:white; font-size:1rem;">${code}</b><br><br>Silakan masukkan dimensinya 1x saja. Sistem akan mengingatnya selamanya.</div>
+            <select id="m-jenis" class="swal2-input" style="width: 90%; font-size:14px; margin-bottom:8px;">
+              <option value="Barcode 3">Ini Barcode 3</option>
+              <option value="Barcode 2">Ini Barcode 2</option>
+            </select>
+            <input id="m-gol" class="swal2-input" placeholder="Golongan (Cth: FFP / 10(3))" style="width: 90%; font-size:14px; margin-bottom:8px;">
+            <input id="m-p" type="number" class="swal2-input" placeholder="Panjang (Cth: 300)" style="width: 90%; font-size:14px; margin-bottom:8px;">
+            <input id="m-l" type="number" step="0.1" class="swal2-input" placeholder="Lebar (Cth: 13.5)" style="width: 90%; font-size:14px; margin-bottom:8px;">
+            <input id="m-pot" type="number" class="swal2-input" placeholder="Potongan (Cth: 24)" style="width: 90%; font-size:14px; margin-bottom:8px;">
+          `,
+          background: "rgba(15, 23, 42, 0.95)",
+          color: "#fff",
+          showCancelButton: true,
+          confirmButtonText: '<i class="fas fa-save"></i> Simpan',
+          cancelButtonText: "Batal",
+          confirmButtonColor: "var(--success)",
+          preConfirm: () => {
+            const j = document.getElementById("m-jenis").value;
+            const g = document.getElementById("m-gol").value.trim();
+            const p = parseFloat(document.getElementById("m-p").value);
+            const l = parseFloat(document.getElementById("m-l").value);
+            const pot = parseInt(document.getElementById("m-pot").value);
+            if (!g || isNaN(p) || isNaN(l) || isNaN(pot)) {
+              Swal.showValidationMessage(
+                `Semua kolom angka wajib diisi dengan benar!`,
+              );
+              return false;
+            }
+            const m2 = ((p * l * pot) / 10000).toFixed(2);
+            return {
+              jenisBarcode: j,
+              golongan: g,
+              panjang: p,
+              lebar: l,
+              potongan: pot,
+              persegi: m2,
+            };
+          },
+        }).then((res) => {
+          if (res.isConfirmed) {
+            masterDB[code] = res.value;
+            localStorage.setItem("SCMMasterDB", JSON.stringify(masterDB));
+
+            scannedCodesSet.add(code);
+            simpanData(code, format, res.value);
+          }
+
+          if (
+            document.getElementById("view-scan").classList.contains("active")
+          ) {
+            setTimeout(toggleScan, 500);
+          }
+        });
       }
 
       async function toggleScan() {
@@ -1283,30 +1381,6 @@
         }
       }
 
-      function processBarcodeDetected(code, format) {
-        const parsedData = parsePayloadToFields(code);
-        if (!parsedData) return;
-
-        if (scannedCodesSet.has(code)) {
-          const now = Date.now();
-          if (now - lastErrorTime > 2000) {
-            triggerErrorFeedback();
-            Swal.fire({
-              title: "DITOLAK!",
-              text: "Barcode ini sudah pernah di-scan.",
-              icon: "error",
-              background: "rgba(15, 23, 42, 0.95)",
-              color: "#fff",
-              confirmButtonColor: "var(--danger)",
-            });
-            lastErrorTime = now;
-          }
-          return;
-        }
-        scannedCodesSet.add(code);
-        simpanData(code, format, parsedData);
-      }
-
       async function toggleTorch() {
         const btnTorch = document.getElementById("btnTorch");
         if (!isScanning || !streamTrack)
@@ -1399,15 +1473,7 @@
       function inputManual() {
         const val = document.getElementById("manualData").value.trim();
         if (!val) return Toast.fire({ icon: "error", title: "Kode kosong!" });
-        const parsedData = parsePayloadToFields(val);
-        if (!parsedData) {
-          triggerErrorFeedback();
-          return Swal.fire({
-            title: "Format Salah!",
-            text: "Kode barcode tidak terdaftar atau terputus.",
-            icon: "warning",
-          });
-        }
+
         if (scannedCodesSet.has(val)) {
           triggerErrorFeedback();
           return Swal.fire(
@@ -1416,8 +1482,8 @@
             "error",
           );
         }
-        scannedCodesSet.add(val);
-        simpanData(val, "MANUAL", parsedData);
+
+        processBarcodeDetected(val, "MANUAL");
         document.getElementById("manualData").value = "";
       }
 
@@ -1567,7 +1633,7 @@
       function hapusSemuaData() {
         Swal.fire({
           title: "RESET TOTAL?",
-          text: "Seluruh data termasuk data error riwayat sebelumnya akan dibersihkan total!",
+          text: "Seluruh data (termasuk memori master auto-learn dan error sebelumnya) akan dihapus total!",
           icon: "warning",
           showCancelButton: true,
           confirmButtonColor: "var(--danger)",
@@ -1577,8 +1643,10 @@
         }).then((res) => {
           if (res.isConfirmed) {
             localStorage.removeItem(STORAGE_KEY);
+            localStorage.removeItem("SCMMasterDB");
             allData = [];
             scannedCodesSet.clear();
+            masterDB = { ...DEFAULT_MASTER };
             renderToday();
             renderDatabase();
             Toast.fire({ icon: "success", title: "Aplikasi Bersih!" });
