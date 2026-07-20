@@ -1645,16 +1645,23 @@
             btn.classList.add("stop");
             isScanning = true;
 
+            // PERBAIKAN 1: Memaksa Resolusi HD (1280x720) & Framerate Tinggi
             let constraints = {
               video: {
                 facingMode: { ideal: currentCam },
+                width: { ideal: 1280, min: 640 },
+                height: { ideal: 720, min: 480 },
+                frameRate: { ideal: 30 } // Paksa 30fps agar tidak blur saat tangan goyang
               },
+              audio: false
             };
 
             let stream;
             try {
+              // Coba buka dengan resolusi HD
               stream = await navigator.mediaDevices.getUserMedia(constraints);
             } catch (e) {
+              // Fallback jika HP tidak mendukung HD (Kembali ke settingan awal)
               stream = await navigator.mediaDevices.getUserMedia({
                 video: { facingMode: "environment" },
               });
@@ -1667,14 +1674,14 @@
             streamTrack = stream.getVideoTracks()[0];
 
             try {
+              // PERBAIKAN 2: Memaksa Auto-Focus bekerja lebih agresif
               const capabilities = streamTrack.getCapabilities();
-              if (
-                capabilities.focusMode &&
-                capabilities.focusMode.includes("continuous")
-              ) {
-                await streamTrack.applyConstraints({
-                  advanced: [{ focusMode: "continuous" }],
-                });
+              let advancedConstraints = [];
+              if (capabilities.focusMode && capabilities.focusMode.includes("continuous")) {
+                advancedConstraints.push({ focusMode: "continuous" });
+              }
+              if (advancedConstraints.length > 0) {
+                await streamTrack.applyConstraints({ advanced: advancedConstraints });
               }
             } catch (err) {}
 
@@ -1683,45 +1690,49 @@
             });
             await video.play();
 
+            // PERBAIKAN 3: Mempercepat jeda deteksi menjadi instan (tanpa delay setTimeout)
             if (nativeDetector) {
               const detectLoop = async () => {
                 if (!isScanning) return;
                 try {
                   const barcodes = await nativeDetector.detect(video);
-                  if (barcodes.length > 0)
+                  if (barcodes.length > 0) {
                     processBarcodeDetected(
                       barcodes[0].rawValue,
                       barcodes[0].format.toUpperCase(),
                     );
+                  }
                 } catch (e) {}
-                setTimeout(() => {
-                  if (isScanning)
-                    scanLoopFrame = requestAnimationFrame(detectLoop);
-                }, 10);
+                
+                // Hapus setTimeout, langsung looping dengan kecepatan maksimal hardware
+                if (isScanning) scanLoopFrame = requestAnimationFrame(detectLoop);
               };
               scanLoopFrame = requestAnimationFrame(detectLoop);
             } else {
               zxingReader = new ZXing.BrowserMultiFormatReader(getZXingHints());
-              zxingReader.timeBetweenDecodingAttempts = 10;
+              
+              // PERBAIKAN 4: Ubah timeBetweenDecodingAttempts ke 0 untuk kecepatan penuh
+              zxingReader.timeBetweenDecodingAttempts = 0; 
 
               zxingReader.decodeFromStream(
                 stream,
                 "videoElement",
                 (result, err) => {
-                  if (result)
+                  if (result) {
                     processBarcodeDetected(
                       result.getText(),
                       result.getBarcodeFormat
                         ? result.getBarcodeFormat().toString()
                         : "UNKNOWN",
                     );
+                  }
                 },
               );
             }
           } catch (err) {
             Swal.fire(
               "Kamera Gagal",
-              "Izin belum diberikan / resolusi tidak didukung browser.",
+              "Pastikan izin kamera diberikan dan browser mendukung.",
               "error",
             );
             if (isScanning) toggleScan();
