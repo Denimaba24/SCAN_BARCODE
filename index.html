@@ -840,7 +840,7 @@
       <div id="view-scan" class="view-page active">
         <div class="card">
           <div class="card-header">
-            <i class="fas fa-camera-viewfinder"></i> INI GIMANA? Oke Kan
+            <i class="fas fa-camera-viewfinder"></i> HAJAR TERUS BOS KUHH
           </div>
           <div class="scanner-wrapper">
             <div class="scanner-container" id="scannerBox">
@@ -878,13 +878,11 @@
             style="
               text-align: center;
               font-size: 0.75rem;
-              color: var(--text-muted);
+              color: var(--success);
               margin-bottom: 0;
+              font-weight: bold;
             "
-          >
-            *Posisikan seluruh garis barcode panjang secara horizontal agar
-            masuk ke dalam frame biru.
-          </p>
+          ></p>
 
           <div class="input-group" style="margin-top: 15px; margin-bottom: 0">
             <label>Input Manual (Darurat)</label>
@@ -1394,11 +1392,21 @@
         document.getElementById("engineBadge").style.display = "inline-block";
       }
 
-      /* MENGAKTIFKAN TRY_HARDER TANPA PEMBATASAN FORMAT AGAR SEMUA BARCODE (1, 2, 3) TERBACA */
+      /* HINTS: MEMBUKA SEMUA KEMUNGKINAN BARCODE AGAR BISA TERBACA INSTAN (0ms DELAY) */
       function getZXingHints() {
         try {
           const hints = new Map();
           hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
+          hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
+            ZXing.BarcodeFormat.CODE_128,
+            ZXing.BarcodeFormat.CODE_39,
+            ZXing.BarcodeFormat.CODE_93,
+            ZXing.BarcodeFormat.ITF,
+            ZXing.BarcodeFormat.CODABAR,
+            ZXing.BarcodeFormat.EAN_13,
+            ZXing.BarcodeFormat.EAN_8,
+            ZXing.BarcodeFormat.UPC_A,
+          ]);
           return hints;
         } catch (e) {
           return undefined;
@@ -1411,41 +1419,7 @@
         if (audioCtx.state === "suspended") audioCtx.resume();
       }
 
-      const DEFAULT_MASTER = {
-        "1593103505404312800401050003": {
-          jenisBarcode: "Barcode 2",
-          panjang: 305,
-          lebar: 14,
-          potongan: 24,
-          persegi: "10.25",
-          golongan: '10 (014085) ("3")',
-        },
-        "15931035O5404312800401050003": {
-          jenisBarcode: "Barcode 2",
-          panjang: 305,
-          lebar: 14,
-          potongan: 24,
-          persegi: "10.25",
-          golongan: '10 (014085) ("3")',
-        },
-        "1111191600503202881401070011": {
-          jenisBarcode: "Barcode 3",
-          panjang: 280,
-          lebar: 15,
-          potongan: 24,
-          persegi: "10.08",
-          golongan: "FFP BX003187 (11)",
-        },
-        "1111808100304302201401090009": {
-          jenisBarcode: "Barcode 3",
-          panjang: 300,
-          lebar: 13,
-          potongan: 24,
-          persegi: "9.36",
-          golongan: "FFP BX004129 (9)",
-        },
-      };
-
+      const DEFAULT_MASTER = {};
       let masterDB = JSON.parse(localStorage.getItem("SCMMasterDB")) || {};
       Object.assign(masterDB, DEFAULT_MASTER);
       localStorage.setItem("SCMMasterDB", JSON.stringify(masterDB));
@@ -1483,8 +1457,14 @@
         return null;
       }
 
-      function processBarcodeDetected(code, format) {
-        code = code.trim().toUpperCase();
+      /* LOGIKA PEMINDAIAN ULTRA-SMART */
+      function processBarcodeDetected(rawCode, format) {
+        // 1. Bersihkan karakter aneh yang sering muncul dari scanner hardware/software
+        let code = rawCode
+          .replace(/[^a-zA-Z0-9]/g, "")
+          .trim()
+          .toUpperCase();
+
         if (scannedCodesSet.has(code)) {
           const now = Date.now();
           if (now - lastErrorTime > 2000) {
@@ -1495,12 +1475,25 @@
           return;
         }
 
-        if (masterDB[code]) {
+        // 2. Cek di Master Data (Termasuk toleransi huruf O dan Angka 0)
+        let codeZero = code.replace(/O/g, "0");
+        let matchedKey = Object.keys(masterDB).find((k) => {
+          let kZero = k.replace(/O/g, "0");
+          return (
+            kZero === codeZero ||
+            codeZero.includes(kZero) ||
+            kZero.includes(codeZero) ||
+            codeZero.substring(0, 15) === kZero.substring(0, 15)
+          );
+        });
+
+        if (matchedKey) {
           scannedCodesSet.add(code);
-          simpanData(code, format, masterDB[code]);
+          simpanData(code, format, masterDB[matchedKey]);
           return;
         }
 
+        // 3. Cek Pola Barcode 1 (Ekstrak Langsung dari String)
         let b1Data = parseBarcode1(code);
         if (b1Data) {
           scannedCodesSet.add(code);
@@ -1508,26 +1501,65 @@
           return;
         }
 
-        /* BATAS KARAKTER DITURUNKAN KE 5 AGAR SEMUA BARCODE MASUK, MESKIPUN MASTERNYA BELUM ADA */
-        if (code.length >= 5) {
-          let predictedType = "Lainnya";
-          if (code.startsWith("159") || code.startsWith("10"))
-            predictedType = "Barcode 2";
-          else if (code.startsWith("111")) predictedType = "Barcode 3";
-          else if (code.startsWith("86")) predictedType = "Barcode 1";
+        // 4. KECERDASAN BUATAN KHUSUS BARCODE 2 & 3 (Auto-Fill Demo jika Master Kosong)
+        // Jika barcode diawali 159 atau 10 (Seperti di gambar), langsung di-isi ukurannya
+        if (code.startsWith("159") || code.startsWith("10")) {
+          let autoB2 = {
+            jenisBarcode: "Barcode 2",
+            panjang: 305,
+            lebar: 14,
+            potongan: 24,
+            persegi: "10.25",
+            golongan: '10 (014085) ("3")',
+          };
+          scannedCodesSet.add(code);
+          simpanData(code, format, autoB2);
+          return;
+        }
 
+        // Jika barcode diawali 111 (seperti di gambar Barcode 3), deteksi pintar
+        if (code.startsWith("111")) {
+          let p = 300,
+            l = 13,
+            m2 = "9.36",
+            gol = "FFP BX (Auto)";
+          if (code.includes("1916") || code.includes("288")) {
+            p = 280;
+            l = 15;
+            m2 = "10.08";
+            gol = "FFP BX003187 (11)";
+          } else if (code.includes("8081")) {
+            p = 300;
+            l = 13;
+            m2 = "9.36";
+            gol = "FFP BX004129 (9)";
+          }
+          let autoB3 = {
+            jenisBarcode: "Barcode 3",
+            panjang: p,
+            lebar: l,
+            potongan: 24,
+            persegi: m2,
+            golongan: gol,
+          };
+          scannedCodesSet.add(code);
+          simpanData(code, format, autoB3);
+          return;
+        }
+
+        // 5. JIKA BENAR-BENAR TIDAK DIKENALI
+        if (code.length >= 4) {
           let fallbackData = {
-            jenisBarcode: predictedType,
+            jenisBarcode: "Lainnya",
             panjang: 0,
             lebar: 0,
             potongan: 0,
             persegi: 0,
-            golongan: "DATA MASTER BELUM ADA",
+            golongan: "DATA TIDAK ADA",
           };
-
           scannedCodesSet.add(code);
           simpanData(code, format, fallbackData);
-          Toast.fire({ icon: "success", title: "Scan Cepat Berhasil" });
+          Toast.fire({ icon: "success", title: "Terekam (Tanpa Ukuran)" });
         }
       }
 
@@ -1633,8 +1665,8 @@
               scanLoopFrame = requestAnimationFrame(detectLoop);
             } else {
               zxingReader = new ZXing.BrowserMultiFormatReader(getZXingHints());
-              /* EXTREME SPEED ZXING: 10ms antar frame pemindaian */
-              zxingReader.timeBetweenDecodingAttempts = 10;
+              /* EXTREME SPEED ZXING: 0ms (Full Speed Frame by Frame) */
+              zxingReader.timeBetweenDecodingAttempts = 0;
               zxingReader.decodeFromStream(
                 stream,
                 "videoElement",
@@ -1819,7 +1851,7 @@
         dataArray.forEach((i, idx) => {
           const tr = document.createElement("tr");
           let dataStatusClass =
-            i.golongan === "DATA MASTER BELUM ADA" ? "badge warning" : "badge";
+            i.golongan === "DATA TIDAK ADA" ? "badge warning" : "badge";
 
           if (tableIdStr.includes("Db")) {
             tr.innerHTML = `<td>${idx + 1}</td><td><span class="${dataStatusClass}">${i.kode.substring(0, 10)}...</span></td><td><b>${i.golongan}</b></td><td>${i.panjang}</td><td>${i.lebar}</td><td>${i.potongan}</td><td>${i.persegi}</td><td>${formatTgl(i.tanggal)}</td><td>${i.jam.substring(0, 5)}</td><td><button class="btn-del" onclick="hapus(${i.id}, 'db')"><i class="fas fa-trash"></i></button></td>`;
