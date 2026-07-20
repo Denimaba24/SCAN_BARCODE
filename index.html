@@ -135,7 +135,6 @@
         gap: 15px;
         overflow: hidden;
       }
-
       .topbar-title {
         font-size: 1.05rem;
         font-weight: 800;
@@ -148,14 +147,12 @@
         z-index: 2;
         flex-shrink: 0;
       }
-
       .topbar-title i {
         color: #38bdf8;
         font-size: 1.2rem;
         filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.6));
       }
 
-      /* Animasi Teks Berjalan di Kanan */
       .typewriter-container {
         position: relative;
         flex-grow: 1;
@@ -178,7 +175,6 @@
           transparent
         );
       }
-
       .typewriter-text {
         position: absolute;
         white-space: nowrap;
@@ -191,7 +187,6 @@
         animation: marquee 12s linear infinite;
         padding-left: 100%;
       }
-
       @keyframes marquee {
         0% {
           transform: translateX(0%);
@@ -201,7 +196,6 @@
         }
       }
 
-      /* Floating Bottom Navigation */
       .bottom-nav {
         position: fixed;
         bottom: calc(15px + env(safe-area-inset-bottom));
@@ -222,7 +216,6 @@
           0 20px 40px rgba(0, 0, 0, 0.5),
           inset 0 1px 1px rgba(255, 255, 255, 0.2);
       }
-
       .nav-item {
         display: flex;
         flex-direction: column;
@@ -236,12 +229,10 @@
         border-radius: 30px;
         transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
       }
-
       .nav-item i {
         font-size: 1.25rem;
         transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
       }
-
       .nav-item span {
         font-size: 0.6rem;
         font-weight: 700;
@@ -251,26 +242,22 @@
         overflow: hidden;
         transition: all 0.4s ease;
       }
-
       .nav-item.active {
         color: #ffffff;
         background: rgba(255, 255, 255, 0.12);
         box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
       }
-
       .nav-item.active i {
         transform: translateY(-2px);
         color: #38bdf8;
         text-shadow: 0 0 15px rgba(56, 189, 248, 0.6);
       }
-
       .nav-item.active span {
         opacity: 1;
         height: 12px;
         margin-top: 2px;
       }
 
-      /* Transitions */
       .view-page {
         display: none;
         opacity: 0;
@@ -281,7 +268,6 @@
         flex-direction: column;
         gap: 20px;
       }
-
       @keyframes smoothFade {
         0% {
           opacity: 0;
@@ -293,7 +279,6 @@
         }
       }
 
-      /* Layout */
       .container {
         padding: 20px 16px;
         padding-bottom: calc(120px + env(safe-area-inset-bottom));
@@ -303,7 +288,6 @@
         position: relative;
       }
 
-      /* Premium Glass Cards */
       .card {
         background: var(--glass-panel);
         backdrop-filter: var(--glass-blur);
@@ -317,7 +301,6 @@
         position: relative;
         overflow: hidden;
       }
-
       .card::before {
         content: "";
         position: absolute;
@@ -332,7 +315,6 @@
           transparent
         );
       }
-
       .card-header {
         font-weight: 800;
         margin-bottom: 20px;
@@ -343,7 +325,6 @@
         color: #ffffff;
         letter-spacing: 0.5px;
       }
-
       .card-header i {
         color: #ffffff;
         background: linear-gradient(
@@ -358,12 +339,10 @@
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
       }
 
-      /* Advanced Scanner Aesthetics */
       .scanner-wrapper {
         position: relative;
         margin-bottom: 30px;
       }
-
       .scanner-container {
         position: relative;
         width: 100%;
@@ -379,19 +358,21 @@
         box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
       }
 
+      /* GPU ACCELERATION UNTUK VIDEO AGAR KAMERA SMOOTH DI SEMUA HP */
       #videoElement {
         width: 100%;
         height: 100%;
         object-fit: cover;
+        transform: translateZ(0);
+        will-change: transform;
         display: none;
       }
 
-      /* PEMBARUAN: Kotak pemindai dibikin LEBAR (Landscape) khusus untuk Barcode 2 & 3 yang panjang */
       .targeting-box {
         position: absolute;
-        top: 35%; /* Dipersempit atas bawahnya */
+        top: 35%;
         bottom: 35%;
-        left: 5%; /* Diperlebar kiri kanannya */
+        left: 5%;
         right: 5%;
         border-radius: 12px;
         pointer-events: none;
@@ -409,11 +390,10 @@
         position: absolute;
         width: 30px;
         height: 30px;
-        border-color: #38bdf8; /* Ubah warna sudut menjadi biru terang agar jelas */
+        border-color: #38bdf8;
         border-style: solid;
         filter: drop-shadow(0 0 4px rgba(56, 189, 248, 0.7));
       }
-
       .targeting-box::before {
         top: -2px;
         left: -2px;
@@ -450,13 +430,12 @@
         left: 5%;
         right: 5%;
         height: 2px;
-        background: #f43f5e; /* Laser merah khas scanner */
+        background: #f43f5e;
         box-shadow: 0 0 15px 3px rgba(244, 63, 94, 0.8);
         display: none;
         z-index: 10;
         animation: scanAnim 2.2s infinite cubic-bezier(0.4, 0, 0.2, 1);
       }
-
       @keyframes scanAnim {
         0%,
         100% {
@@ -506,7 +485,6 @@
         margin-left: auto;
         margin-right: auto;
       }
-
       .btn {
         border: none;
         font-weight: 800;
@@ -521,7 +499,6 @@
       .btn:active {
         transform: scale(0.92);
       }
-
       .btn-icon {
         width: 48px;
         height: 48px;
@@ -539,7 +516,6 @@
         border-color: var(--warning);
         box-shadow: 0 0 20px rgba(245, 158, 11, 0.6);
       }
-
       .btn-scan {
         padding: 0 32px;
         background: linear-gradient(
@@ -592,7 +568,6 @@
         color: rgba(255, 255, 255, 0.4);
         font-weight: 500;
       }
-
       .manual-input-wrapper {
         display: flex;
         gap: 10px;
@@ -643,7 +618,6 @@
       tr:hover td {
         background: rgba(255, 255, 255, 0.05);
       }
-
       .badge {
         background: rgba(255, 255, 255, 0.1);
         color: #ffffff;
@@ -654,7 +628,11 @@
         font-size: 0.8rem;
         border: 1px solid rgba(255, 255, 255, 0.15);
       }
-
+      .badge.warning {
+        background: rgba(245, 158, 11, 0.2);
+        color: #fcd34d;
+        border-color: rgba(245, 158, 11, 0.4);
+      }
       .btn-del {
         color: var(--text-muted);
         background: rgba(255, 255, 255, 0.05);
@@ -873,7 +851,6 @@
                 <i class="fas fa-video-slash"></i><span>Kamera Siaga</span>
               </div>
               <video id="videoElement" autoplay playsinline muted></video>
-
               <div class="targeting-box" id="targetBox">
                 <div class="targeting-box-inner"></div>
               </div>
@@ -909,7 +886,7 @@
             "
           >
             *Posisikan seluruh garis barcode panjang secara horizontal agar
-            masuk ke dalam frame biru.
+            masuk ke dalam frame biru. Kamera anti-lag untuk semua HP.
           </p>
 
           <div class="input-group" style="margin-top: 15px; margin-bottom: 0">
@@ -1418,7 +1395,6 @@
         if (audioCtx.state === "suspended") audioCtx.resume();
       }
 
-      /* MASTER DEFAULT MENCAKUP BARCODE DI FOTO ANDA */
       const DEFAULT_MASTER = {
         "1593103505404312800401050003": {
           jenisBarcode: "Barcode 2",
@@ -1622,14 +1598,12 @@
             btn.classList.add("stop");
             isScanning = true;
 
-            /* MEMINTA RESOLUSI MAXIMAL AGAR GARIS BARCODE TIDAK PECAH/BLUR */
+            /* SWEET SPOT RESOLUSI (1080p): Sangat jernih untuk barcode 2, namun tidak membuat HP kentang menjadi lag */
             let constraints = {
               video: {
                 facingMode: { ideal: currentCam },
-                width: {
-                  ideal: 4096,
-                } /* Minta Resolusi Tertinggi yang tersedia di perangkat */,
-                height: { ideal: 2160 },
+                width: { ideal: 1920, min: 1280 },
+                height: { ideal: 1080, min: 720 },
               },
             };
 
@@ -1676,15 +1650,18 @@
                       barcodes[0].format.toUpperCase(),
                     );
                 } catch (e) {}
+
+                /* THROTTLING: Memberikan JEDA 100ms agar CPU tidak terkuras dan layar tetap Smooth (Anti-Lag) */
                 setTimeout(() => {
                   if (isScanning)
                     scanLoopFrame = requestAnimationFrame(detectLoop);
-                }, 10);
+                }, 100);
               };
               scanLoopFrame = requestAnimationFrame(detectLoop);
             } else {
               zxingReader = new ZXing.BrowserMultiFormatReader(getZXingHints());
-              zxingReader.timeBetweenDecodingAttempts = 10;
+              /* THROTTLING: Jeda 150ms agar pergerakan kamera tidak patah-patah di HP murah/lama */
+              zxingReader.timeBetweenDecodingAttempts = 150;
               zxingReader.decodeFromStream(
                 stream,
                 "videoElement",
