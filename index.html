@@ -1029,6 +1029,38 @@
               onkeyup="renderDatabase()"
             />
           </div>
+
+          <hr
+            style="
+              border: none;
+              border-top: 1px solid rgba(255, 255, 255, 0.15);
+              margin: 20px 0;
+            "
+          />
+          <div class="input-group" style="margin-bottom: 0">
+            <label style="color: var(--success)"
+              ><i class="fas fa-file-excel"></i> Import Master Data Barcode 2 &
+              3</label
+            >
+            <input
+              type="file"
+              id="fileExcelMaster"
+              accept=".xlsx, .xls"
+              class="form-control"
+              onchange="importMasterExcel(event)"
+            />
+            <small
+              style="
+                color: var(--text-muted);
+                font-size: 0.7rem;
+                display: block;
+                margin-top: 5px;
+              "
+            >
+              *Sistem akan otomatis mengenali barcode di lapangan tanpa input
+              manual setelah master diunggah.
+            </small>
+          </div>
         </div>
 
         <div class="card">
@@ -1392,14 +1424,7 @@
             [
               ZXing.DecodeHintType.POSSIBLE_FORMATS,
               [
-                ZXing.BarcodeFormat.CODE_128,
-                ZXing.BarcodeFormat.CODE_39,
-                ZXing.BarcodeFormat.CODE_93,
-                ZXing.BarcodeFormat.ITF,
-                ZXing.BarcodeFormat.CODABAR,
-                ZXing.BarcodeFormat.EAN_13,
-                ZXing.BarcodeFormat.EAN_8,
-                ZXing.BarcodeFormat.UPC_A,
+                ZXing.BarcodeFormat.CODE_128, // Fokus HANYA ke Code 128 untuk Barcode 2 & 3
               ],
             ],
           ]);
@@ -1488,7 +1513,7 @@
       }
 
       function processBarcodeDetected(code, format) {
-        code = code.trim().toUpperCase(); // Proteksi tambahan spasi tersembunyi
+        code = code.trim().toUpperCase();
         if (scannedCodesSet.has(code)) {
           const now = Date.now();
           if (now - lastErrorTime > 2000) {
@@ -1632,8 +1657,9 @@
             let constraints = {
               video: {
                 facingMode: { ideal: currentCam },
-                width: { ideal: 1280 },
-                height: { ideal: 720 },
+                width: { ideal: 1920 }, // Naikkan dari 1280 ke 1920
+                height: { ideal: 1080 }, // Naikkan dari 720 ke 1080
+                advanced: [{ focusMode: "continuous" }],
               },
             };
 
@@ -1683,12 +1709,12 @@
                     );
                 } catch (e) {}
                 if (isScanning)
-                  setTimeout(() => requestAnimationFrame(detectLoop), 100); // Jeda 100ms
+                  setTimeout(() => requestAnimationFrame(detectLoop), 100);
               };
               scanLoopFrame = requestAnimationFrame(detectLoop);
             } else {
               zxingReader = new ZXing.BrowserMultiFormatReader(getZXingHints());
-              zxingReader.timeBetweenDecodingAttempts = 100; // Jeda pemrosesan 100ms agar prosesor stabil
+              zxingReader.timeBetweenDecodingAttempts = 100;
 
               zxingReader.decodeFromStream(
                 stream,
@@ -2098,6 +2124,57 @@
           headStyles: { fillColor: [59, 130, 246] },
         });
         doc.save(`Laporan_DSN_${label}_${new Date().getTime()}.pdf`);
+      }
+
+      // Fungsi untuk mengimpor data Master Database dari File Excel
+      function importMasterExcel(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: "array" });
+
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          const jsonMaster = XLSX.utils.sheet_to_json(worksheet);
+
+          let addedCount = 0;
+
+          jsonMaster.forEach((row) => {
+            if (row.KodeBarcode && row.Panjang && row.Lebar) {
+              let p = parseFloat(row.Panjang);
+              let l = parseFloat(row.Lebar);
+              let pot = parseInt(row.Potongan) || 0;
+              let m2 = ((p * l * pot) / 10000).toFixed(2);
+
+              masterDB[row.KodeBarcode.toString().toUpperCase().trim()] = {
+                jenisBarcode: row.Jenis || "Barcode 2",
+                golongan: row.Golongan || "-",
+                panjang: p,
+                lebar: l,
+                potongan: pot,
+                persegi: m2,
+              };
+              addedCount++;
+            }
+          });
+
+          localStorage.setItem("SCMMasterDB", JSON.stringify(masterDB));
+
+          Swal.fire({
+            title: "Import Berhasil!",
+            text: `${addedCount} Data Master berhasil disuntikkan ke sistem. Scanner kini siap digunakan tanpa input manual.`,
+            icon: "success",
+            background: "rgba(15, 23, 42, 0.95)",
+            color: "#fff",
+            confirmButtonColor: "var(--success)",
+          });
+
+          event.target.value = "";
+        };
+        reader.readAsArrayBuffer(file);
       }
     </script>
   </body>
