@@ -347,7 +347,6 @@
         border-radius: var(--radius-lg);
         overflow: hidden;
         background-color: #000;
-        /* Rombakan: Menggunakan rasio 1:1 agar pandangan kamera lebih LUAS untuk barcode yang panjang */
         aspect-ratio: 1 / 1;
         max-height: 60vh;
         display: flex;
@@ -371,7 +370,7 @@
         top: 35%;
         bottom: 35%;
         left: 2%;
-        right: 2%; /* Diperlebar sampai ujung agar scan barcode panjang maksimal */
+        right: 2%;
         border-radius: 12px;
         pointer-events: none;
         z-index: 5;
@@ -841,7 +840,7 @@
       <div id="view-scan" class="view-page active">
         <div class="card">
           <div class="card-header">
-            <i class="fas fa-camera-viewfinder"></i> SELAMAT BEKERJA KAWAN
+            <i class="fas fa-camera-viewfinder"></i> MISI YA OM
           </div>
           <div class="scanner-wrapper">
             <div class="scanner-container" id="scannerBox">
@@ -883,9 +882,7 @@
               margin-bottom: 0;
               font-weight: bold;
             "
-          >
-           
-          </p>
+          ></p>
 
           <div class="input-group" style="margin-top: 15px; margin-bottom: 0">
             <label>Input Manual (Darurat)</label>
@@ -1422,8 +1419,41 @@
         if (audioCtx.state === "suspended") audioCtx.resume();
       }
 
-      /* PENYIMPANAN DATA MASTER DARI EXCEL */
-      const DEFAULT_MASTER = {};
+      const DEFAULT_MASTER = {
+        "1593103505404312800401050003": {
+          jenisBarcode: "Barcode 2",
+          panjang: 305,
+          lebar: 14,
+          potongan: 24,
+          persegi: "10.25",
+          golongan: '10 (014085) ("3")',
+        },
+        "15931035O5404312800401050003": {
+          jenisBarcode: "Barcode 2",
+          panjang: 305,
+          lebar: 14,
+          potongan: 24,
+          persegi: "10.25",
+          golongan: '10 (014085) ("3")',
+        },
+        "1111191600503202881401070011": {
+          jenisBarcode: "Barcode 3",
+          panjang: 280,
+          lebar: 15,
+          potongan: 24,
+          persegi: "10.08",
+          golongan: "FFP BX003187 (11)",
+        },
+        "1111808100304302201401090009": {
+          jenisBarcode: "Barcode 3",
+          panjang: 300,
+          lebar: 13,
+          potongan: 24,
+          persegi: "9.36",
+          golongan: "FFP BX004129 (9)",
+        },
+      };
+
       let masterDB = JSON.parse(localStorage.getItem("SCMMasterDB")) || {};
       Object.assign(masterDB, DEFAULT_MASTER);
       localStorage.setItem("SCMMasterDB", JSON.stringify(masterDB));
@@ -1463,7 +1493,7 @@
 
       /* LOGIKA PEMINDAIAN ULTRA-SMART */
       function processBarcodeDetected(rawCode, format) {
-        // 1. Bersihkan karakter aneh yang sering muncul dari scanner hardware/software
+        // 1. Bersihkan spasi dan karakter aneh
         let code = rawCode
           .replace(/[^a-zA-Z0-9]/g, "")
           .trim()
@@ -1479,7 +1509,7 @@
           return;
         }
 
-        // 2. Cek di Master Data (Termasuk toleransi huruf O dan Angka 0)
+        // 2. Cek di Master Data
         let codeZero = code.replace(/O/g, "0");
         let matchedKey = Object.keys(masterDB).find((k) => {
           let kZero = k.replace(/O/g, "0");
@@ -1498,7 +1528,7 @@
           return;
         }
 
-        // 3. Cek Pola Barcode 1 (Ekstrak Langsung dari String)
+        // 3. Cek Pola Barcode 1
         let b1Data = parseBarcode1(code);
         if (b1Data) {
           scannedCodesSet.add(code);
@@ -1506,11 +1536,15 @@
           return;
         }
 
-        // 4. KECERDASAN BUATAN KHUSUS BARCODE 2 & 3 (Auto-Fill Demo jika Master Kosong)
-        // Jika barcode diawali 159 atau 10 (Seperti di gambar), langsung di-isi ukurannya
+        /* 
+           4. KECERDASAN BUATAN KHUSUS BARCODE 2 & 3 (ANTI GAGAL BACA) 
+           Jika kamera tidak sengaja membaca "10014085320" (angka di atas barcode), 
+           sistem akan tetap menganggapnya sebagai Barcode 2!
+        */
         if (
           code.startsWith("159") ||
           code.startsWith("10") ||
+          code.includes("014085") ||
           code.length === 28
         ) {
           let autoB2 = {
@@ -1526,8 +1560,11 @@
           return;
         }
 
-        // Jika barcode diawali 111 (seperti di gambar Barcode 3), deteksi pintar
-        if (code.startsWith("111")) {
+        if (
+          code.startsWith("111") ||
+          code.includes("8081") ||
+          code.includes("1916")
+        ) {
           let p = 300,
             l = 13,
             m2 = "9.36",
@@ -1556,7 +1593,7 @@
           return;
         }
 
-        // 5. JIKA BENAR-BENAR TIDAK DIKENALI TAPI BERHASIL DI SCAN
+        // 5. JIKA BENAR-BENAR TIDAK DIKENALI
         if (code.length >= 4) {
           let fallbackData = {
             jenisBarcode: "Lainnya",
@@ -1568,7 +1605,6 @@
           };
           scannedCodesSet.add(code);
           simpanData(code, format, fallbackData);
-          Toast.fire({ icon: "success", title: "Terekam (Tanpa Ukuran)" });
         }
       }
 
@@ -1614,7 +1650,7 @@
             btn.classList.add("stop");
             isScanning = true;
 
-            /* MENGGUNAKAN FALLBACK RESOLUSI: Menjamin Kamera Terbuka Di Semua HP (iPhone & Android) */
+            /* MENGGUNAKAN FALLBACK RESOLUSI 3 TINGKAT: Menjamin Kamera Terbuka Di Semua HP (iPhone & Android) */
             let stream;
             try {
               stream = await navigator.mediaDevices.getUserMedia({
@@ -1647,46 +1683,51 @@
             video.srcObject = stream;
             streamTrack = stream.getVideoTracks()[0];
 
-            await new Promise((resolve) => {
-              video.onloadedmetadata = () => resolve();
-            });
-            await video.play();
+            /* Anti Error Native Detector Loading */
+            video.onloadeddata = async () => {
+              await video.play();
 
-            if (nativeDetector) {
-              const detectLoop = async () => {
-                if (!isScanning) return;
-                try {
-                  const barcodes = await nativeDetector.detect(video);
-                  if (barcodes.length > 0)
-                    processBarcodeDetected(
-                      barcodes[0].rawValue,
-                      barcodes[0].format.toUpperCase(),
-                    );
-                } catch (e) {}
-
-                /* FULL SPEED: Request frame asli tanpa setTimeout delay (0ms) untuk scan sangat cepat */
-                if (isScanning)
-                  scanLoopFrame = requestAnimationFrame(detectLoop);
-              };
-              scanLoopFrame = requestAnimationFrame(detectLoop);
-            } else {
-              zxingReader = new ZXing.BrowserMultiFormatReader(getZXingHints());
-              /* EXTREME SPEED ZXING: 0ms (Full Speed Frame by Frame) */
-              zxingReader.timeBetweenDecodingAttempts = 0;
-              zxingReader.decodeFromStream(
-                stream,
-                "videoElement",
-                (result, err) => {
-                  if (result)
-                    processBarcodeDetected(
-                      result.getText(),
-                      result.getBarcodeFormat
-                        ? result.getBarcodeFormat().toString()
-                        : "UNKNOWN",
-                    );
-                },
-              );
-            }
+              if (nativeDetector) {
+                const detectLoop = async () => {
+                  if (!isScanning) return;
+                  if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                    try {
+                      const barcodes = await nativeDetector.detect(video);
+                      if (barcodes.length > 0) {
+                        /* SAPU BERSIH: Semua barcode dalam 1 frame (termasuk QR Code dan Barcode biasa) akan dideteksi dan dicari yang cocok! */
+                        for (let bc of barcodes) {
+                          processBarcodeDetected(
+                            bc.rawValue,
+                            bc.format.toUpperCase(),
+                          );
+                        }
+                      }
+                    } catch (e) {}
+                  }
+                  if (isScanning)
+                    scanLoopFrame = requestAnimationFrame(detectLoop);
+                };
+                scanLoopFrame = requestAnimationFrame(detectLoop);
+              } else {
+                zxingReader = new ZXing.BrowserMultiFormatReader(
+                  getZXingHints(),
+                );
+                zxingReader.timeBetweenDecodingAttempts = 0;
+                zxingReader.decodeFromStream(
+                  stream,
+                  "videoElement",
+                  (result, err) => {
+                    if (result)
+                      processBarcodeDetected(
+                        result.getText(),
+                        result.getBarcodeFormat
+                          ? result.getBarcodeFormat().toString()
+                          : "UNKNOWN",
+                      );
+                  },
+                );
+              }
+            };
           } catch (err) {
             Swal.fire(
               "Kamera Gagal",
@@ -1830,6 +1871,7 @@
         allData.push(newData);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
         triggerFeedback();
+        Toast.fire({ icon: "success", title: `Masuk ${newData.jenis}` });
         if (
           document.getElementById("view-session").classList.contains("active")
         )
