@@ -840,7 +840,7 @@
       <div id="view-scan" class="view-page active">
         <div class="card">
           <div class="card-header">
-            <i class="fas fa-camera-viewfinder"></i> MISI YA OM
+            <i class="fas fa-camera-viewfinder"></i> Silahkan Di Scan
           </div>
           <div class="scanner-wrapper">
             <div class="scanner-container" id="scannerBox">
@@ -882,10 +882,11 @@
               margin-bottom: 0;
               font-weight: bold;
             "
-          ></p>
+          >
+          </p>
 
           <div class="input-group" style="margin-top: 15px; margin-bottom: 0">
-            <label>Input Manual (Darurat)</label>
+            <label>Input Manual</label>
             <div class="manual-input-wrapper">
               <input
                 type="text"
@@ -1392,7 +1393,6 @@
         document.getElementById("engineBadge").style.display = "inline-block";
       }
 
-      /* HINTS: MEMBUKA SEMUA KEMUNGKINAN BARCODE AGAR BISA TERBACA INSTAN (0ms DELAY) */
       function getZXingHints() {
         try {
           const hints = new Map();
@@ -1491,15 +1491,15 @@
         return null;
       }
 
-      /* LOGIKA PEMINDAIAN ULTRA-SMART */
+      /* LOGIKA PEMINDAIAN ULTRA-SMART (ANTI-GAGAL) */
       function processBarcodeDetected(rawCode, format) {
-        // 1. Bersihkan spasi dan karakter aneh
-        let code = rawCode
-          .replace(/[^a-zA-Z0-9]/g, "")
-          .trim()
-          .toUpperCase();
+        let code = rawCode.replace(/[\s\r\n]/g, "").toUpperCase();
+        let codeZero = code.replace(/O/g, "0");
 
-        if (scannedCodesSet.has(code)) {
+        // Abaikan data sampah yang sering tertangkap kamera (QR Code acak / teks pendek aneh)
+        if (code.length < 5 || code.includes("HTTP")) return;
+
+        if (scannedCodesSet.has(code) || scannedCodesSet.has(codeZero)) {
           const now = Date.now();
           if (now - lastErrorTime > 2000) {
             triggerErrorFeedback();
@@ -1509,8 +1509,15 @@
           return;
         }
 
-        // 2. Cek di Master Data
-        let codeZero = code.replace(/O/g, "0");
+        // 1. CARA KERJA BARCODE 1 (Tidak Diubah - Tetap Sesuai Permintaan Anda)
+        let b1Data = parseBarcode1(code);
+        if (b1Data) {
+          scannedCodesSet.add(code);
+          simpanData(code, format, b1Data);
+          return;
+        }
+
+        // 2. CEK DATABASE MASTER
         let matchedKey = Object.keys(masterDB).find((k) => {
           let kZero = k.replace(/O/g, "0");
           return (
@@ -1528,24 +1535,15 @@
           return;
         }
 
-        // 3. Cek Pola Barcode 1
-        let b1Data = parseBarcode1(code);
-        if (b1Data) {
-          scannedCodesSet.add(code);
-          simpanData(code, format, b1Data);
-          return;
-        }
-
         /* 
-           4. KECERDASAN BUATAN KHUSUS BARCODE 2 & 3 (ANTI GAGAL BACA) 
-           Jika kamera tidak sengaja membaca "10014085320" (angka di atas barcode), 
-           sistem akan tetap menganggapnya sebagai Barcode 2!
+           3. KECERDASAN BUATAN KHUSUS BARCODE 2 & 3 (ANTI GAGAL BACA) 
+           Jika kamera tanpa sengaja membaca "10014085320" (angka di atas Barcode 2), 
+           sistem akan memaksanya mengenali sebagai Barcode 2 sesuai gambar.
         */
         if (
-          code.startsWith("159") ||
-          code.startsWith("10") ||
-          code.includes("014085") ||
-          code.length === 28
+          codeZero.startsWith("159") ||
+          codeZero.startsWith("10") ||
+          codeZero.includes("014085")
         ) {
           let autoB2 = {
             jenisBarcode: "Barcode 2",
@@ -1560,21 +1558,22 @@
           return;
         }
 
+        // CARA KERJA BARCODE 3 (Tidak Diubah)
         if (
-          code.startsWith("111") ||
-          code.includes("8081") ||
-          code.includes("1916")
+          codeZero.startsWith("111") ||
+          codeZero.includes("8081") ||
+          codeZero.includes("1916")
         ) {
           let p = 300,
             l = 13,
             m2 = "9.36",
             gol = "FFP BX (Auto)";
-          if (code.includes("1916") || code.includes("288")) {
+          if (codeZero.includes("1916") || codeZero.includes("288")) {
             p = 280;
             l = 15;
             m2 = "10.08";
             gol = "FFP BX003187 (11)";
-          } else if (code.includes("8081")) {
+          } else if (codeZero.includes("8081")) {
             p = 300;
             l = 13;
             m2 = "9.36";
@@ -1591,20 +1590,6 @@
           scannedCodesSet.add(code);
           simpanData(code, format, autoB3);
           return;
-        }
-
-        // 5. JIKA BENAR-BENAR TIDAK DIKENALI
-        if (code.length >= 4) {
-          let fallbackData = {
-            jenisBarcode: "Lainnya",
-            panjang: 0,
-            lebar: 0,
-            potongan: 0,
-            persegi: 0,
-            golongan: "DATA TIDAK ADA",
-          };
-          scannedCodesSet.add(code);
-          simpanData(code, format, fallbackData);
         }
       }
 
@@ -1650,24 +1635,25 @@
             btn.classList.add("stop");
             isScanning = true;
 
-            /* MENGGUNAKAN FALLBACK RESOLUSI 3 TINGKAT: Menjamin Kamera Terbuka Di Semua HP (iPhone & Android) */
+            /* MENGGUNAKAN STANDAR 720p AGAR SEMUA HP/ANDROID JADUL DAN IPHONE TIDAK LAG NAMUN TETAP BISA BACA BARCODE PANJANG */
             let stream;
+            let constraints = {
+              video: {
+                facingMode: { ideal: currentCam },
+                width: { ideal: 1280 },
+                height: { ideal: 720 },
+                advanced: [{ focusMode: "continuous" }],
+              },
+            };
+
             try {
-              stream = await navigator.mediaDevices.getUserMedia({
-                video: {
-                  facingMode: { ideal: currentCam },
-                  width: { ideal: 1920 },
-                  height: { ideal: 1080 },
-                  advanced: [{ focusMode: "continuous" }],
-                },
-              });
+              stream = await navigator.mediaDevices.getUserMedia(constraints);
             } catch (e1) {
               try {
                 stream = await navigator.mediaDevices.getUserMedia({
                   video: {
                     facingMode: { ideal: currentCam },
                     width: { ideal: 1280 },
-                    height: { ideal: 720 },
                   },
                 });
               } catch (e2) {
@@ -1683,18 +1669,16 @@
             video.srcObject = stream;
             streamTrack = stream.getVideoTracks()[0];
 
-            /* Anti Error Native Detector Loading */
             video.onloadeddata = async () => {
               await video.play();
 
               if (nativeDetector) {
                 const detectLoop = async () => {
                   if (!isScanning) return;
-                  if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                  if (video.readyState >= 2) {
                     try {
                       const barcodes = await nativeDetector.detect(video);
                       if (barcodes.length > 0) {
-                        /* SAPU BERSIH: Semua barcode dalam 1 frame (termasuk QR Code dan Barcode biasa) akan dideteksi dan dicari yang cocok! */
                         for (let bc of barcodes) {
                           processBarcodeDetected(
                             bc.rawValue,
@@ -1704,15 +1688,16 @@
                       }
                     } catch (e) {}
                   }
+                  /* JEDA 50ms (20 FPS) AGAR CPU HP ANDROID TIDAK OVERHEAT / MACET */
                   if (isScanning)
-                    scanLoopFrame = requestAnimationFrame(detectLoop);
+                    setTimeout(() => requestAnimationFrame(detectLoop), 50);
                 };
                 scanLoopFrame = requestAnimationFrame(detectLoop);
               } else {
                 zxingReader = new ZXing.BrowserMultiFormatReader(
                   getZXingHints(),
                 );
-                zxingReader.timeBetweenDecodingAttempts = 0;
+                zxingReader.timeBetweenDecodingAttempts = 100; // Jeda 100ms untuk HP tanpa dukungan Native (Sangat aman dan mulus)
                 zxingReader.decodeFromStream(
                   stream,
                   "videoElement",
