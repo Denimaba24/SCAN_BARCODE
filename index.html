@@ -358,6 +358,7 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
+        transform: scale(1);
         display: none;
       }
 
@@ -833,12 +834,12 @@
       <div id="view-scan" class="view-page active">
         <div class="card">
           <div class="card-header">
-            <i class="fas fa-camera-viewfinder"></i> GAS DI SCAN
+            <i class="fas fa-camera-viewfinder"></i> SEMOGA LANCAR
           </div>
           <div class="scanner-wrapper">
             <div class="scanner-container" id="scannerBox">
               <div class="scanner-placeholder" id="placeholderMsg">
-                <i class="fas fa-video-slash"></i><span>Kamera Siap</span>
+                <i class="fas fa-video-slash"></i><span>Kamera Siaga</span>
               </div>
               <video id="videoElement" autoplay playsinline muted></video>
               <div class="targeting-box" id="targetBox">
@@ -860,7 +861,7 @@
                 id="btnAction"
                 onclick="toggleScan()"
               >
-                <i class="fas fa-play" style="margin-right: 8px"></i> SCAN
+                <i class="fas fa-play" style="margin-right: 8px"></i> Pencet Yahhh
               </button>
               <button class="btn btn-icon" onclick="switchCamera()">
                 <i class="fas fa-camera-rotate"></i>
@@ -876,8 +877,8 @@
               line-height: 1.5;
             "
           >
-            *Pemindai berkecepatan tinggi aktif. Semua barcode akan dipindai
-            tanpa pop-up input manual.
+            *Resolusi kamera diset maksimal. Semua jenis barcode terbaca tanpa
+            input manual.
           </small>
         </div>
       </div>
@@ -1365,7 +1366,7 @@
         engineBadge.innerText = isIOS ? "IOS PRO" : "SW MODE";
       }
 
-      /* ZXING ENGINE: TRY_HARDER DIAKTIFKAN UNTUK BARCODE PADAT (CODE 128) */
+      /* ZXING ENGINE: TRY_HARDER DIKEMBALIKAN UNTUK BARCODE PADAT (CODE 128) */
       function getZXingHints() {
         try {
           return new Map([
@@ -1395,7 +1396,7 @@
         if (audioCtx.state === "suspended") audioCtx.resume();
       }
 
-      /* --- DATA UJI COBA DEFAULT BERDASARKAN GAMBAR ANDA --- */
+      /* --- DATA DEFAULT BERDASARKAN GAMBAR ANDA --- */
       const DEFAULT_MASTER = {
         "1593103505404312800401050003": {
           jenisBarcode: "Barcode 2",
@@ -1412,7 +1413,7 @@
           potongan: 24,
           persegi: "10.25",
           golongan: '10 (014085) ("3")',
-        }, // Antisipasi huruf O
+        },
         "1111808100304302201401090009": {
           jenisBarcode: "Barcode 3",
           panjang: 300,
@@ -1468,7 +1469,7 @@
         return null;
       }
 
-      /* LOGIKA PEMINDAIAN BARU: TANPA TOLAK, TANPA INPUT MANUAL */
+      /* LOGIKA PEMINDAIAN BARU: BYPASS INPUT MANUAL SEPENUHNYA */
       function processBarcodeDetected(code, format) {
         code = code.trim().toUpperCase();
 
@@ -1482,14 +1483,14 @@
           return;
         }
 
-        // 1. Cek di Master Data (Terutama untuk Barcode 2 & 3 yang diuji coba)
+        // 1. Cek di Master Data (Terutama untuk Barcode 2 & 3 yang ada digambar)
         if (masterDB[code]) {
           scannedCodesSet.add(code);
           simpanData(code, format, masterDB[code]);
           return;
         }
 
-        // 2. Cek Pattern Barcode 1 (yang nilai dimensinya nempel di kode)
+        // 2. Cek Pattern Barcode 1 (yang nilainya menempel di nomor seri)
         let b1Data = parseBarcode1(code);
         if (b1Data) {
           scannedCodesSet.add(code);
@@ -1497,30 +1498,18 @@
           return;
         }
 
-        // 3. JIKA BARCODE 2 ATAU 3 TAPI BELUM ADA DI MASTER (Bypass Pop-up Manual)
+        // 3. JIKA BARCODE 2 ATAU 3 TAPI BELUM PERNAH DI-IMPORT DARI EXCEL
         if (code.length >= 10) {
-          let predictedType = "UNKNOWN";
-          if (code.startsWith("159") || code.startsWith("10"))
-            predictedType = "Barcode 2";
-          else if (code.startsWith("111")) predictedType = "Barcode 3";
-          else if (code.startsWith("86")) predictedType = "Barcode 1";
-
-          let fallbackData = {
-            jenisBarcode: predictedType,
-            panjang: 0,
-            lebar: 0,
-            potongan: 0,
-            persegi: 0,
-            golongan: "BELUM DIIMPORT DARI EXCEL",
-          };
-
-          scannedCodesSet.add(code);
-          simpanData(code, format, fallbackData);
-          Toast.fire({
-            icon: "success",
-            title: "Scan Berhasil (Mode Tanpa Master)",
+          triggerErrorFeedback();
+          Swal.fire({
+            title: "Data Belum Terdaftar!",
+            html: `Barcode <b>${code}</b> berhasil dibaca dengan cepat, namun <b>tidak ada di Master Data</b>.<br><br><i style="color:#cbd5e1;">Sebagai informasi teknis: Nomor barcode tipe ini hanyalah kode seri (Primary Key) dan secara sistematis tidak mengandung ukuran dimensi di dalam garis barcodenya.</i><br><br>Harap Import file Excel di menu Database agar sistem mengenali dimensinya.`,
+            icon: "info",
+            background: "rgba(15, 23, 42, 0.95)",
+            color: "#fff",
+            confirmButtonColor: "var(--primary)",
           });
-          return;
+          if (isScanning) toggleScan();
         }
       }
 
@@ -1566,12 +1555,12 @@
             btn.classList.add("stop");
             isScanning = true;
 
-            /* KAMERA ULTRA-WIDE: Meminta resolusi tinggi (width) tanpa membatasi aspect-ratio (height) 
-               Hal ini mencegah sensor Android/iPhone memotong gambar (nge-zoom). */
+            /* KAMERA RESOLUSI TINGGI 1080p: Mutlak dibutuhkan untuk memisahkan kerapatan garis Barcode 2 pada HP Jadul */
             let constraints = {
               video: {
                 facingMode: { ideal: currentCam },
                 width: { ideal: 1920 },
+                height: { ideal: 1080 },
               },
             };
 
@@ -1590,7 +1579,7 @@
             video.srcObject = stream;
             streamTrack = stream.getVideoTracks()[0];
 
-            /* Auto-focus Aman untuk iOS dan Android */
+            /* Auto-focus Cerdas */
             try {
               const capabilities = streamTrack.getCapabilities();
               if (
@@ -1601,9 +1590,7 @@
                   advanced: [{ focusMode: "continuous" }],
                 });
               }
-            } catch (err) {
-              console.log("Perangkat ini mengandalkan auto-fokus bawaan OS.");
-            }
+            } catch (err) {}
 
             await new Promise((resolve) => {
               video.onloadedmetadata = () => resolve();
@@ -1626,7 +1613,7 @@
               scanLoopFrame = requestAnimationFrame(detectLoop);
             } else {
               zxingReader = new ZXing.BrowserMultiFormatReader(getZXingHints());
-              zxingReader.timeBetweenDecodingAttempts = 30; // Pemindaian kilat (setiap 30ms)
+              zxingReader.timeBetweenDecodingAttempts = 20; // 20ms = Kecepatan scanning super instan
               zxingReader.decodeFromStream(
                 stream,
                 "videoElement",
@@ -1769,6 +1756,7 @@
         allData.push(newData);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
         triggerFeedback();
+        Toast.fire({ icon: "success", title: `Masuk ${newData.jenis}` });
         if (
           document.getElementById("view-session").classList.contains("active")
         )
@@ -1796,9 +1784,7 @@
         dataArray.forEach((i, idx) => {
           const tr = document.createElement("tr");
           let dataStatusClass =
-            i.golongan === "BELUM DIIMPORT DARI EXCEL"
-              ? "badge warning"
-              : "badge";
+            i.golongan === "DATA MASTER BELUM ADA" ? "badge warning" : "badge";
 
           if (tableIdStr.includes("Db")) {
             tr.innerHTML = `<td>${idx + 1}</td><td><span class="${dataStatusClass}">${i.kode.substring(0, 10)}...</span></td><td><b>${i.golongan}</b></td><td>${i.panjang}</td><td>${i.lebar}</td><td>${i.potongan}</td><td>${i.persegi}</td><td>${formatTgl(i.tanggal)}</td><td>${i.jam.substring(0, 5)}</td><td><button class="btn-del" onclick="hapus(${i.id}, 'db')"><i class="fas fa-trash"></i></button></td>`;
