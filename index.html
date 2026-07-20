@@ -866,12 +866,12 @@
       <div id="view-scan" class="view-page active">
         <div class="card">
           <div class="card-header">
-            <i class="fas fa-camera-viewfinder"></i> BISMILLAH
+            <i class="fas fa-camera-viewfinder"></i> SILAHKAN SCAN
           </div>
           <div class="scanner-wrapper">
             <div class="scanner-container" id="scannerBox">
               <div class="scanner-placeholder" id="placeholderMsg">
-                <i class="fas fa-video-slash"></i><span>Scan Siap</span>
+                <i class="fas fa-video-slash"></i><span>Kamera Siaga</span>
               </div>
               <video id="videoElement" autoplay playsinline muted></video>
 
@@ -903,7 +903,7 @@
           </div>
 
           <div class="input-group" style="margin-top: 10px; margin-bottom: 0">
-            <label>Input Manual</label>
+            <label>Input Manual (Darurat)</label>
             <div class="manual-input-wrapper">
               <input
                 type="text"
@@ -1628,7 +1628,7 @@
             btn.classList.add("stop");
             isScanning = true;
 
-            /* PENINGKATAN RESOLUSI VIDEO AGAR BARCODE RAPAT CEPAT TERBACA */
+            /* MEMAKSA RESOLUSI NORMAL AGAR TIDAK TERLALU DEKAT/ZOOM */
             let constraints = {
               video: {
                 facingMode: { ideal: currentCam },
@@ -1652,22 +1652,15 @@
             video.srcObject = stream;
             streamTrack = stream.getVideoTracks()[0];
 
-            /* PENINGKATAN AUTO-FOCUS DAN AUTO-ZOOM PADA PERANGKAT */
+            /* MEMAKSA AUTO-FOCUS TANPA ZOOM AGAR BARCODE TIDAK BLUR/TERPOTONG */
             try {
               const capabilities = streamTrack.getCapabilities();
-              const advancedConstraints = {};
               if (
                 capabilities.focusMode &&
                 capabilities.focusMode.includes("continuous")
               ) {
-                advancedConstraints.focusMode = "continuous";
-              }
-              if (capabilities.zoom) {
-                advancedConstraints.zoom = Math.min(1.5, capabilities.zoom.max);
-              }
-              if (Object.keys(advancedConstraints).length > 0) {
                 await streamTrack.applyConstraints({
-                  advanced: [advancedConstraints],
+                  advanced: [{ focusMode: "continuous" }],
                 });
               }
             } catch (err) {}
@@ -1690,12 +1683,12 @@
                     );
                 } catch (e) {}
                 if (isScanning)
-                  setTimeout(() => requestAnimationFrame(detectLoop), 50); // Jeda 50ms agar HP tidak nge-lag
+                  setTimeout(() => requestAnimationFrame(detectLoop), 100); // Jeda 100ms
               };
               scanLoopFrame = requestAnimationFrame(detectLoop);
             } else {
               zxingReader = new ZXing.BrowserMultiFormatReader(getZXingHints());
-              zxingReader.timeBetweenDecodingAttempts = 50; // Jeda pemrosesan 50ms untuk menstabilkan pemindaian
+              zxingReader.timeBetweenDecodingAttempts = 100; // Jeda pemrosesan 100ms agar prosesor stabil
 
               zxingReader.decodeFromStream(
                 stream,
