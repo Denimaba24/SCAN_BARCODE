@@ -79,7 +79,6 @@
         -webkit-font-smoothing: antialiased;
       }
 
-      /* Background Memanggil File Lokal daya.webp */
       body::before {
         content: "";
         position: fixed;
@@ -154,7 +153,6 @@
         filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.6));
       }
 
-      /* Animasi Teks Berjalan di Kanan */
       .typewriter-container {
         position: relative;
         flex-grow: 1;
@@ -200,7 +198,6 @@
         }
       }
 
-      /* Floating Bottom Navigation */
       .bottom-nav {
         position: fixed;
         bottom: calc(15px + env(safe-area-inset-bottom));
@@ -256,20 +253,17 @@
         background: rgba(255, 255, 255, 0.12);
         box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
       }
-
       .nav-item.active i {
         transform: translateY(-2px);
         color: #38bdf8;
         text-shadow: 0 0 15px rgba(56, 189, 248, 0.6);
       }
-
       .nav-item.active span {
         opacity: 1;
         height: 12px;
         margin-top: 2px;
       }
 
-      /* Transitions */
       .view-page {
         display: none;
         opacity: 0;
@@ -292,7 +286,6 @@
         }
       }
 
-      /* Layout */
       .container {
         padding: 20px 16px;
         padding-bottom: calc(120px + env(safe-area-inset-bottom));
@@ -302,7 +295,6 @@
         position: relative;
       }
 
-      /* Premium Glass Cards */
       .card {
         background: var(--glass-panel);
         backdrop-filter: var(--glass-blur);
@@ -316,7 +308,6 @@
         position: relative;
         overflow: hidden;
       }
-
       .card::before {
         content: "";
         position: absolute;
@@ -342,7 +333,6 @@
         color: #ffffff;
         letter-spacing: 0.5px;
       }
-
       .card-header i {
         color: #ffffff;
         background: linear-gradient(
@@ -357,7 +347,6 @@
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
       }
 
-      /* Advanced Scanner Aesthetics */
       .scanner-wrapper {
         position: relative;
         margin-bottom: 30px;
@@ -411,7 +400,6 @@
         border-style: solid;
         filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.7));
       }
-
       .targeting-box::before {
         top: -2px;
         left: -2px;
@@ -485,7 +473,6 @@
         opacity: 0.2;
       }
 
-      /* Floating Controls */
       .floating-controls {
         display: flex;
         gap: 12px;
@@ -556,7 +543,6 @@
         box-shadow: 0 8px 25px rgba(225, 29, 72, 0.5);
       }
 
-      /* Beautiful Forms */
       .input-group {
         margin-bottom: 20px;
       }
@@ -608,7 +594,6 @@
         border: 1px solid rgba(255, 255, 255, 0.2);
       }
 
-      /* Premium Data Grid Responsive */
       .table-wrapper {
         width: 100%;
         overflow-x: auto;
@@ -655,7 +640,6 @@
         font-size: 0.8rem;
         border: 1px solid rgba(255, 255, 255, 0.15);
       }
-
       .btn-del {
         color: var(--text-muted);
         background: rgba(255, 255, 255, 0.05);
@@ -676,14 +660,12 @@
         box-shadow: 0 4px 15px rgba(225, 29, 72, 0.5);
       }
 
-      /* --- EXPORT HUB REFINED --- */
       .export-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 12px;
         margin-bottom: 28px;
       }
-
       .btn-export-big {
         background: rgba(255, 255, 255, 0.03);
         border: 1px solid var(--glass-border);
@@ -722,7 +704,6 @@
       .btn-export-big:hover::after {
         opacity: 1;
       }
-
       .icon-original {
         width: 44px;
         height: 44px;
@@ -734,7 +715,6 @@
       .btn-export-big:hover .icon-original {
         transform: scale(1.1);
       }
-
       .btn-export-big div {
         font-size: 0.85rem;
         font-weight: 800;
@@ -744,7 +724,6 @@
         z-index: 2;
         text-align: center;
       }
-
       .btn-danger-zone {
         background: rgba(225, 29, 72, 0.15);
         border-color: rgba(225, 29, 72, 0.4);
@@ -766,7 +745,6 @@
         border-color: rgba(225, 29, 72, 0.6);
       }
 
-      /* MEDIA QUERY MOBILE PRESISI */
       @media (max-width: 600px) {
         .filter-grid {
           grid-template-columns: 1fr;
@@ -783,7 +761,6 @@
         }
       }
 
-      /* SweetAlert Premium Override Tweak untuk Mobile */
       div:where(.swal2-container) div:where(.swal2-popup) {
         background: rgba(15, 23, 42, 0.95) !important;
         backdrop-filter: blur(40px) saturate(200%) !important;
@@ -807,8 +784,6 @@
         font-size: 0.9rem !important;
         padding: 10px !important;
       }
-
-      /* Custom Accents for Headers */
       .hdr-b1 i {
         color: #818cf8;
         background: rgba(129, 140, 248, 0.2);
@@ -841,14 +816,10 @@
   <body>
     <!-- TOP NAVIGATION -->
     <div class="topbar">
-      <!-- Judul Tengah -->
       <div class="topbar-title">
         <i class="fas fa-qrcode"></i> PT. Daya Sakti Niaga
       </div>
-
       <span id="engineBadge" style="display: none"></span>
-
-      <!-- Efek Teks Berjalan -->
       <div class="typewriter-container">
         <div class="typewriter-text">
           PT. DAYA SAKTI NIAGA - Jl. Kapten Darmo Sugondo No.2, Indro,
@@ -874,7 +845,6 @@
                 <i class="fas fa-video-slash"></i><span>Kamera Siaga</span>
               </div>
               <video id="videoElement" autoplay playsinline muted></video>
-
               <div class="targeting-box" id="targetBox">
                 <div class="targeting-box-inner"></div>
               </div>
@@ -901,22 +871,17 @@
               </button>
             </div>
           </div>
-
-          <div class="input-group" style="margin-top: 10px; margin-bottom: 0">
-            <label>Input Manual (Darurat)</label>
-            <div class="manual-input-wrapper">
-              <input
-                type="text"
-                id="manualData"
-                class="form-control"
-                placeholder="Ketik serial barcode..."
-                inputmode="text"
-              />
-              <button class="btn btn-add" onclick="inputManual()">
-                <i class="fas fa-plus"></i>
-              </button>
-            </div>
-          </div>
+          <small
+            style="
+              color: var(--text-muted);
+              font-size: 0.75rem;
+              text-align: center;
+              display: block;
+            "
+          >
+            *Sistem memindai secara otomatis. Pastikan Barcode 2 & 3 sudah ada
+            di Master Excel.
+          </small>
         </div>
       </div>
 
@@ -1057,8 +1022,8 @@
                 margin-top: 5px;
               "
             >
-              *Sistem akan otomatis mengenali barcode di lapangan tanpa input
-              manual setelah master diunggah.
+              *Unggah file Excel daftar barcode agar tidak perlu input data
+              manual saat scan kamera.
             </small>
           </div>
         </div>
@@ -1087,7 +1052,6 @@
             </table>
           </div>
         </div>
-
         <div class="card">
           <div class="card-header hdr-b2">
             <i class="fas fa-server"></i> Database - Barcode 2
@@ -1112,7 +1076,6 @@
             </table>
           </div>
         </div>
-
         <div class="card">
           <div class="card-header hdr-b3">
             <i class="fas fa-server"></i> Database - Barcode 3
@@ -1157,7 +1120,6 @@
             3 ke dalam lembar kerja (*sheet*) yang berbeda pada file Laporan
             Excel.
           </p>
-
           <label
             style="
               display: block;
@@ -1269,7 +1231,6 @@
               margin: 30px 0 20px 0;
             "
           />
-
           <button
             class="btn btn-export-big btn-danger-zone"
             onclick="hapusSemuaData()"
@@ -1283,18 +1244,18 @@
 
     <!-- BOTTOM NAVIGATION (Floating) -->
     <nav class="bottom-nav">
-      <a class="nav-item active" onclick="switchPage('view-scan', this)">
-        <i class="fas fa-qrcode"></i><span>SCANNER</span>
-      </a>
-      <a class="nav-item" onclick="switchPage('view-session', this)">
-        <i class="fas fa-clipboard-check"></i><span>HARI INI</span>
-      </a>
-      <a class="nav-item" onclick="switchPage('view-database', this)">
-        <i class="fas fa-server"></i><span>DATABASE</span>
-      </a>
-      <a class="nav-item" onclick="switchPage('view-export', this)">
-        <i class="fas fa-download"></i><span>UNDUH</span>
-      </a>
+      <a class="nav-item active" onclick="switchPage('view-scan', this)"
+        ><i class="fas fa-qrcode"></i><span>SCANNER</span></a
+      >
+      <a class="nav-item" onclick="switchPage('view-session', this)"
+        ><i class="fas fa-clipboard-check"></i><span>HARI INI</span></a
+      >
+      <a class="nav-item" onclick="switchPage('view-database', this)"
+        ><i class="fas fa-server"></i><span>DATABASE</span></a
+      >
+      <a class="nav-item" onclick="switchPage('view-export', this)"
+        ><i class="fas fa-download"></i><span>UNDUH</span></a
+      >
     </nav>
 
     <!-- SCRIPT JAVASCRIPT GABUNGAN LOGIKA TERBARU -->
@@ -1347,9 +1308,7 @@
             document.getElementById("view-scan").classList.contains("active")
           ) {
             let y = e.touches[0].clientY;
-            if (y - touchStartY > 80) {
-              pullIndicator.style.opacity = "1";
-            }
+            if (y - touchStartY > 80) pullIndicator.style.opacity = "1";
             if (y - touchStartY > 160) {
               touchStartY = 0;
               pullIndicator.style.opacity = "0";
@@ -1397,6 +1356,7 @@
 
       if (hasNativeScanner && !isIOS) {
         document.getElementById("engineBadge").innerText = "HW ACCEL";
+        // Format native dikembalikan agar Barcode 1 bisa terbaca
         nativeDetector = new BarcodeDetector({
           formats: [
             "code_128",
@@ -1416,15 +1376,22 @@
           : "SW MODE";
       }
 
-      /* PENINGKATAN AKURASI PEMBACAAN ZXING */
+      /* KEMBALIKAN SEMUA FORMAT ZXING AGAR BARCODE 1 TERBACA */
       function getZXingHints() {
         try {
           return new Map([
-            [ZXing.DecodeHintType.TRY_HARDER, true], // Peningkatan: Memaksa deteksi kode resolusi tinggi
+            [ZXing.DecodeHintType.TRY_HARDER, true],
             [
               ZXing.DecodeHintType.POSSIBLE_FORMATS,
               [
-                ZXing.BarcodeFormat.CODE_128, // Fokus HANYA ke Code 128 untuk Barcode 2 & 3
+                ZXing.BarcodeFormat.CODE_128,
+                ZXing.BarcodeFormat.CODE_39,
+                ZXing.BarcodeFormat.CODE_93,
+                ZXing.BarcodeFormat.EAN_13,
+                ZXing.BarcodeFormat.EAN_8,
+                ZXing.BarcodeFormat.ITF,
+                ZXing.BarcodeFormat.CODABAR,
+                ZXing.BarcodeFormat.UPC_A,
               ],
             ],
           ]);
@@ -1518,97 +1485,40 @@
           const now = Date.now();
           if (now - lastErrorTime > 2000) {
             triggerErrorFeedback();
-            Swal.fire({
-              title: "DITOLAK!",
-              text: "Barcode ini sudah pernah di-scan.",
-              icon: "error",
-              background: "rgba(15, 23, 42, 0.95)",
-              color: "#fff",
-              confirmButtonColor: "var(--danger)",
-            });
+            Toast.fire({ icon: "error", title: "Sudah di-scan!" });
             lastErrorTime = now;
           }
           return;
         }
 
+        // 1. Validasi Master Data untuk Barcode 2 & 3
         if (masterDB[code]) {
           scannedCodesSet.add(code);
           simpanData(code, format, masterDB[code]);
           return;
         }
+
+        // 2. Jika Barcode 1, ekstrak otomatis nilainya
         let b1Data = parseBarcode1(code);
         if (b1Data) {
           scannedCodesSet.add(code);
           simpanData(code, format, b1Data);
           return;
         }
-        if (code.length >= 15) {
-          promptNewMasterData(code, format);
-        }
-      }
 
-      function promptNewMasterData(code, format) {
-        if (isScanning) toggleScan();
-        let predictedType = "Barcode 3";
-        if (code.startsWith("159") || code.startsWith("10")) {
-          predictedType = "Barcode 2";
-        } else if (code.startsWith("86")) {
-          predictedType = "Barcode 1";
+        // 3. TOLAK POPUP MANUAL: Paksa user gunakan Master Excel
+        if (code.length >= 10) {
+          triggerErrorFeedback();
+          Swal.fire({
+            title: "Data Tidak Dikenali!",
+            text: `Barcode ${code} belum ada di Master Data. Silakan pergi ke menu Database, lalu Import Excel Master terlebih dahulu agar kamera bisa membaca tanpa input manual!`,
+            icon: "warning",
+            background: "rgba(15, 23, 42, 0.95)",
+            color: "#fff",
+            confirmButtonColor: "var(--warning)",
+          });
+          if (isScanning) toggleScan();
         }
-
-        Swal.fire({
-          title: "Master Data Baru!",
-          html: `
-            <div style="font-size:0.85rem; color:#38bdf8; margin-bottom:15px; text-align:left;">Sistem mendeteksi Nomor Barcode yang belum dikenali:<br><b style="color:white; font-size:1rem;">${code}</b><br><br>Silakan masukkan dimensinya 1x saja. Sistem akan mengingatnya selamanya.</div>
-            <select id="m-jenis" class="swal2-input" style="width: 90%; font-size:14px; margin-bottom:8px;">
-              <option value="Barcode 3" ${predictedType === "Barcode 3" ? "selected" : ""}>Ini Barcode 3</option>
-              <option value="Barcode 2" ${predictedType === "Barcode 2" ? "selected" : ""}>Ini Barcode 2</option>
-              <option value="Barcode 1" ${predictedType === "Barcode 1" ? "selected" : ""}>Ini Barcode 1</option>
-            </select>
-            <input id="m-gol" class="swal2-input" placeholder="Golongan (Cth: FFP / 10(3))" style="width: 90%; font-size:14px; margin-bottom:8px;">
-            <input id="m-p" type="number" class="swal2-input" placeholder="Panjang (Cth: 300)" style="width: 90%; font-size:14px; margin-bottom:8px;">
-            <input id="m-l" type="number" step="0.1" class="swal2-input" placeholder="Lebar (Cth: 13.5)" style="width: 90%; font-size:14px; margin-bottom:8px;">
-            <input id="m-pot" type="number" class="swal2-input" placeholder="Potongan (Cth: 24)" style="width: 90%; font-size:14px; margin-bottom:8px;">
-          `,
-          showCancelButton: true,
-          confirmButtonText: '<i class="fas fa-save"></i> Simpan',
-          cancelButtonText: "Batal",
-          confirmButtonColor: "var(--primary)",
-          preConfirm: () => {
-            const j = document.getElementById("m-jenis").value;
-            const g = document.getElementById("m-gol").value.trim();
-            const p = parseFloat(document.getElementById("m-p").value);
-            const l = parseFloat(document.getElementById("m-l").value);
-            const pot = parseInt(document.getElementById("m-pot").value);
-            if (!g || isNaN(p) || isNaN(l) || isNaN(pot)) {
-              Swal.showValidationMessage(
-                `Semua kolom angka wajib diisi dengan benar!`,
-              );
-              return false;
-            }
-            const m2 = ((p * l * pot) / 10000).toFixed(2);
-            return {
-              jenisBarcode: j,
-              golongan: g,
-              panjang: p,
-              lebar: l,
-              potongan: pot,
-              persegi: m2,
-            };
-          },
-        }).then((res) => {
-          if (res.isConfirmed) {
-            masterDB[code] = res.value;
-            localStorage.setItem("SCMMasterDB", JSON.stringify(masterDB));
-            scannedCodesSet.add(code);
-            simpanData(code, format, res.value);
-          }
-          if (
-            document.getElementById("view-scan").classList.contains("active")
-          ) {
-            setTimeout(toggleScan, 500);
-          }
-        });
       }
 
       async function toggleScan() {
@@ -1653,15 +1563,8 @@
             btn.classList.add("stop");
             isScanning = true;
 
-            /* MEMAKSA RESOLUSI NORMAL AGAR TIDAK TERLALU DEKAT/ZOOM */
-            let constraints = {
-              video: {
-                facingMode: { ideal: currentCam },
-                width: { ideal: 1920 }, // Naikkan dari 1280 ke 1920
-                height: { ideal: 1080 }, // Naikkan dari 720 ke 1080
-                advanced: [{ focusMode: "continuous" }],
-              },
-            };
+            /* FIX KAMERA NGE-ZOOM: Membuang batasan width/height membiarkan kamera me-render native aspect ratio (Wide) di Android/iOS */
+            let constraints = { video: { facingMode: { ideal: currentCam } } };
 
             let stream;
             try {
@@ -1678,7 +1581,7 @@
             video.srcObject = stream;
             streamTrack = stream.getVideoTracks()[0];
 
-            /* MEMAKSA AUTO-FOCUS TANPA ZOOM AGAR BARCODE TIDAK BLUR/TERPOTONG */
+            /* Memaksa auto-focus pada Android/iPhone dengan aman */
             try {
               const capabilities = streamTrack.getCapabilities();
               if (
@@ -1689,14 +1592,15 @@
                   advanced: [{ focusMode: "continuous" }],
                 });
               }
-            } catch (err) {}
+            } catch (err) {
+              /* Abaikan bila perangkat (iOS) tidak mendukung API ini */
+            }
 
             await new Promise((resolve) => {
               video.onloadedmetadata = () => resolve();
             });
             await video.play();
 
-            /* PERBAIKAN STABILITAS: Memberikan jeda mikro agar CPU tidak hang saat deteksi massal */
             if (nativeDetector) {
               const detectLoop = async () => {
                 if (!isScanning) return;
@@ -1715,19 +1619,17 @@
             } else {
               zxingReader = new ZXing.BrowserMultiFormatReader(getZXingHints());
               zxingReader.timeBetweenDecodingAttempts = 100;
-
               zxingReader.decodeFromStream(
                 stream,
                 "videoElement",
                 (result, err) => {
-                  if (result) {
+                  if (result)
                     processBarcodeDetected(
                       result.getText(),
                       result.getBarcodeFormat
                         ? result.getBarcodeFormat().toString()
                         : "UNKNOWN",
                     );
-                  }
                 },
               );
             }
@@ -1829,21 +1731,6 @@
           box.style.borderColor = "#ffffff";
           box.style.filter = "none";
         }, 200);
-      }
-
-      function inputManual() {
-        const val = document.getElementById("manualData").value.trim();
-        if (!val) return Toast.fire({ icon: "error", title: "Kode kosong!" });
-        if (scannedCodesSet.has(val)) {
-          triggerErrorFeedback();
-          return Swal.fire(
-            "Ditolak!",
-            "Barcode ini sudah ada di sistem.",
-            "error",
-          );
-        }
-        processBarcodeDetected(val, "MANUAL");
-        document.getElementById("manualData").value = "";
       }
 
       function simpanData(kode, barcodeFormat, parsedData) {
@@ -2126,20 +2013,16 @@
         doc.save(`Laporan_DSN_${label}_${new Date().getTime()}.pdf`);
       }
 
-      // Fungsi untuk mengimpor data Master Database dari File Excel
       function importMasterExcel(event) {
         const file = event.target.files[0];
         if (!file) return;
-
         const reader = new FileReader();
         reader.onload = function (e) {
           const data = new Uint8Array(e.target.result);
           const workbook = XLSX.read(data, { type: "array" });
-
           const firstSheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[firstSheetName];
           const jsonMaster = XLSX.utils.sheet_to_json(worksheet);
-
           let addedCount = 0;
 
           jsonMaster.forEach((row) => {
@@ -2148,7 +2031,6 @@
               let l = parseFloat(row.Lebar);
               let pot = parseInt(row.Potongan) || 0;
               let m2 = ((p * l * pot) / 10000).toFixed(2);
-
               masterDB[row.KodeBarcode.toString().toUpperCase().trim()] = {
                 jenisBarcode: row.Jenis || "Barcode 2",
                 golongan: row.Golongan || "-",
@@ -2160,18 +2042,15 @@
               addedCount++;
             }
           });
-
           localStorage.setItem("SCMMasterDB", JSON.stringify(masterDB));
-
           Swal.fire({
             title: "Import Berhasil!",
-            text: `${addedCount} Data Master berhasil disuntikkan ke sistem. Scanner kini siap digunakan tanpa input manual.`,
+            text: `${addedCount} Data Master berhasil disuntikkan ke sistem. Scanner kini siap membaca tanpa input manual!`,
             icon: "success",
             background: "rgba(15, 23, 42, 0.95)",
             color: "#fff",
             confirmButtonColor: "var(--success)",
           });
-
           event.target.value = "";
         };
         reader.readAsArrayBuffer(file);
