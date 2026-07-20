@@ -840,7 +840,7 @@
       <div id="view-scan" class="view-page active">
         <div class="card">
           <div class="card-header">
-            <i class="fas fa-camera-viewfinder"></i> Silahkan Di Scan
+            <i class="fas fa-camera-viewfinder"></i> Semoga Bisa Scan
           </div>
           <div class="scanner-wrapper">
             <div class="scanner-container" id="scannerBox">
@@ -883,10 +883,12 @@
               font-weight: bold;
             "
           >
+            *Pemindai Ultra-Cepat aktif. Sistem otomatis menyaring Barcode 2
+            dari gangguan pembacaan lain.
           </p>
 
           <div class="input-group" style="margin-top: 15px; margin-bottom: 0">
-            <label>Input Manual</label>
+            <label>Input Manual (Darurat)</label>
             <div class="manual-input-wrapper">
               <input
                 type="text"
@@ -1011,38 +1013,6 @@
               placeholder="Cari serial / golongan..."
               onkeyup="renderDatabase()"
             />
-          </div>
-
-          <hr
-            style="
-              border: none;
-              border-top: 1px solid rgba(255, 255, 255, 0.15);
-              margin: 20px 0;
-            "
-          />
-          <div class="input-group" style="margin-bottom: 0">
-            <label style="color: var(--success)"
-              ><i class="fas fa-file-excel"></i> Import Master Data Barcode 2 &
-              3</label
-            >
-            <input
-              type="file"
-              id="fileExcelMaster"
-              accept=".xlsx, .xls"
-              class="form-control"
-              onchange="importMasterExcel(event)"
-            />
-            <small
-              style="
-                color: var(--text-muted);
-                font-size: 0.7rem;
-                display: block;
-                margin-top: 5px;
-              "
-            >
-              *Unggah file Excel daftar barcode agar sistem mengenali ukurannya
-              secara instan.
-            </small>
           </div>
         </div>
 
@@ -1393,6 +1363,7 @@
         document.getElementById("engineBadge").style.display = "inline-block";
       }
 
+      /* HINTS: MEMBUKA SEMUA KEMUNGKINAN BARCODE AGAR BISA TERBACA INSTAN (0ms DELAY) */
       function getZXingHints() {
         try {
           const hints = new Map();
@@ -1418,45 +1389,6 @@
           audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === "suspended") audioCtx.resume();
       }
-
-      const DEFAULT_MASTER = {
-        "1593103505404312800401050003": {
-          jenisBarcode: "Barcode 2",
-          panjang: 305,
-          lebar: 14,
-          potongan: 24,
-          persegi: "10.25",
-          golongan: '10 (014085) ("3")',
-        },
-        "15931035O5404312800401050003": {
-          jenisBarcode: "Barcode 2",
-          panjang: 305,
-          lebar: 14,
-          potongan: 24,
-          persegi: "10.25",
-          golongan: '10 (014085) ("3")',
-        },
-        "1111191600503202881401070011": {
-          jenisBarcode: "Barcode 3",
-          panjang: 280,
-          lebar: 15,
-          potongan: 24,
-          persegi: "10.08",
-          golongan: "FFP BX003187 (11)",
-        },
-        "1111808100304302201401090009": {
-          jenisBarcode: "Barcode 3",
-          panjang: 300,
-          lebar: 13,
-          potongan: 24,
-          persegi: "9.36",
-          golongan: "FFP BX004129 (9)",
-        },
-      };
-
-      let masterDB = JSON.parse(localStorage.getItem("SCMMasterDB")) || {};
-      Object.assign(masterDB, DEFAULT_MASTER);
-      localStorage.setItem("SCMMasterDB", JSON.stringify(masterDB));
 
       function parseBarcode1(raw) {
         if (raw.startsWith("86") && raw.length >= 24) {
@@ -1491,13 +1423,13 @@
         return null;
       }
 
-      /* LOGIKA PEMINDAIAN ULTRA-SMART (ANTI-GAGAL) */
+      /* LOGIKA PEMINDAIAN ULTRA-SMART (ANTI-GAGAL KHUSUS ANDROID) */
       function processBarcodeDetected(rawCode, format) {
         let code = rawCode.replace(/[\s\r\n]/g, "").toUpperCase();
         let codeZero = code.replace(/O/g, "0");
 
-        // Abaikan data sampah yang sering tertangkap kamera (QR Code acak / teks pendek aneh)
-        if (code.length < 5 || code.includes("HTTP")) return;
+        // SARINGAN 1: Abaikan data sampah, URL, dan nomor pendek palsu
+        if (code.length < 15 || code.includes("HTTP")) return;
 
         if (scannedCodesSet.has(code) || scannedCodesSet.has(codeZero)) {
           const now = Date.now();
@@ -1509,7 +1441,7 @@
           return;
         }
 
-        // 1. CARA KERJA BARCODE 1 (Tidak Diubah - Tetap Sesuai Permintaan Anda)
+        // CARA KERJA BARCODE 1 (Tidak Diubah)
         let b1Data = parseBarcode1(code);
         if (b1Data) {
           scannedCodesSet.add(code);
@@ -1517,29 +1449,7 @@
           return;
         }
 
-        // 2. CEK DATABASE MASTER
-        let matchedKey = Object.keys(masterDB).find((k) => {
-          let kZero = k.replace(/O/g, "0");
-          return (
-            kZero === codeZero ||
-            codeZero.includes(kZero) ||
-            kZero.includes(codeZero) ||
-            (codeZero.length >= 15 &&
-              kZero.substring(0, 15) === codeZero.substring(0, 15))
-          );
-        });
-
-        if (matchedKey) {
-          scannedCodesSet.add(code);
-          simpanData(code, format, masterDB[matchedKey]);
-          return;
-        }
-
-        /* 
-           3. KECERDASAN BUATAN KHUSUS BARCODE 2 & 3 (ANTI GAGAL BACA) 
-           Jika kamera tanpa sengaja membaca "10014085320" (angka di atas Barcode 2), 
-           sistem akan memaksanya mengenali sebagai Barcode 2 sesuai gambar.
-        */
+        // CARA KERJA BARCODE 2: DIJAMIN MASUK & LANGSUNG MUNCUL UKURANNYA
         if (
           codeZero.startsWith("159") ||
           codeZero.startsWith("10") ||
@@ -1635,7 +1545,7 @@
             btn.classList.add("stop");
             isScanning = true;
 
-            /* MENGGUNAKAN STANDAR 720p AGAR SEMUA HP/ANDROID JADUL DAN IPHONE TIDAK LAG NAMUN TETAP BISA BACA BARCODE PANJANG */
+            /* SETINGAN KHUSUS SEMUA ANDROID (NATIVE WIDE HD) */
             let stream;
             let constraints = {
               video: {
@@ -1653,7 +1563,8 @@
                 stream = await navigator.mediaDevices.getUserMedia({
                   video: {
                     facingMode: { ideal: currentCam },
-                    width: { ideal: 1280 },
+                    width: { ideal: 640 },
+                    height: { ideal: 480 },
                   },
                 });
               } catch (e2) {
@@ -1688,7 +1599,6 @@
                       }
                     } catch (e) {}
                   }
-                  /* JEDA 50ms (20 FPS) AGAR CPU HP ANDROID TIDAK OVERHEAT / MACET */
                   if (isScanning)
                     setTimeout(() => requestAnimationFrame(detectLoop), 50);
                 };
@@ -1697,7 +1607,7 @@
                 zxingReader = new ZXing.BrowserMultiFormatReader(
                   getZXingHints(),
                 );
-                zxingReader.timeBetweenDecodingAttempts = 100; // Jeda 100ms untuk HP tanpa dukungan Native (Sangat aman dan mulus)
+                zxingReader.timeBetweenDecodingAttempts = 50;
                 zxingReader.decodeFromStream(
                   stream,
                   "videoElement",
@@ -1883,8 +1793,7 @@
         }
         dataArray.forEach((i, idx) => {
           const tr = document.createElement("tr");
-          let dataStatusClass =
-            i.golongan === "DATA TIDAK ADA" ? "badge warning" : "badge";
+          let dataStatusClass = "badge";
 
           if (tableIdStr.includes("Db")) {
             tr.innerHTML = `<td>${idx + 1}</td><td><span class="${dataStatusClass}">${i.kode.substring(0, 10)}...</span></td><td><b>${i.golongan}</b></td><td>${i.panjang}</td><td>${i.lebar}</td><td>${i.potongan}</td><td>${i.persegi}</td><td>${formatTgl(i.tanggal)}</td><td>${i.jam.substring(0, 5)}</td><td><button class="btn-del" onclick="hapus(${i.id}, 'db')"><i class="fas fa-trash"></i></button></td>`;
@@ -1977,20 +1886,18 @@
       function hapusSemuaData() {
         Swal.fire({
           title: "Format Database?",
-          text: "Seluruh data (termasuk memori master auto-learn dan cache) akan dihapus secara total!",
+          text: "Seluruh data transaksi akan bersih!",
           icon: "warning",
           showCancelButton: true,
           confirmButtonColor: "var(--danger)",
           cancelButtonColor: "rgba(255, 255, 255, 0.15)",
-          confirmButtonText: "Ya, Format Total",
+          confirmButtonText: "Format Total",
           cancelButtonText: "Batal",
         }).then((res) => {
           if (res.isConfirmed) {
             localStorage.removeItem(STORAGE_KEY);
-            localStorage.removeItem("SCMMasterDB");
             allData = [];
             scannedCodesSet.clear();
-            masterDB = { ...DEFAULT_MASTER };
             renderToday();
             renderDatabase();
             Toast.fire({ icon: "success", title: "Aplikasi Dibersihkan!" });
@@ -2023,7 +1930,7 @@
 
       function exportToExcel(dataArray, label) {
         const wb = XLSX.utils.book_new();
-        const types = ["Barcode 1", "Barcode 2", "Barcode 3", "Lainnya"];
+        const types = ["Barcode 1", "Barcode 2", "Barcode 3"];
         types.forEach((type) => {
           const typeData = dataArray.filter((i) => i.jenis === type);
           if (typeData.length > 0) {
@@ -2112,49 +2019,6 @@
           headStyles: { fillColor: [59, 130, 246] },
         });
         doc.save(`Laporan_DSN_${label}_${new Date().getTime()}.pdf`);
-      }
-
-      function importMasterExcel(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          const data = new Uint8Array(e.target.result);
-          const workbook = XLSX.read(data, { type: "array" });
-          const firstSheetName = workbook.SheetNames[0];
-          const worksheet = workbook.Sheets[firstSheetName];
-          const jsonMaster = XLSX.utils.sheet_to_json(worksheet);
-          let addedCount = 0;
-
-          jsonMaster.forEach((row) => {
-            if (row.KodeBarcode && row.Panjang && row.Lebar) {
-              let p = parseFloat(row.Panjang);
-              let l = parseFloat(row.Lebar);
-              let pot = parseInt(row.Potongan) || 0;
-              let m2 = ((p * l * pot) / 10000).toFixed(2);
-              masterDB[row.KodeBarcode.toString().toUpperCase().trim()] = {
-                jenisBarcode: row.Jenis || "Barcode 2",
-                golongan: row.Golongan || "-",
-                panjang: p,
-                lebar: l,
-                potongan: pot,
-                persegi: m2,
-              };
-              addedCount++;
-            }
-          });
-          localStorage.setItem("SCMMasterDB", JSON.stringify(masterDB));
-          Swal.fire({
-            title: "Import Berhasil!",
-            text: `${addedCount} Data Master diunggah. Scanner siap tanpa input manual!`,
-            icon: "success",
-            background: "rgba(15, 23, 42, 0.95)",
-            color: "#fff",
-            confirmButtonColor: "var(--success)",
-          });
-          event.target.value = "";
-        };
-        reader.readAsArrayBuffer(file);
       }
     </script>
   </body>
