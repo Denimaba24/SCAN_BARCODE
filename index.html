@@ -115,7 +115,6 @@
         outline: none;
       }
 
-      /* --- TOPBAR PREMIUM RESPONSIVE --- */
       .topbar {
         background: rgba(15, 23, 42, 0.6);
         backdrop-filter: var(--glass-blur);
@@ -133,7 +132,6 @@
         gap: 15px;
         overflow: hidden;
       }
-
       .topbar-title {
         font-size: 1.05rem;
         font-weight: 800;
@@ -622,6 +620,11 @@
         font-size: 0.8rem;
         border: 1px solid rgba(255, 255, 255, 0.15);
       }
+      .badge.warning {
+        background: rgba(245, 158, 11, 0.2);
+        color: #fcd34d;
+        border-color: rgba(245, 158, 11, 0.4);
+      }
       .btn-del {
         color: var(--text-muted);
         background: rgba(255, 255, 255, 0.05);
@@ -830,12 +833,12 @@
       <div id="view-scan" class="view-page active">
         <div class="card">
           <div class="card-header">
-            <i class="fas fa-camera-viewfinder"></i> SILAHKAN SCAN
+            <i class="fas fa-camera-viewfinder"></i> GAS DI SCAN
           </div>
           <div class="scanner-wrapper">
             <div class="scanner-container" id="scannerBox">
               <div class="scanner-placeholder" id="placeholderMsg">
-                <i class="fas fa-video-slash"></i><span>Kamera Siaga</span>
+                <i class="fas fa-video-slash"></i><span>Kamera Siap</span>
               </div>
               <video id="videoElement" autoplay playsinline muted></video>
               <div class="targeting-box" id="targetBox">
@@ -857,7 +860,7 @@
                 id="btnAction"
                 onclick="toggleScan()"
               >
-                <i class="fas fa-play" style="margin-right: 8px"></i> MULAI
+                <i class="fas fa-play" style="margin-right: 8px"></i> SCAN
               </button>
               <button class="btn btn-icon" onclick="switchCamera()">
                 <i class="fas fa-camera-rotate"></i>
@@ -870,10 +873,11 @@
               font-size: 0.75rem;
               text-align: center;
               display: block;
+              line-height: 1.5;
             "
           >
-            *Pemindai berkecepatan tinggi. Pastikan Barcode 2 & 3 sudah diunggah
-            di Database.
+            *Pemindai berkecepatan tinggi aktif. Semua barcode akan dipindai
+            tanpa pop-up input manual.
           </small>
         </div>
       </div>
@@ -1015,8 +1019,8 @@
                 margin-top: 5px;
               "
             >
-              *Unggah file Excel daftar barcode agar tidak perlu input data
-              manual saat scan kamera.
+              *Unggah file Excel daftar barcode agar nilai ukuran otomatis
+              terisi sempurna.
             </small>
           </div>
         </div>
@@ -1331,7 +1335,7 @@
         if (pageId === "view-database") renderDatabase();
       }
 
-      /* DETEKSI PERANGKAT (iOS & ANDROID SUPPORT) */
+      /* KOMPATIBILITAS SEMUA DEVICE (iOS & ANDROID) */
       const isIOS =
         /iPad|iPhone|iPod/.test(navigator.userAgent) ||
         (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
@@ -1361,11 +1365,11 @@
         engineBadge.innerText = isIOS ? "IOS PRO" : "SW MODE";
       }
 
-      /* OPTIMALISASI ZXING: TANPA TRY_HARDER AGAR TIDAK PATAH-PATAH DI HP LAMA/IPHONE */
+      /* ZXING ENGINE: TRY_HARDER DIAKTIFKAN UNTUK BARCODE PADAT (CODE 128) */
       function getZXingHints() {
         try {
           return new Map([
-            // TRY_HARDER DINONAKTIFKAN KARENA MEMBUAT KAMERA LIVE VIDEO SANGAT LAMBAT
+            [ZXing.DecodeHintType.TRY_HARDER, true],
             [
               ZXing.DecodeHintType.POSSIBLE_FORMATS,
               [
@@ -1391,6 +1395,7 @@
         if (audioCtx.state === "suspended") audioCtx.resume();
       }
 
+      /* --- DATA UJI COBA DEFAULT BERDASARKAN GAMBAR ANDA --- */
       const DEFAULT_MASTER = {
         "1593103505404312800401050003": {
           jenisBarcode: "Barcode 2",
@@ -1399,6 +1404,22 @@
           potongan: 24,
           persegi: "10.25",
           golongan: '10 (014085) ("3")',
+        },
+        "15931035O5404312800401050003": {
+          jenisBarcode: "Barcode 2",
+          panjang: 305,
+          lebar: 14,
+          potongan: 24,
+          persegi: "10.25",
+          golongan: '10 (014085) ("3")',
+        }, // Antisipasi huruf O
+        "1111808100304302201401090009": {
+          jenisBarcode: "Barcode 3",
+          panjang: 300,
+          lebar: 13,
+          potongan: 24,
+          persegi: "9.36",
+          golongan: "FFP BX004129 (9)",
         },
         "1111191600503202881401070011": {
           jenisBarcode: "Barcode 3",
@@ -1447,8 +1468,10 @@
         return null;
       }
 
+      /* LOGIKA PEMINDAIAN BARU: TANPA TOLAK, TANPA INPUT MANUAL */
       function processBarcodeDetected(code, format) {
         code = code.trim().toUpperCase();
+
         if (scannedCodesSet.has(code)) {
           const now = Date.now();
           if (now - lastErrorTime > 2000) {
@@ -1459,12 +1482,14 @@
           return;
         }
 
+        // 1. Cek di Master Data (Terutama untuk Barcode 2 & 3 yang diuji coba)
         if (masterDB[code]) {
           scannedCodesSet.add(code);
           simpanData(code, format, masterDB[code]);
           return;
         }
 
+        // 2. Cek Pattern Barcode 1 (yang nilai dimensinya nempel di kode)
         let b1Data = parseBarcode1(code);
         if (b1Data) {
           scannedCodesSet.add(code);
@@ -1472,18 +1497,30 @@
           return;
         }
 
-        // Murni Tanpa Input Manual
+        // 3. JIKA BARCODE 2 ATAU 3 TAPI BELUM ADA DI MASTER (Bypass Pop-up Manual)
         if (code.length >= 10) {
-          triggerErrorFeedback();
-          Swal.fire({
-            title: "Data Tidak Dikenali!",
-            text: `Barcode ${code} belum ada di Master Data Excel.`,
-            icon: "warning",
-            background: "rgba(15, 23, 42, 0.95)",
-            color: "#fff",
-            confirmButtonColor: "var(--warning)",
+          let predictedType = "UNKNOWN";
+          if (code.startsWith("159") || code.startsWith("10"))
+            predictedType = "Barcode 2";
+          else if (code.startsWith("111")) predictedType = "Barcode 3";
+          else if (code.startsWith("86")) predictedType = "Barcode 1";
+
+          let fallbackData = {
+            jenisBarcode: predictedType,
+            panjang: 0,
+            lebar: 0,
+            potongan: 0,
+            persegi: 0,
+            golongan: "BELUM DIIMPORT DARI EXCEL",
+          };
+
+          scannedCodesSet.add(code);
+          simpanData(code, format, fallbackData);
+          Toast.fire({
+            icon: "success",
+            title: "Scan Berhasil (Mode Tanpa Master)",
           });
-          if (isScanning) toggleScan();
+          return;
         }
       }
 
@@ -1529,12 +1566,12 @@
             btn.classList.add("stop");
             isScanning = true;
 
-            /* OPTIMALISASI KAMERA ALL-DEVICE (HD 720p) - Paling Ringan & Luas (Tanpa Zoom Paksa) */
+            /* KAMERA ULTRA-WIDE: Meminta resolusi tinggi (width) tanpa membatasi aspect-ratio (height) 
+               Hal ini mencegah sensor Android/iPhone memotong gambar (nge-zoom). */
             let constraints = {
               video: {
                 facingMode: { ideal: currentCam },
-                width: { ideal: 1280 },
-                height: { ideal: 720 },
+                width: { ideal: 1920 },
               },
             };
 
@@ -1553,7 +1590,7 @@
             video.srcObject = stream;
             streamTrack = stream.getVideoTracks()[0];
 
-            /* Safe-Fallback AutoFocus (Anti-Crash di iPhone Safari) */
+            /* Auto-focus Aman untuk iOS dan Android */
             try {
               const capabilities = streamTrack.getCapabilities();
               if (
@@ -1565,7 +1602,7 @@
                 });
               }
             } catch (err) {
-              console.log("AutoFocus manual ditolak/tidak disupport device.");
+              console.log("Perangkat ini mengandalkan auto-fokus bawaan OS.");
             }
 
             await new Promise((resolve) => {
@@ -1584,12 +1621,12 @@
                       barcodes[0].format.toUpperCase(),
                     );
                 } catch (e) {}
-                if (isScanning) requestAnimationFrame(detectLoop); // Tanpa delay agar deteksi instant
+                if (isScanning) requestAnimationFrame(detectLoop);
               };
               scanLoopFrame = requestAnimationFrame(detectLoop);
             } else {
               zxingReader = new ZXing.BrowserMultiFormatReader(getZXingHints());
-              zxingReader.timeBetweenDecodingAttempts = 30; // Sangat cepat (30ms per frame)
+              zxingReader.timeBetweenDecodingAttempts = 30; // Pemindaian kilat (setiap 30ms)
               zxingReader.decodeFromStream(
                 stream,
                 "videoElement",
@@ -1732,7 +1769,6 @@
         allData.push(newData);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
         triggerFeedback();
-        Toast.fire({ icon: "success", title: `Masuk ${newData.jenis}` });
         if (
           document.getElementById("view-session").classList.contains("active")
         )
@@ -1759,10 +1795,15 @@
         }
         dataArray.forEach((i, idx) => {
           const tr = document.createElement("tr");
+          let dataStatusClass =
+            i.golongan === "BELUM DIIMPORT DARI EXCEL"
+              ? "badge warning"
+              : "badge";
+
           if (tableIdStr.includes("Db")) {
-            tr.innerHTML = `<td>${idx + 1}</td><td><span class="badge">${i.kode.substring(0, 10)}...</span></td><td><b>${i.golongan}</b></td><td>${i.panjang}</td><td>${i.lebar}</td><td>${i.potongan}</td><td>${i.persegi}</td><td>${formatTgl(i.tanggal)}</td><td>${i.jam.substring(0, 5)}</td><td><button class="btn-del" onclick="hapus(${i.id}, 'db')"><i class="fas fa-trash"></i></button></td>`;
+            tr.innerHTML = `<td>${idx + 1}</td><td><span class="${dataStatusClass}">${i.kode.substring(0, 10)}...</span></td><td><b>${i.golongan}</b></td><td>${i.panjang}</td><td>${i.lebar}</td><td>${i.potongan}</td><td>${i.persegi}</td><td>${formatTgl(i.tanggal)}</td><td>${i.jam.substring(0, 5)}</td><td><button class="btn-del" onclick="hapus(${i.id}, 'db')"><i class="fas fa-trash"></i></button></td>`;
           } else {
-            tr.innerHTML = `<td>${idx + 1}</td><td><span class="badge">${i.kode.substring(0, 10)}...</span></td><td><b>${i.golongan}</b></td><td>${i.panjang}</td><td>${i.lebar}</td><td>${i.potongan}</td><td>${i.persegi}</td><td>${i.jam.substring(0, 5)}</td><td><button class="btn-del" onclick="hapus(${i.id}, 'today')"><i class="fas fa-trash"></i></button></td>`;
+            tr.innerHTML = `<td>${idx + 1}</td><td><span class="${dataStatusClass}">${i.kode.substring(0, 10)}...</span></td><td><b>${i.golongan}</b></td><td>${i.panjang}</td><td>${i.lebar}</td><td>${i.potongan}</td><td>${i.persegi}</td><td>${i.jam.substring(0, 5)}</td><td><button class="btn-del" onclick="hapus(${i.id}, 'today')"><i class="fas fa-trash"></i></button></td>`;
           }
           tbody.appendChild(tr);
         });
