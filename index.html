@@ -79,7 +79,6 @@
         -webkit-font-smoothing: antialiased;
       }
 
-      /* Background Memanggil File Lokal daya.webp */
       body::before {
         content: "";
         position: fixed;
@@ -117,7 +116,6 @@
         outline: none;
       }
 
-      /* --- TOPBAR PREMIUM RESPONSIVE --- */
       .topbar {
         background: rgba(15, 23, 42, 0.6);
         backdrop-filter: var(--glass-blur);
@@ -358,7 +356,6 @@
         box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
       }
 
-      /* GPU ACCELERATION UNTUK VIDEO AGAR KAMERA SMOOTH DI SEMUA HP */
       #videoElement {
         width: 100%;
         height: 100%;
@@ -843,7 +840,7 @@
       <div id="view-scan" class="view-page active">
         <div class="card">
           <div class="card-header">
-            <i class="fas fa-camera-viewfinder"></i> HAJAR TERUS
+            <i class="fas fa-camera-viewfinder"></i> INI GIMANA? Oke Kan
           </div>
           <div class="scanner-wrapper">
             <div class="scanner-container" id="scannerBox">
@@ -886,7 +883,7 @@
             "
           >
             *Posisikan seluruh garis barcode panjang secara horizontal agar
-            masuk ke dalam frame biru. Kamera anti-lag untuk semua HP.
+            masuk ke dalam frame biru.
           </p>
 
           <div class="input-group" style="margin-top: 15px; margin-bottom: 0">
@@ -1015,6 +1012,38 @@
               placeholder="Cari serial / golongan..."
               onkeyup="renderDatabase()"
             />
+          </div>
+
+          <hr
+            style="
+              border: none;
+              border-top: 1px solid rgba(255, 255, 255, 0.15);
+              margin: 20px 0;
+            "
+          />
+          <div class="input-group" style="margin-bottom: 0">
+            <label style="color: var(--success)"
+              ><i class="fas fa-file-excel"></i> Import Master Data Barcode 2 &
+              3</label
+            >
+            <input
+              type="file"
+              id="fileExcelMaster"
+              accept=".xlsx, .xls"
+              class="form-control"
+              onchange="importMasterExcel(event)"
+            />
+            <small
+              style="
+                color: var(--text-muted);
+                font-size: 0.7rem;
+                display: block;
+                margin-top: 5px;
+              "
+            >
+              *Unggah file Excel daftar barcode agar sistem mengenali ukurannya
+              secara instan.
+            </small>
           </div>
         </div>
 
@@ -1365,25 +1394,12 @@
         document.getElementById("engineBadge").style.display = "inline-block";
       }
 
-      /* MENGAKTIFKAN TRY_HARDER UNTUK MENDETEKSI BARCODE SANGAT RAPAT (CODE 128 / BARCODE 2) */
+      /* MENGAKTIFKAN TRY_HARDER TANPA PEMBATASAN FORMAT AGAR SEMUA BARCODE (1, 2, 3) TERBACA */
       function getZXingHints() {
         try {
-          return new Map([
-            [ZXing.DecodeHintType.TRY_HARDER, true], // WAJIB AKTIF UNTUK BARCODE PANJANG!
-            [
-              ZXing.DecodeHintType.POSSIBLE_FORMATS,
-              [
-                ZXing.BarcodeFormat.CODE_128,
-                ZXing.BarcodeFormat.CODE_39,
-                ZXing.BarcodeFormat.CODE_93,
-                ZXing.BarcodeFormat.ITF,
-                ZXing.BarcodeFormat.CODABAR,
-                ZXing.BarcodeFormat.EAN_13,
-                ZXing.BarcodeFormat.EAN_8,
-                ZXing.BarcodeFormat.UPC_A,
-              ],
-            ],
-          ]);
+          const hints = new Map();
+          hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
+          return hints;
         } catch (e) {
           return undefined;
         }
@@ -1492,68 +1508,27 @@
           return;
         }
 
-        if (code.length >= 10) {
-          promptNewMasterData(code, format);
+        /* BATAS KARAKTER DITURUNKAN KE 5 AGAR SEMUA BARCODE MASUK, MESKIPUN MASTERNYA BELUM ADA */
+        if (code.length >= 5) {
+          let predictedType = "Lainnya";
+          if (code.startsWith("159") || code.startsWith("10"))
+            predictedType = "Barcode 2";
+          else if (code.startsWith("111")) predictedType = "Barcode 3";
+          else if (code.startsWith("86")) predictedType = "Barcode 1";
+
+          let fallbackData = {
+            jenisBarcode: predictedType,
+            panjang: 0,
+            lebar: 0,
+            potongan: 0,
+            persegi: 0,
+            golongan: "DATA MASTER BELUM ADA",
+          };
+
+          scannedCodesSet.add(code);
+          simpanData(code, format, fallbackData);
+          Toast.fire({ icon: "success", title: "Scan Cepat Berhasil" });
         }
-      }
-
-      function promptNewMasterData(code, format) {
-        if (isScanning) toggleScan();
-        let predictedType = "Barcode 3";
-        if (code.startsWith("159") || code.startsWith("10"))
-          predictedType = "Barcode 2";
-        else if (code.startsWith("86")) predictedType = "Barcode 1";
-
-        Swal.fire({
-          title: "Master Data Baru!",
-          html: `
-            <div style="font-size:0.85rem; color:#38bdf8; margin-bottom:15px; text-align:left;">Sistem mendeteksi Nomor Barcode yang belum dikenali:<br><b style="color:white; font-size:1rem;">${code}</b><br><br>Silakan masukkan dimensinya 1x saja. Sistem akan mengingatnya selamanya.</div>
-            <select id="m-jenis" class="swal2-input" style="width: 90%; font-size:14px; margin-bottom:8px;">
-              <option value="Barcode 3" ${predictedType === "Barcode 3" ? "selected" : ""}>Ini Barcode 3</option>
-              <option value="Barcode 2" ${predictedType === "Barcode 2" ? "selected" : ""}>Ini Barcode 2</option>
-              <option value="Barcode 1" ${predictedType === "Barcode 1" ? "selected" : ""}>Ini Barcode 1</option>
-            </select>
-            <input id="m-gol" class="swal2-input" placeholder="Golongan (Cth: FFP / 10(3))" style="width: 90%; font-size:14px; margin-bottom:8px;">
-            <input id="m-p" type="number" class="swal2-input" placeholder="Panjang (Cth: 300)" style="width: 90%; font-size:14px; margin-bottom:8px;">
-            <input id="m-l" type="number" step="0.1" class="swal2-input" placeholder="Lebar (Cth: 13.5)" style="width: 90%; font-size:14px; margin-bottom:8px;">
-            <input id="m-pot" type="number" class="swal2-input" placeholder="Potongan (Cth: 24)" style="width: 90%; font-size:14px; margin-bottom:8px;">
-          `,
-          showCancelButton: true,
-          confirmButtonText: '<i class="fas fa-save"></i> Simpan',
-          cancelButtonText: "Batal",
-          confirmButtonColor: "var(--primary)",
-          preConfirm: () => {
-            const j = document.getElementById("m-jenis").value;
-            const g = document.getElementById("m-gol").value.trim();
-            const p = parseFloat(document.getElementById("m-p").value);
-            const l = parseFloat(document.getElementById("m-l").value);
-            const pot = parseInt(document.getElementById("m-pot").value);
-            if (!g || isNaN(p) || isNaN(l) || isNaN(pot)) {
-              Swal.showValidationMessage(
-                `Semua kolom angka wajib diisi dengan benar!`,
-              );
-              return false;
-            }
-            const m2 = ((p * l * pot) / 10000).toFixed(2);
-            return {
-              jenisBarcode: j,
-              golongan: g,
-              panjang: p,
-              lebar: l,
-              potongan: pot,
-              persegi: m2,
-            };
-          },
-        }).then((res) => {
-          if (res.isConfirmed) {
-            masterDB[code] = res.value;
-            localStorage.setItem("SCMMasterDB", JSON.stringify(masterDB));
-            scannedCodesSet.add(code);
-            simpanData(code, format, res.value);
-          }
-          if (document.getElementById("view-scan").classList.contains("active"))
-            setTimeout(toggleScan, 500);
-        });
       }
 
       async function toggleScan() {
@@ -1598,12 +1573,12 @@
             btn.classList.add("stop");
             isScanning = true;
 
-            /* SWEET SPOT RESOLUSI (1080p): Sangat jernih untuk barcode 2, namun tidak membuat HP kentang menjadi lag */
+            /* MENGGUNAKAN STANDAR 1080p AGAR SEMUA HP/ANDROID/IPHONE TIDAK LAG NAMUN TETAP JERNIH */
             let constraints = {
               video: {
                 facingMode: { ideal: currentCam },
-                width: { ideal: 1920, min: 1280 },
-                height: { ideal: 1080, min: 720 },
+                width: { ideal: 1920 },
+                height: { ideal: 1080 },
               },
             };
 
@@ -1651,17 +1626,15 @@
                     );
                 } catch (e) {}
 
-                /* THROTTLING: Memberikan JEDA 100ms agar CPU tidak terkuras dan layar tetap Smooth (Anti-Lag) */
-                setTimeout(() => {
-                  if (isScanning)
-                    scanLoopFrame = requestAnimationFrame(detectLoop);
-                }, 100);
+                /* FULL SPEED: Request frame asli tanpa setTimeout delay (0ms) untuk scan sangat cepat */
+                if (isScanning)
+                  scanLoopFrame = requestAnimationFrame(detectLoop);
               };
               scanLoopFrame = requestAnimationFrame(detectLoop);
             } else {
               zxingReader = new ZXing.BrowserMultiFormatReader(getZXingHints());
-              /* THROTTLING: Jeda 150ms agar pergerakan kamera tidak patah-patah di HP murah/lama */
-              zxingReader.timeBetweenDecodingAttempts = 150;
+              /* EXTREME SPEED ZXING: 10ms antar frame pemindaian */
+              zxingReader.timeBetweenDecodingAttempts = 10;
               zxingReader.decodeFromStream(
                 stream,
                 "videoElement",
@@ -1819,7 +1792,6 @@
         allData.push(newData);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
         triggerFeedback();
-        Toast.fire({ icon: "success", title: `Disimpan ke ${newData.jenis}` });
         if (
           document.getElementById("view-session").classList.contains("active")
         )
@@ -1846,10 +1818,13 @@
         }
         dataArray.forEach((i, idx) => {
           const tr = document.createElement("tr");
+          let dataStatusClass =
+            i.golongan === "DATA MASTER BELUM ADA" ? "badge warning" : "badge";
+
           if (tableIdStr.includes("Db")) {
-            tr.innerHTML = `<td>${idx + 1}</td><td><span class="badge">${i.kode.substring(0, 10)}...</span></td><td><b>${i.golongan}</b></td><td>${i.panjang}</td><td>${i.lebar}</td><td>${i.potongan}</td><td>${i.persegi}</td><td>${formatTgl(i.tanggal)}</td><td>${i.jam.substring(0, 5)}</td><td><button class="btn-del" onclick="hapus(${i.id}, 'db')"><i class="fas fa-trash"></i></button></td>`;
+            tr.innerHTML = `<td>${idx + 1}</td><td><span class="${dataStatusClass}">${i.kode.substring(0, 10)}...</span></td><td><b>${i.golongan}</b></td><td>${i.panjang}</td><td>${i.lebar}</td><td>${i.potongan}</td><td>${i.persegi}</td><td>${formatTgl(i.tanggal)}</td><td>${i.jam.substring(0, 5)}</td><td><button class="btn-del" onclick="hapus(${i.id}, 'db')"><i class="fas fa-trash"></i></button></td>`;
           } else {
-            tr.innerHTML = `<td>${idx + 1}</td><td><span class="badge">${i.kode.substring(0, 10)}...</span></td><td><b>${i.golongan}</b></td><td>${i.panjang}</td><td>${i.lebar}</td><td>${i.potongan}</td><td>${i.persegi}</td><td>${i.jam.substring(0, 5)}</td><td><button class="btn-del" onclick="hapus(${i.id}, 'today')"><i class="fas fa-trash"></i></button></td>`;
+            tr.innerHTML = `<td>${idx + 1}</td><td><span class="${dataStatusClass}">${i.kode.substring(0, 10)}...</span></td><td><b>${i.golongan}</b></td><td>${i.panjang}</td><td>${i.lebar}</td><td>${i.potongan}</td><td>${i.persegi}</td><td>${i.jam.substring(0, 5)}</td><td><button class="btn-del" onclick="hapus(${i.id}, 'today')"><i class="fas fa-trash"></i></button></td>`;
           }
           tbody.appendChild(tr);
         });
@@ -2072,6 +2047,49 @@
           headStyles: { fillColor: [59, 130, 246] },
         });
         doc.save(`Laporan_DSN_${label}_${new Date().getTime()}.pdf`);
+      }
+
+      function importMasterExcel(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: "array" });
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          const jsonMaster = XLSX.utils.sheet_to_json(worksheet);
+          let addedCount = 0;
+
+          jsonMaster.forEach((row) => {
+            if (row.KodeBarcode && row.Panjang && row.Lebar) {
+              let p = parseFloat(row.Panjang);
+              let l = parseFloat(row.Lebar);
+              let pot = parseInt(row.Potongan) || 0;
+              let m2 = ((p * l * pot) / 10000).toFixed(2);
+              masterDB[row.KodeBarcode.toString().toUpperCase().trim()] = {
+                jenisBarcode: row.Jenis || "Barcode 2",
+                golongan: row.Golongan || "-",
+                panjang: p,
+                lebar: l,
+                potongan: pot,
+                persegi: m2,
+              };
+              addedCount++;
+            }
+          });
+          localStorage.setItem("SCMMasterDB", JSON.stringify(masterDB));
+          Swal.fire({
+            title: "Import Berhasil!",
+            text: `${addedCount} Data Master diunggah. Scanner siap tanpa input manual!`,
+            icon: "success",
+            background: "rgba(15, 23, 42, 0.95)",
+            color: "#fff",
+            confirmButtonColor: "var(--success)",
+          });
+          event.target.value = "";
+        };
+        reader.readAsArrayBuffer(file);
       }
     </script>
   </body>
