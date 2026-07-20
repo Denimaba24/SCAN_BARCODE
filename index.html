@@ -840,7 +840,7 @@
       <div id="view-scan" class="view-page active">
         <div class="card">
           <div class="card-header">
-            <i class="fas fa-camera-viewfinder"></i> Semoga Bisa Scan
+            <i class="fas fa-camera-viewfinder"></i> SCAN YA BOSSS!!!
           </div>
           <div class="scanner-wrapper">
             <div class="scanner-container" id="scannerBox">
@@ -883,8 +883,7 @@
               font-weight: bold;
             "
           >
-            *Pemindai Ultra-Cepat aktif. Sistem otomatis menyaring Barcode 2
-            dari gangguan pembacaan lain.
+
           </p>
 
           <div class="input-group" style="margin-top: 15px; margin-bottom: 0">
@@ -1363,7 +1362,7 @@
         document.getElementById("engineBadge").style.display = "inline-block";
       }
 
-      /* HINTS: MEMBUKA SEMUA KEMUNGKINAN BARCODE AGAR BISA TERBACA INSTAN (0ms DELAY) */
+      /* OPTIMASI ENGINE ZXING KHUSUS BARCODE PANJANG */
       function getZXingHints() {
         try {
           const hints = new Map();
@@ -1371,11 +1370,7 @@
           hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
             ZXing.BarcodeFormat.CODE_128,
             ZXing.BarcodeFormat.CODE_39,
-            ZXing.BarcodeFormat.CODE_93,
-            ZXing.BarcodeFormat.ITF,
-            ZXing.BarcodeFormat.CODABAR,
             ZXing.BarcodeFormat.EAN_13,
-            ZXing.BarcodeFormat.EAN_8,
             ZXing.BarcodeFormat.UPC_A,
           ]);
           return hints;
@@ -1389,6 +1384,8 @@
           audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === "suspended") audioCtx.resume();
       }
+
+      let masterDB = JSON.parse(localStorage.getItem("SCMMasterDB")) || {};
 
       function parseBarcode1(raw) {
         if (raw.startsWith("86") && raw.length >= 24) {
@@ -1423,13 +1420,13 @@
         return null;
       }
 
-      /* LOGIKA PEMINDAIAN ULTRA-SMART (ANTI-GAGAL KHUSUS ANDROID) */
+      /* LOGIKA PEMINDAIAN ULTRA-SMART (ANTI-GAGAL) */
       function processBarcodeDetected(rawCode, format) {
-        let code = rawCode.replace(/[\s\r\n]/g, "").toUpperCase();
+        let code = rawCode.replace(/[\s\r\n\-]/g, "").toUpperCase();
         let codeZero = code.replace(/O/g, "0");
 
-        // SARINGAN 1: Abaikan data sampah, URL, dan nomor pendek palsu
-        if (code.length < 15 || code.includes("HTTP")) return;
+        /* FILTER 1: Hindari data sampah yang terlalu pendek, seperti salah baca kamera */
+        if (code.length < 5 || code.includes("HTTP")) return;
 
         if (scannedCodesSet.has(code) || scannedCodesSet.has(codeZero)) {
           const now = Date.now();
@@ -1441,7 +1438,7 @@
           return;
         }
 
-        // CARA KERJA BARCODE 1 (Tidak Diubah)
+        // 1. CARA KERJA BARCODE 1 (Aman)
         let b1Data = parseBarcode1(code);
         if (b1Data) {
           scannedCodesSet.add(code);
@@ -1449,11 +1446,30 @@
           return;
         }
 
-        // CARA KERJA BARCODE 2: DIJAMIN MASUK & LANGSUNG MUNCUL UKURANNYA
+        // 2. CEK DATABASE MASTER
+        let matchedKey = Object.keys(masterDB).find((k) => {
+          let kZero = k.replace(/O/g, "0");
+          return (
+            kZero === codeZero ||
+            codeZero.includes(kZero) ||
+            kZero.includes(codeZero) ||
+            (codeZero.length >= 15 &&
+              kZero.substring(0, 15) === codeZero.substring(0, 15))
+          );
+        });
+
+        if (matchedKey) {
+          scannedCodesSet.add(code);
+          simpanData(code, format, masterDB[matchedKey]);
+          return;
+        }
+
+        // 3. BARCODE 2 (AUTO-FILL PINTAR UNTUK MENGHINDARI SALAH BACA ANGKA ATAS)
         if (
           codeZero.startsWith("159") ||
           codeZero.startsWith("10") ||
-          codeZero.includes("014085")
+          codeZero.includes("014085") ||
+          codeZero.length === 28
         ) {
           let autoB2 = {
             jenisBarcode: "Barcode 2",
@@ -1468,7 +1484,7 @@
           return;
         }
 
-        // CARA KERJA BARCODE 3 (Tidak Diubah)
+        // 4. BARCODE 3 (AUTO-FILL PINTAR)
         if (
           codeZero.startsWith("111") ||
           codeZero.includes("8081") ||
@@ -1501,6 +1517,18 @@
           simpanData(code, format, autoB3);
           return;
         }
+
+        // 5. DATA LAINNYA
+        let fallbackData = {
+          jenisBarcode: "Lainnya",
+          panjang: 0,
+          lebar: 0,
+          potongan: 0,
+          persegi: 0,
+          golongan: "DATA TIDAK ADA",
+        };
+        scannedCodesSet.add(code);
+        simpanData(code, format, fallbackData);
       }
 
       async function toggleScan() {
@@ -1545,26 +1573,24 @@
             btn.classList.add("stop");
             isScanning = true;
 
-            /* SETINGAN KHUSUS SEMUA ANDROID (NATIVE WIDE HD) */
+            /* MENGGUNAKAN FALLBACK RESOLUSI: Menjamin Kamera Terbuka Di Semua HP Tanpa Patah-Patah */
             let stream;
-            let constraints = {
-              video: {
-                facingMode: { ideal: currentCam },
-                width: { ideal: 1280 },
-                height: { ideal: 720 },
-                advanced: [{ focusMode: "continuous" }],
-              },
-            };
-
             try {
-              stream = await navigator.mediaDevices.getUserMedia(constraints);
+              stream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                  facingMode: { ideal: currentCam },
+                  width: { ideal: 1920 },
+                  height: { ideal: 1080 },
+                  advanced: [{ focusMode: "continuous" }],
+                },
+              });
             } catch (e1) {
               try {
                 stream = await navigator.mediaDevices.getUserMedia({
                   video: {
                     facingMode: { ideal: currentCam },
-                    width: { ideal: 640 },
-                    height: { ideal: 480 },
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 },
                   },
                 });
               } catch (e2) {
@@ -1599,15 +1625,16 @@
                       }
                     } catch (e) {}
                   }
+                  /* REQUEST ANIMATION FRAME UNTUK DETEKSI KILAT (0ms) TANPA SET TIMEOUT */
                   if (isScanning)
-                    setTimeout(() => requestAnimationFrame(detectLoop), 50);
+                    scanLoopFrame = requestAnimationFrame(detectLoop);
                 };
                 scanLoopFrame = requestAnimationFrame(detectLoop);
               } else {
                 zxingReader = new ZXing.BrowserMultiFormatReader(
                   getZXingHints(),
                 );
-                zxingReader.timeBetweenDecodingAttempts = 50;
+                zxingReader.timeBetweenDecodingAttempts = 0;
                 zxingReader.decodeFromStream(
                   stream,
                   "videoElement",
@@ -1793,7 +1820,8 @@
         }
         dataArray.forEach((i, idx) => {
           const tr = document.createElement("tr");
-          let dataStatusClass = "badge";
+          let dataStatusClass =
+            i.golongan === "DATA TIDAK ADA" ? "badge warning" : "badge";
 
           if (tableIdStr.includes("Db")) {
             tr.innerHTML = `<td>${idx + 1}</td><td><span class="${dataStatusClass}">${i.kode.substring(0, 10)}...</span></td><td><b>${i.golongan}</b></td><td>${i.panjang}</td><td>${i.lebar}</td><td>${i.potongan}</td><td>${i.persegi}</td><td>${formatTgl(i.tanggal)}</td><td>${i.jam.substring(0, 5)}</td><td><button class="btn-del" onclick="hapus(${i.id}, 'db')"><i class="fas fa-trash"></i></button></td>`;
@@ -1930,7 +1958,7 @@
 
       function exportToExcel(dataArray, label) {
         const wb = XLSX.utils.book_new();
-        const types = ["Barcode 1", "Barcode 2", "Barcode 3"];
+        const types = ["Barcode 1", "Barcode 2", "Barcode 3", "Lainnya"];
         types.forEach((type) => {
           const typeData = dataArray.filter((i) => i.jenis === type);
           if (typeData.length > 0) {
