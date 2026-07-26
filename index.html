@@ -587,29 +587,23 @@
       }
 
       /* ===================================================================
-         BOTTOM NAV - 3D FLOATING DOCK
+         BOTTOM NAV - FIXED & ALWAYS VISIBLE LABELS
          =================================================================== */
       .bottom-nav {
         position: fixed;
-        bottom: calc(16px + env(safe-area-inset-bottom));
-        left: 50%;
-        transform: translateX(-50%) translateZ(50px);
-        width: calc(100% - 28px);
-        max-width: 500px;
-        background: rgba(15, 23, 42, 0.85);
+        bottom: 0; /* Menempel persis di bawah layar */
+        left: 0;
+        width: 100%;
+        background: rgba(15, 23, 42, 0.95);
         backdrop-filter: blur(48px) saturate(200%);
         -webkit-backdrop-filter: blur(48px) saturate(200%);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 50px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 24px 24px 0 0; /* Melengkung di sudut atas saja */
         display: flex;
-        justify-content: space-between;
-        padding: 5px;
-        z-index: var(--z-depth-4);
-        box-shadow:
-          0 25px 50px -12px rgba(0, 0, 0, 0.8),
-          inset 0 1px 1px rgba(255, 255, 255, 0.15),
-          0 0 0 1px rgba(255, 255, 255, 0.03);
-        transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        justify-content: space-around; /* Jarak merata antar menu */
+        padding: 12px 10px calc(12px + env(safe-area-inset-bottom));
+        z-index: 9999; /* Memastikan menu selalu berada di layer paling atas */
+        box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.6);
       }
 
       .nav-item {
@@ -617,33 +611,33 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 3px;
+        gap: 6px;
         color: var(--text-muted);
         cursor: pointer;
         flex: 1;
         padding: 8px 4px;
-        border-radius: 40px;
-        transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+        border-radius: 16px;
+        transition: all 0.3s ease;
         position: relative;
         text-decoration: none;
-        transform: translateZ(0);
       }
 
       .nav-item i {
-        font-size: 1.2rem;
-        transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        font-size: 1.3rem;
+        transition: all 0.3s ease;
         position: relative;
         z-index: 2;
       }
 
+      /* Keterangan Menu Dibuat Selalu Tampil */
       .nav-item span {
-        font-size: 0.55rem;
+        font-size: 0.65rem;
         font-weight: 800;
         letter-spacing: 0.5px;
-        opacity: 0;
-        height: 0;
-        overflow: hidden;
-        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        opacity: 1; /* Selalu tampil */
+        height: auto; /* Menyesuaikan tinggi otomatis */
+        overflow: visible;
+        transition: all 0.3s ease;
         position: relative;
         z-index: 2;
       }
@@ -652,43 +646,41 @@
         content: "";
         position: absolute;
         inset: 0;
-        border-radius: 40px;
+        border-radius: 16px;
         background: linear-gradient(
           135deg,
           rgba(99, 102, 241, 0.15),
           rgba(6, 182, 212, 0.1)
         );
         opacity: 0;
-        transition: opacity 0.5s ease;
-        transform: translateZ(-5px);
+        transition: opacity 0.3s ease;
       }
 
+      /* State Saat Menu Aktif / Diklik */
       .nav-item.active {
-        color: #ffffff;
+        color: #fff;
       }
 
       .nav-item.active::before {
         opacity: 1;
-        box-shadow: 0 4px 20px rgba(99, 102, 241, 0.2);
+        box-shadow: 0 4px 20px rgba(99, 102, 241, 0.1);
       }
 
       .nav-item.active i {
-        transform: translateY(-3px) scale(1.15);
+        transform: translateY(-2px) scale(1.1);
         background: linear-gradient(135deg, var(--primary), var(--secondary));
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
-        filter: drop-shadow(0 0 15px var(--primary-glow));
+        filter: drop-shadow(0 0 10px var(--primary-glow));
       }
 
       .nav-item.active span {
-        opacity: 1;
-        height: 12px;
-        margin-top: 1px;
+        color: #fff;
       }
 
       .nav-item:active {
-        transform: scale(0.9);
+        transform: scale(0.92);
       }
 
       /* ===================================================================
